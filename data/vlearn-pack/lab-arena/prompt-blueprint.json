@@ -1,0 +1,66 @@
+{
+  "id": "prompt-blueprint",
+  "order": 2,
+  "topic": "Prompt fundamentals",
+  "difficulty": "Cơ bản",
+  "xp": 100,
+  "course": "AI Odyssey",
+  "lesson": "Ngày 4 · Prompt engineering & tool calling",
+  "title": "Dựng prompt có cấu trúc từ 4 thành phần",
+  "prompt": "Slide dạy prompt tốt gồm ROLE · TASK · CONTEXT · FORMAT, và nên cấu trúc hoá bằng thẻ XML để model bám đúng ràng buộc. Viết build_prompt() biến 4 mảnh rời thành một prompt có thẻ, bỏ phần rỗng thay vì để thẻ trống.",
+  "language": "python",
+  "function_name": "build_prompt",
+  "starter_code": "def build_prompt(role, task, context, output_format):\n    \"\"\"Ghép 4 thành phần thành prompt có thẻ XML.\"\"\"\n    # Hoàn thiện hàm bằng Python thuần\n    raise NotImplementedError(\"Viết code ở đây\")",
+  "rules": [
+    "Thứ tự thẻ: <role> → <context> → <task> → <output_format>.",
+    "Cắt khoảng trắng thừa hai đầu mỗi phần trước khi bọc thẻ.",
+    "Phần rỗng (hoặc chỉ có khoảng trắng) thì bỏ hẳn thẻ đó.",
+    "Nối các thẻ bằng ký tự xuống dòng; không có phần nào thì trả về chuỗi rỗng."
+  ],
+  "evidence": [
+    {
+      "id": "S04-07",
+      "title": "4 thành phần của prompt tốt",
+      "text": "ROLE · TASK · CONTEXT · FORMAT. Bắt đầu với Task + Format, chỉ thêm Role hoặc Context khi chúng thực sự cải thiện chất lượng.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 7"
+    },
+    {
+      "id": "S04-09",
+      "title": "Structured prompting — cấu trúc hoá để output ổn định",
+      "text": "Tách prompt thành thẻ/section rõ ràng giúp model bám đúng cấu trúc, ít quên ràng buộc, dễ chèn/đổi từng phần.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 9"
+    },
+    {
+      "id": "S04-10",
+      "title": "Dài hơn không phải tốt hơn",
+      "text": "Mỗi token thừa làm tăng chi phí, latency và nhiễu; ưu tiên độ rõ thay vì prompt dài.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 10"
+    }
+  ],
+  "tests": [
+    {
+      "arguments": ["ShopBot, trợ lý mua sắm", "Đề xuất 1 sản phẩm phù hợp", "User đang tìm sản phẩm trong một ngân sách", "Tiếng Việt, ngắn: tên + giá + lý do"],
+      "expected": "<role>ShopBot, trợ lý mua sắm</role>\n<context>User đang tìm sản phẩm trong một ngân sách</context>\n<task>Đề xuất 1 sản phẩm phù hợp</task>\n<output_format>Tiếng Việt, ngắn: tên + giá + lý do</output_format>",
+      "evidence_id": "S04-09",
+      "note": "Đủ 4 thành phần như ví dụ ShopBot trong slide"
+    },
+    {
+      "arguments": ["", "Tóm tắt 3 sản phẩm này thành 1 gợi ý", "", "Tối đa 3 câu"],
+      "expected": "<task>Tóm tắt 3 sản phẩm này thành 1 gợi ý</task>\n<output_format>Tối đa 3 câu</output_format>",
+      "evidence_id": "S04-07",
+      "note": "Chỉ Task + Format, không bịa thẻ rỗng"
+    },
+    {
+      "arguments": ["  ShopBot  ", "  Đề xuất 1 sản phẩm  ", "   ", " JSON "],
+      "expected": "<role>ShopBot</role>\n<task>Đề xuất 1 sản phẩm</task>\n<output_format>JSON</output_format>",
+      "evidence_id": "S04-10",
+      "note": "Cắt khoảng trắng thừa, context chỉ có khoảng trắng thì bỏ"
+    },
+    {
+      "arguments": ["", "", "", ""],
+      "expected": "",
+      "evidence_id": "S04-07",
+      "note": "Không có gì để nói thì không sinh thẻ nào"
+    }
+  ]
+}

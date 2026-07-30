@@ -58,6 +58,7 @@ class GameResult(BaseModel):
     mastery_delta: int = 0
     recovery_created: bool = False
     next_action: str
+    payload: dict = Field(default_factory=dict)
 
 
 class ProgressSummary(BaseModel):
@@ -65,4 +66,3 @@ class ProgressSummary(BaseModel):
     xp: int
     completed_modes: list[GameMode]
     recovery_queue_size: int
-

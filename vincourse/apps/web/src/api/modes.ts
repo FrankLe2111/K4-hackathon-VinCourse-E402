@@ -23,11 +23,11 @@ export function getProgress() {
   return apiGet<ProgressSummary>("/api/progress");
 }
 
-export function getModeSession(mode: GameMode) {
-  return apiGet<GameSession>(`/api/modes/${modePath[mode]}/session`);
+export function getModeSession(mode: GameMode, round?: number) {
+  const query = mode === "lab_arena" && round ? `?round=${round}` : "";
+  return apiGet<GameSession>(`/api/modes/${modePath[mode]}/session${query}`);
 }
 
 export function submitMode(mode: GameMode, request: GameSubmitRequest) {
   return apiPost<GameResult>(`/api/modes/${modePath[mode]}/submit`, request);
 }
-

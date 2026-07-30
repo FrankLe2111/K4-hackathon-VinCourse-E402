@@ -1,0 +1,73 @@
+{
+  "id": "tool-schema-check",
+  "order": 10,
+  "topic": "Thiết kế tool",
+  "difficulty": "Nâng cao",
+  "xp": 160,
+  "course": "AI Odyssey",
+  "lesson": "Ngày 4 · Prompt engineering & tool calling",
+  "title": "Soát tool schema trước khi gắn vào agent",
+  "prompt": "LLM đọc description như tài liệu hướng dẫn: schema mơ hồ thì model chọn sai tool hoặc truyền sai tham số. Viết check_tool_schema() trả về danh sách lỗi khai báo, để bắt lỗi ở bước review thay vì lúc agent chạy.",
+  "language": "python",
+  "function_name": "check_tool_schema",
+  "starter_code": "def check_tool_schema(schema):\n    \"\"\"schema: dict name, description, parameters, required.\n\n    Trả về list mã lỗi theo đúng thứ tự quy định.\n    \"\"\"\n    # Hoàn thiện hàm bằng Python thuần\n    raise NotImplementedError(\"Viết code ở đây\")",
+  "rules": [
+    "name rỗng hoặc chỉ có khoảng trắng → 'missing_name'.",
+    "description sau khi cắt khoảng trắng ngắn hơn 15 ký tự → 'weak_description'.",
+    "parameters rỗng → 'missing_parameters'.",
+    "Có tên trong required không nằm trong parameters → 'required_not_declared'.",
+    "Trả về list mã lỗi theo đúng thứ tự trên; schema sạch → list rỗng."
+  ],
+  "evidence": [
+    {
+      "id": "S04-33",
+      "title": "Tool schema: description là một contract",
+      "text": "Name ngắn rõ, description nói khi nào nên dùng tool, parameters mô tả kiểu và ý nghĩa, required cho biết thiếu gì thì chưa gọi được.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 33"
+    },
+    {
+      "id": "S04B-49",
+      "title": "Tool schema anatomy",
+      "text": "Nếu description mơ hồ, model sẽ chọn sai tool hoặc truyền sai arguments.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling.pdf · trang 49"
+    },
+    {
+      "id": "S04-38",
+      "title": "4 nguyên tắc thiết kế tool",
+      "text": "Single responsibility, idempotency, granularity hợp lý, test độc lập từng tool trước khi gắn vào agent.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 38"
+    }
+  ],
+  "tests": [
+    {
+      "arguments": [{"name": "search_products", "description": "Search products by keyword and max price.", "parameters": {"query": "string", "max_price": "int"}, "required": ["query"]}],
+      "expected": [],
+      "evidence_id": "S04-33",
+      "note": "Schema đủ 4 phần như ví dụ search_products"
+    },
+    {
+      "arguments": [{"name": "gmail", "description": "Use Gmail", "parameters": {"query": "string"}, "required": []}],
+      "expected": ["weak_description"],
+      "evidence_id": "S04B-49",
+      "note": "Description quá mơ hồ: không nói khi nào dùng"
+    },
+    {
+      "arguments": [{"name": "  ", "description": "Send a slack message to the sales channel.", "parameters": {"channel": "string"}, "required": ["channel"]}],
+      "expected": ["missing_name"],
+      "evidence_id": "S04-33",
+      "note": "Thiếu tên tool theo hành động cụ thể"
+    },
+    {
+      "arguments": [{"name": "calculate_budget", "description": "Tinh ngan sach con lai theo dem cho chuyen di.", "parameters": {}, "required": []}],
+      "expected": ["missing_parameters"],
+      "evidence_id": "S04-38",
+      "note": "Không khai báo tham số thì model không biết truyền gì"
+    },
+    {
+      "arguments": [{"name": "search_hotels", "description": "Tim khach san theo gia toi da moi dem.", "parameters": {"city": "string"}, "required": ["city", "max_price_per_night"]}],
+      "expected": ["required_not_declared"],
+      "evidence_id": "S04B-49",
+      "note": "required nhắc tới tham số chưa hề khai báo"
+    }
+  ]
+}

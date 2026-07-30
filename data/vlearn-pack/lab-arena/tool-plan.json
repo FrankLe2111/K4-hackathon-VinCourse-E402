@@ -1,0 +1,72 @@
+{
+  "id": "tool-plan",
+  "order": 6,
+  "topic": "Tool calling",
+  "difficulty": "Trung bình",
+  "xp": 140,
+  "course": "AI Odyssey",
+  "lesson": "Ngày 4 · Prompt engineering & tool calling",
+  "title": "Control flow của agent: gọi bao nhiêu tool cho mỗi hành vi",
+  "prompt": "Lab TravelBuddy có 4 hành vi: gợi ý bình thường (3 tool), ngân sách thiếu (2 tool), hỏi lại (0 tool) và từ chối (0 tool). Viết plan_tool_calls() quyết định chuỗi tool thay vì để model tự đoán.",
+  "language": "python",
+  "function_name": "plan_tool_calls",
+  "starter_code": "def plan_tool_calls(request):\n    \"\"\"request: dict destination, budget, nights, risky, cheapest_flight_total.\n\n    Trả về list tên tool theo đúng thứ tự gọi.\n    \"\"\"\n    # Hoàn thiện hàm bằng Python thuần\n    raise NotImplementedError(\"Viết code ở đây\")",
+  "rules": [
+    "risky là True → [] (từ chối, nhắc an toàn) — luật này ưu tiên cao nhất.",
+    "Thiếu destination, hoặc budget ≤ 0, hoặc nights ≤ 0 → [] (hỏi lại 1 câu).",
+    "budget < cheapest_flight_total → ['search_flights', 'calculate_budget'] rồi dừng, không gợi ý khách sạn.",
+    "Còn lại → ['search_flights', 'calculate_budget', 'search_hotels'] theo đúng chuỗi phụ thuộc."
+  ],
+  "evidence": [
+    {
+      "id": "S04-41",
+      "title": "3 tool-use pattern thường gặp",
+      "text": "Conditional (có cần tool không), chaining (output tool A là input tool B), parallel fetch + merge.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 41"
+    },
+    {
+      "id": "S04-50",
+      "title": "3 pattern map vào 4 hành vi của lab",
+      "text": "Case mơ hồ và case nguy hiểm ⇒ 0 tool; case bình thường ⇒ flights → budget → hotels; budget thiếu ⇒ dừng sau 2 tool.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 50"
+    },
+    {
+      "id": "S04-52",
+      "title": "4 hành vi agent phải xử lý đúng",
+      "text": "Normal recommend 3 tool · budget insufficient 2 tool · clarification 0 tool · guardrail refusal 0 tool.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 52"
+    }
+  ],
+  "tests": [
+    {
+      "arguments": [{"destination": "Đà Nẵng", "budget": 5000000, "nights": 2, "risky": false, "cheapest_flight_total": 990000}],
+      "expected": ["search_flights", "calculate_budget", "search_hotels"],
+      "evidence_id": "S04-50",
+      "note": "Case Đà Nẵng 5 triệu — đủ chuỗi 3 tool"
+    },
+    {
+      "arguments": [{"destination": "Đà Nẵng", "budget": 800000, "nights": 2, "risky": false, "cheapest_flight_total": 990000}],
+      "expected": ["search_flights", "calculate_budget"],
+      "evidence_id": "S04-52",
+      "note": "Ngân sách không đủ vé — dừng sau 2 tool"
+    },
+    {
+      "arguments": [{"destination": "", "budget": 5000000, "nights": 2, "risky": false, "cheapest_flight_total": 990000}],
+      "expected": [],
+      "evidence_id": "S04-52",
+      "note": "Thiếu điểm đến — hỏi lại, chưa gọi tool"
+    },
+    {
+      "arguments": [{"destination": "Đà Nẵng", "budget": 5000000, "nights": 0, "risky": false, "cheapest_flight_total": 990000}],
+      "expected": [],
+      "evidence_id": "S04-50",
+      "note": "Thiếu số đêm — vẫn là case hỏi lại"
+    },
+    {
+      "arguments": [{"destination": "Đà Nẵng", "budget": 5000000, "nights": 2, "risky": true, "cheapest_flight_total": 990000}],
+      "expected": [],
+      "evidence_id": "S04-52",
+      "note": "Yêu cầu nguy hiểm — từ chối dù dữ kiện đủ"
+    }
+  ]
+}

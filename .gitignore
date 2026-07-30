@@ -3,4 +3,5 @@ node_modules/
 *.env
 __pycache__/
 *.pyc
-eval/traces.jsonl
+eval/traces.json
+/frontend/

@@ -1,0 +1,72 @@
+{
+  "id": "approval-gate",
+  "order": 8,
+  "topic": "Control & guardrail",
+  "difficulty": "Nâng cao",
+  "xp": 160,
+  "course": "AI Odyssey",
+  "lesson": "Ngày 4 · Prompt · Context · Tool · Control",
+  "title": "Cổng approval: tách tool đọc khỏi tool ghi ra ngoài",
+  "prompt": "Slide C401 tách rõ read tool và write tool: hành động ghi ra ngoài chỉ được chạy khi approval_status = 'approved', chưa duyệt thì dừng ở draft. Viết route_action() làm lớp kiểm soát đó thay vì tin vào lời hứa của agent.",
+  "language": "python",
+  "function_name": "route_action",
+  "starter_code": "def route_action(action):\n    \"\"\"action: dict name, risk_level, approval_status.\n\n    Trả về 'execute', 'draft' hoặc 'block'.\n    \"\"\"\n    # Hoàn thiện hàm bằng Python thuần\n    raise NotImplementedError(\"Viết code ở đây\")",
+  "rules": [
+    "risk_level không nằm trong {'public_read', 'read_private_data', 'write_action'} → 'block'.",
+    "write_action + approval_status == 'approved' → 'execute'.",
+    "write_action mà chưa duyệt (pending, rỗng, bất kỳ giá trị nào khác) → 'draft'.",
+    "Hai mức đọc → 'execute'."
+  ],
+  "evidence": [
+    {
+      "id": "S04C-56",
+      "title": "Khai báo tool: read tách khỏi write",
+      "text": "read_email có time_range, sender, max_results; send_slack_message tách riêng và bắt buộc approval_status='approved' — agent đọc email, tạo draft, chỉ gửi khi user duyệt.",
+      "source_file": "slides/[C401] Slide bài giảng (Mai Anh).pdf · trang 56"
+    },
+    {
+      "id": "S04C-01",
+      "title": "Prompt · Context · Tool · Control",
+      "text": "Control: approval, eval, logging và guardrail — agent tốt phải biết dừng khi cần kiểm soát.",
+      "source_file": "slides/[C401] Slide bài giảng (Mai Anh).pdf · trang 1"
+    },
+    {
+      "id": "S04B-43",
+      "title": "Least privilege và human-in-the-loop",
+      "text": "Tool permissions tối thiểu cần thiết; yêu cầu confirm cho sensitive actions.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling.pdf · trang 43"
+    }
+  ],
+  "tests": [
+    {
+      "arguments": [{"name": "send_slack_message", "risk_level": "write_action", "approval_status": "approved"}],
+      "expected": "execute",
+      "evidence_id": "S04C-56",
+      "note": "Write tool đã được duyệt"
+    },
+    {
+      "arguments": [{"name": "send_slack_message", "risk_level": "write_action", "approval_status": "pending"}],
+      "expected": "draft",
+      "evidence_id": "S04C-56",
+      "note": "Chưa duyệt thì chỉ dừng ở draft"
+    },
+    {
+      "arguments": [{"name": "hold_booking", "risk_level": "write_action", "approval_status": ""}],
+      "expected": "draft",
+      "evidence_id": "S04C-01",
+      "note": "Không có approval_status cũng coi như chưa duyệt"
+    },
+    {
+      "arguments": [{"name": "read_email", "risk_level": "read_private_data", "approval_status": ""}],
+      "expected": "execute",
+      "evidence_id": "S04B-43",
+      "note": "Tool đọc chạy được, quyền đọc đã giới hạn ở schema"
+    },
+    {
+      "arguments": [{"name": "gmail", "risk_level": "unknown", "approval_status": "approved"}],
+      "expected": "block",
+      "evidence_id": "S04C-56",
+      "note": "Tool không khai báo rõ risk level thì chặn, dù có approval"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "cache-order",
+  "order": 5,
+  "topic": "Context engineering",
+  "difficulty": "Trung bình",
+  "xp": 120,
+  "course": "AI Odyssey",
+  "lesson": "Ngày 4 · Prompt engineering & tool calling",
+  "title": "Xếp lại prompt để không phá prompt cache",
+  "prompt": "Prompt caching chỉ tái dùng được phần prefix ổn định: tool defs và system prompt lên trước, input động để cuối. Viết order_blocks() sắp lại các khối prompt theo đúng quy tắc đó.",
+  "language": "python",
+  "function_name": "order_blocks",
+  "starter_code": "def order_blocks(blocks):\n    \"\"\"blocks: list các dict {'name': str, 'kind': 'tools'|'system'|'dynamic'}.\n\n    Trả về list name đã sắp xếp lại.\n    \"\"\"\n    # Hoàn thiện hàm bằng Python thuần\n    raise NotImplementedError(\"Viết code ở đây\")",
+  "rules": [
+    "Thứ tự nhóm: 'tools' → 'system' → 'dynamic'.",
+    "Trong cùng một nhóm, giữ nguyên thứ tự xuất hiện ban đầu.",
+    "Trả về list tên khối (str), không phải cả dict.",
+    "Danh sách rỗng thì trả về list rỗng."
+  ],
+  "evidence": [
+    {
+      "id": "S04-30",
+      "title": "Prompt caching: xếp phần tĩnh lên trước",
+      "text": "Phần tĩnh (tools + system) lên trước, input động để cuối. Đừng chèn nội dung động vào giữa prefix — sẽ phá cache.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 30"
+    },
+    {
+      "id": "S04-28",
+      "title": "Context window management",
+      "text": "System · History · Current input · Tools · Output — mỗi phần có vai trò riêng trong context window.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 28"
+    }
+  ],
+  "tests": [
+    {
+      "arguments": [[{"name": "user_input", "kind": "dynamic"}, {"name": "system_prompt", "kind": "system"}, {"name": "tool_defs", "kind": "tools"}]],
+      "expected": ["tool_defs", "system_prompt", "user_input"],
+      "evidence_id": "S04-30",
+      "note": "Input động đang nằm đầu prefix — phải đẩy xuống cuối"
+    },
+    {
+      "arguments": [[{"name": "tool_defs", "kind": "tools"}, {"name": "policy", "kind": "system"}, {"name": "rules", "kind": "system"}, {"name": "query", "kind": "dynamic"}]],
+      "expected": ["tool_defs", "policy", "rules", "query"],
+      "evidence_id": "S04-30",
+      "note": "Hai khối system giữ nguyên thứ tự tương đối"
+    },
+    {
+      "arguments": [[{"name": "query", "kind": "dynamic"}, {"name": "history", "kind": "dynamic"}]],
+      "expected": ["query", "history"],
+      "evidence_id": "S04-28",
+      "note": "Toàn khối động thì không đảo lung tung"
+    },
+    {
+      "arguments": [[]],
+      "expected": [],
+      "evidence_id": "S04-30",
+      "note": "Không có khối nào"
+    }
+  ]
+}

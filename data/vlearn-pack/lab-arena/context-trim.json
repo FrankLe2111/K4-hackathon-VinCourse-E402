@@ -1,0 +1,72 @@
+{
+  "id": "context-trim",
+  "order": 4,
+  "topic": "Context engineering",
+  "difficulty": "Trung bình",
+  "xp": 120,
+  "course": "AI Odyssey",
+  "lesson": "Ngày 4 · Prompt engineering & tool calling",
+  "title": "Cắt history cho vừa token budget",
+  "prompt": "Context là tài nguyên hữu hạn: đừng để history ăn hết chỗ dành cho output. Viết trim_history() giữ lại các lượt mới nhất còn nằm trong budget và bỏ dần lượt cũ — kiểu compression 'drop' trong slide.",
+  "language": "python",
+  "function_name": "trim_history",
+  "starter_code": "def trim_history(history, budget):\n    \"\"\"history: list các dict {'id': str, 'tokens': int}, cũ đứng trước.\n\n    Trả về list id được giữ, theo đúng thứ tự cũ → mới.\n    \"\"\"\n    # Hoàn thiện hàm bằng Python thuần\n    raise NotImplementedError(\"Viết code ở đây\")",
+  "rules": [
+    "Ưu tiên giữ lượt mới nhất, bỏ dần từ lượt cũ nhất.",
+    "Tổng tokens của phần giữ lại phải ≤ budget (bằng đúng budget vẫn được giữ).",
+    "Trả về list id theo thứ tự gốc cũ → mới, không phải thứ tự duyệt.",
+    "Nếu ngay cả lượt mới nhất đã vượt budget thì trả về list rỗng."
+  ],
+  "evidence": [
+    {
+      "id": "S04-10",
+      "title": "Token budget: dài hơn không phải tốt hơn",
+      "text": "Prompt càng dài, độ chính xác càng dễ giảm — model lạc giữa quá nhiều thông tin.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 10"
+    },
+    {
+      "id": "S04-28",
+      "title": "Context window management",
+      "text": "Token budget allocation cần chủ động: đừng để history, tools và examples ăn hết chỗ dành cho output.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 28"
+    },
+    {
+      "id": "S04-29",
+      "title": "Memory injection và context compression",
+      "text": "Summarize phần cũ, drop phần không còn liên quan, archive để fetch lại khi cần.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 29"
+    }
+  ],
+  "tests": [
+    {
+      "arguments": [[{"id": "m1", "tokens": 120}, {"id": "m2", "tokens": 80}, {"id": "m3", "tokens": 60}], 300],
+      "expected": ["m1", "m2", "m3"],
+      "evidence_id": "S04-28",
+      "note": "Budget dư thì giữ nguyên cả history"
+    },
+    {
+      "arguments": [[{"id": "m1", "tokens": 120}, {"id": "m2", "tokens": 80}, {"id": "m3", "tokens": 60}], 150],
+      "expected": ["m2", "m3"],
+      "evidence_id": "S04-29",
+      "note": "Drop lượt cũ nhất cho vừa budget"
+    },
+    {
+      "arguments": [[{"id": "m1", "tokens": 120}, {"id": "m2", "tokens": 80}, {"id": "m3", "tokens": 60}], 140],
+      "expected": ["m2", "m3"],
+      "evidence_id": "S04-10",
+      "note": "Đúng bằng budget vẫn được giữ"
+    },
+    {
+      "arguments": [[{"id": "m1", "tokens": 120}, {"id": "m2", "tokens": 80}, {"id": "m3", "tokens": 60}], 50],
+      "expected": [],
+      "evidence_id": "S04-28",
+      "note": "Lượt mới nhất đã vượt budget"
+    },
+    {
+      "arguments": [[], 100],
+      "expected": [],
+      "evidence_id": "S04-29",
+      "note": "History rỗng"
+    }
+  ]
+}

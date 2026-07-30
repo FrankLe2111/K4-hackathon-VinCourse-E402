@@ -1,0 +1,72 @@
+{
+  "id": "ground-answer",
+  "order": 9,
+  "topic": "Grounding & eval",
+  "difficulty": "Nâng cao",
+  "xp": 160,
+  "course": "AI Odyssey",
+  "lesson": "Ngày 4 · Prompt engineering & tool calling",
+  "title": "Bắt lỗi bịa số: câu trả lời phải bám output tool",
+  "prompt": "Grader của Lab 4 trừ điểm khi agent bịa giá hoặc khách sạn không có trong output tool. Viết find_ungrounded() liệt kê những giá trị agent nói ra mà tool chưa hề trả về — kiểm tra được bằng code thay vì đọc tay.",
+  "language": "python",
+  "function_name": "find_ungrounded",
+  "starter_code": "def find_ungrounded(answer_values, tool_values):\n    \"\"\"Trả về list giá trị agent nêu mà không có trong output tool.\"\"\"\n    # Hoàn thiện hàm bằng Python thuần\n    raise NotImplementedError(\"Viết code ở đây\")",
+  "rules": [
+    "Giữ nguyên thứ tự xuất hiện trong answer_values.",
+    "Giá trị lặp lại chỉ báo một lần.",
+    "So sánh chuỗi không phân biệt hoa/thường, đã cắt khoảng trắng hai đầu.",
+    "Câu trả lời grounded hoàn toàn → trả về list rỗng."
+  ],
+  "evidence": [
+    {
+      "id": "S04-51",
+      "title": "Grounding: tool output là nguồn sự thật",
+      "text": "Mọi con số phải đến từ output tool; bịa giá hoặc khách sạn không có là sai.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 51"
+    },
+    {
+      "id": "S04-57",
+      "title": "Grader chấm theo trọng số nào",
+      "text": "Keywords bắt buộc phải có trong câu trả lời; forbidden keywords (bịa / nguy hiểm) bị trừ điểm.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 57"
+    },
+    {
+      "id": "S04B-44",
+      "title": "Prompt evaluation framework",
+      "text": "Correctness đo bằng test case; safety đo bằng adversarial test case — chạy 10–20 case, dưới 90% pass thì phải sửa prompt.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling.pdf · trang 44"
+    }
+  ],
+  "tests": [
+    {
+      "arguments": [["VietJet 990k", "Sunset Beach Resort"], ["VietJet 990k", "Sunset Beach Resort", "Da Nang"]],
+      "expected": [],
+      "evidence_id": "S04-51",
+      "note": "Câu trả lời chỉ dùng dữ liệu từ tool"
+    },
+    {
+      "arguments": [["VietJet 990k", "Resort 5 sao 900k"], ["VietJet 990k", "Sunset Beach Resort"]],
+      "expected": ["Resort 5 sao 900k"],
+      "evidence_id": "S04-51",
+      "note": "Bịa thêm một khách sạn không có trong output tool"
+    },
+    {
+      "arguments": [["700k", "700k", "Sunset Beach Resort"], ["990k", "Sunset Beach Resort"]],
+      "expected": ["700k"],
+      "evidence_id": "S04-57",
+      "note": "Giá bịa lặp lại chỉ báo một lần"
+    },
+    {
+      "arguments": [["  vietjet 990k  "], ["VietJet 990k"]],
+      "expected": [],
+      "evidence_id": "S04B-44",
+      "note": "Khác hoa/thường và khoảng trắng vẫn tính là grounded"
+    },
+    {
+      "arguments": [["Tổng chi phí 3,2tr"], []],
+      "expected": ["Tổng chi phí 3,2tr"],
+      "evidence_id": "S04-51",
+      "note": "Tool chưa trả về gì mà agent đã nêu số"
+    }
+  ]
+}

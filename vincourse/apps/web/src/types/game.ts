@@ -51,6 +51,7 @@ export type GameResult = {
   mastery_delta: number;
   recovery_created: boolean;
   next_action: string;
+  payload: Record<string, unknown>;
 };
 
 export type ProgressSummary = {
@@ -59,4 +60,3 @@ export type ProgressSummary = {
   completed_modes: GameMode[];
   recovery_queue_size: number;
 };
-
