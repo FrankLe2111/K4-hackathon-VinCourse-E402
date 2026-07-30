@@ -20,10 +20,15 @@ const state = {
   aiSourceAttached: false,
   aiComplete: false,
   liveRole: "student",
-  liveStage: "lobby",
+  liveStage: "join",
+  liveInstructorStage: "setup",
+  liveCode: "VINC-24",
+  liveJoinError: "",
   liveAnswer: null,
   liveReasoning: "",
+  liveConfidence: null,
   liveSubmitted: false,
+  liveHintRevealed: false,
   labRun: false,
   labError: "",
   labCode: `import numpy as np
@@ -431,7 +436,38 @@ vi.push(
   ["The class won — your mistake became a mission", "Cả lớp chiến thắng — lỗi sai của bạn trở thành nhiệm vụ"],
   ["Wrong answers are not punished heavily; this misconception now has a clear recovery path.", "Câu sai không bị phạt nặng; hiểu lầm này đã có lộ trình khắc phục rõ ràng."],
   ["Recovery queued", "Đã xếp lịch khắc phục"], ["Recovery mission", "Nhiệm vụ khắc phục"], ["Repair this misconception", "Khắc phục hiểu lầm này"],
-  ["That intervention did not repair unstable gradients", "Can thiệp đó chưa khắc phục được gradient bất ổn"]
+  ["That intervention did not repair unstable gradients", "Can thiệp đó chưa khắc phục được gradient bất ổn"],
+  ["Simulated live demo", "Mô phỏng thi đấu trực tiếp"], ["Static browser data · no WebSocket or live AI scoring", "Dữ liệu tĩnh trên trình duyệt · không WebSocket hoặc AI chấm trực tiếp"],
+  ["ML Foundations · Team Battle", "Nền tảng ML · Thi đấu theo đội"], ["18 learners are waiting to diagnose the Broken Model together.", "18 học viên đang chờ cùng chẩn đoán Mô hình Hỏng."],
+  ["Demo code", "Mã demo"], ["Use demo code", "Dùng mã demo"], ["Explanation", "Giải thích"], ["Calibration", "Hiệu chỉnh"],
+  ["Make the mechanism clear", "Giải thích rõ cơ chế"], ["Match confidence to accuracy", "Khớp độ tự tin với độ chính xác"],
+  ["Team contribution is shown separately and does not add a fourth scoring category.", "Đóng góp đội được hiển thị riêng và không tạo thành tiêu chí tính điểm thứ tư."],
+  ["Your team is ready", "Đội của bạn đã sẵn sàng"], ["The instructor will start the shared challenge when every team is settled.", "Giảng viên sẽ bắt đầu thử thách chung khi các đội đã sẵn sàng."],
+  ["Starts in", "Bắt đầu sau"], ["Team assigned", "Đã xếp đội"], ["You are joining Huy, Mai Anh and Thanh Khoa for the diagnosis phase.", "Bạn sẽ cùng Huy, Mai Anh và Thanh Khoa tham gia giai đoạn chẩn đoán."],
+  ["Start simulated challenge", "Bắt đầu thử thách mô phỏng"], ["Leave room", "Rời phòng"], ["Room snapshot", "Tổng quan phòng"],
+  ["Learners joined", "Học viên tham gia"], ["4 teams ready", "4 đội sẵn sàng"], ["Challenge phases", "Giai đoạn thử thách"],
+  ["Diagnosis is first", "Bắt đầu bằng chẩn đoán"], ["Points available", "Điểm tối đa"], ["Choice + reasoning + confidence", "Lựa chọn + lập luận + độ tự tin"],
+  ["At least 20 characters. A plausible wrong explanation is accepted and becomes recovery evidence.", "Ít nhất 20 ký tự. Lập luận sai nhưng hợp lý vẫn được nhận và trở thành minh chứng khắc phục."],
+  ["This affects calibration points.", "Mục này ảnh hưởng điểm hiệu chỉnh."], ["Your response is locked while the instructor collects the remaining teams.", "Câu trả lời đã khóa trong khi giảng viên thu thập phản hồi từ các đội còn lại."],
+  ["You cannot edit this submission.", "Bạn không thể sửa bài đã nộp."], ["Simulate instructor reveal", "Mô phỏng giảng viên công bố"],
+  ["See how correctness, explanation, and confidence contributed to your evidence.", "Xem độ chính xác, giải thích và độ tự tin đóng góp vào minh chứng của bạn."],
+  ["Personal contribution to Team Gradient", "Đóng góp cá nhân cho Đội Gradient"], ["Your score", "Điểm của bạn"],
+  ["Confidence calibration", "Hiệu chỉnh độ tự tin"], ["Practice personal recovery", "Luyện tập khắc phục cá nhân"], ["Replay student demo", "Chơi lại demo học viên"],
+  ["Create Live Class Battle", "Tạo Thi đấu lớp học trực tiếp"], ["Choose how the class will face this shared challenge.", "Chọn cách cả lớp tham gia thử thách chung."],
+  ["Course", "Khóa học"], ["Boss challenge", "Thử thách Trùm"], ["Team mode", "Chế độ đội"], ["Question time", "Thời gian câu hỏi"],
+  ["Small teams", "Đội nhỏ"], ["Whole class", "Cả lớp"], ["90 seconds", "90 giây"], ["60 seconds", "60 giây"], ["Scoring model", "Cách tính điểm"],
+  ["Create room", "Tạo phòng"], ["Demo scope", "Phạm vi demo"], ["What will be simulated?", "Những gì được mô phỏng?"],
+  ["Join count, team assignment, timer, response distribution, misconception labels and scores are deterministic browser data.", "Số người tham gia, chia đội, đồng hồ, phân bố phản hồi, nhãn hiểu lầm và điểm đều là dữ liệu trình duyệt định sẵn."],
+  ["No realtime dependency", "Không phụ thuộc realtime"], ["This flow does not call WebSocket, backend APIs or AI scoring.", "Flow này không gọi WebSocket, API backend hoặc AI chấm điểm."],
+  ["Room is open", "Phòng đã mở"], ["Share the class code, then start when the four teams are ready.", "Chia sẻ mã lớp rồi bắt đầu khi bốn đội đã sẵn sàng."],
+  ["Cancel session", "Hủy phiên"], ["Waiting room", "Phòng chờ"], ["Start challenge", "Bắt đầu thử thách"],
+  ["Instructor control room", "Phòng điều khiển giảng viên"], ["End session", "Kết thúc phiên"], ["Next phase · Summary", "Giai đoạn tiếp · Tổng kết"],
+  ["Answers locked", "Đã khóa đáp án"], ["Reveal hint", "Công bố gợi ý"], ["Show explanation", "Hiện giải thích"], ["View class summary", "Xem tổng kết lớp"],
+  ["Instructor · Session summary", "Giảng viên · Tổng kết phiên"], ["The class defeated the Broken Model", "Cả lớp đã đánh bại Mô hình Hỏng"],
+  ["Turn the class misconception into a focused follow-up activity.", "Chuyển hiểu lầm của lớp thành hoạt động theo dõi tập trung."],
+  ["Session complete", "Phiên đã hoàn thành"], ["Team contributions", "Đóng góp của các đội"], ["Suggested follow-up", "Hoạt động tiếp theo đề xuất"],
+  ["Create another battle", "Tạo trận đấu khác"], ["Setup", "Thiết lập"], ["Lobby", "Phòng chờ"], ["Monitor", "Theo dõi"],
+  ["Lock", "Khóa"], ["Reveal", "Công bố"], ["Summary", "Tổng kết"], ["Join", "Tham gia"], ["Waiting", "Đang chờ"], ["Play", "Thi đấu"]
 );
 
 function translateUI(html) {
@@ -1262,87 +1298,257 @@ function bossBattle() {
     </div>`;
 }
 
-function liveBattle() {
-  if (state.role === "admin" || state.liveRole === "instructor") return instructorLive();
-  if (state.liveStage === "play") return studentLivePlay();
-  if (state.liveStage === "result") return studentLiveResult();
-  return `${pageHead("Mode 6 · Collaborate", "Live Class Battle", "Join your class and solve a shared boss challenge together.")}
-    <div class="grid two">
-      <section class="card soft-blue"><span class="status success">Live now</span><h2 style="margin-top:12px">ML Foundations · Team Battle</h2><p>Room VINC-24 · 18 learners joined</p><div class="field"><label>Class code</label><input class="input" value="VINC-24"></div><button class="button primary" style="margin-top:15px" data-action="join-live">Join battle</button></section>
-      <section class="card"><h3>How your team scores</h3><div class="list"><div class="list-item"><span class="circle-icon">40</span><div class="list-item-main"><strong>Correctness</strong><small>Choose the sound diagnosis</small></div></div><div class="list-item"><span class="circle-icon">40</span><div class="list-item-main"><strong>Explanation quality</strong><small>Make the reasoning clear</small></div></div><div class="list-item"><span class="circle-icon">20</span><div class="list-item-main"><strong>Confidence match</strong><small>Calibrate as a team</small></div></div></div></section>
-    </div>`;
-}
-
-function studentLivePlay() {
-  const choices = [
+const liveChallenge = {
+  room: "VINC-24",
+  title: "Rescue the Broken Model",
+  prompt: "A model has features ranging from 0–1 and 1–100,000. Its loss oscillates during gradient descent. What should your team try first?",
+  choices: [
     ["A", "Train for 10,000 more epochs"],
     ["B", "Standardize the features before training"],
     ["C", "Increase the learning rate"],
     ["D", "Remove the feature with the smaller range"]
-  ];
-  if (state.liveSubmitted) {
-    const selected = choices.find(choice => choice[0] === state.liveAnswer)?.[1] || "No answer";
-    return `${pageHead("Live room · VINC-24", "Answer submitted", "Your response is locked. Watch the class progress while the instructor collects the remaining teams.")}
-      <div class="layout-main">
-        <section class="card soft-green">
-          <div class="feedback-icon correct">✓</div><span class="status success">Team answer received</span>
-          <h2 style="margin-top:12px">Team Gradient submitted: ${selected}.</h2>
-          <p>Your explanation was added to the team response. The instructor will reveal the class misconception summary next.</p>
-          <div class="card flat" style="margin-top:18px"><div class="progress-label"><span>Class responses</span><strong>14 / 18</strong></div><div class="progress"><span style="width:78%"></span></div></div>
-          <button class="button primary" style="margin-top:18px" data-action="live-result">Simulate instructor reveal →</button>
-        </section>
-        <aside class="card"><h3>Team Gradient</h3><div class="list">
-          <div class="list-item"><span class="avatar">LM</span><div class="list-item-main"><strong>You</strong><small>Submitted · ${state.confidence} confidence</small></div><span class="status success">Ready</span></div>
-          <div class="list-item"><span class="avatar">HN</span><div class="list-item-main"><strong>Huy Nguyen</strong><small>Submitted</small></div><span class="status success">Ready</span></div>
-          <div class="list-item"><span class="avatar">MA</span><div class="list-item-main"><strong>Mai Anh</strong><small>Writing explanation</small></div><span class="status warning">Working</span></div>
-          <div class="list-item"><span class="avatar">TK</span><div class="list-item-main"><strong>Thanh Khoa</strong><small>Submitted</small></div><span class="status success">Ready</span></div>
-        </div></aside>
-      </div>`;
-  }
-  return `${pageHead("Live room · VINC-24", "Rescue the Broken Model", "Work with Team Gradient. Correctness, explanation quality, and confidence all count.", `<span class="status success">● Live · 01:24</span>`)}
+  ],
+  correct: "B"
+};
+
+function liveReasoningReady() {
+  return state.liveReasoning.trim().length >= 20;
+}
+
+function liveConfidenceLabel() {
+  return { low: "Low", medium: "Medium", high: "High" }[state.liveConfidence] || "";
+}
+
+function liveDemoLabel() {
+  return `<div class="live-demo-banner"><span class="status info">Simulated live demo</span><small>Static browser data · no WebSocket or live AI scoring</small></div>`;
+}
+
+function liveStageStrip(stages, current) {
+  const activeIndex = stages.indexOf(current);
+  return `<div class="live-stage-strip">${stages.map((stage, index) => `
+    <div class="live-stage ${index < activeIndex ? "done" : index === activeIndex ? "active" : ""}">
+      <span>${index < activeIndex ? "✓" : index + 1}</span><small>${stage}</small>
+    </div>`).join("")}</div>`;
+}
+
+function liveScoringCard() {
+  return `<section class="card"><h3>How your team scores</h3><div class="live-score-grid">
+    <div class="live-score"><strong>40</strong><span>Correctness</span><small>Choose the sound diagnosis</small></div>
+    <div class="live-score"><strong>40</strong><span>Explanation</span><small>Make the mechanism clear</small></div>
+    <div class="live-score"><strong>20</strong><span>Calibration</span><small>Match confidence to accuracy</small></div>
+  </div><p class="live-note">Team contribution is shown separately and does not add a fourth scoring category.</p></section>`;
+}
+
+function liveBattle() {
+  if (state.role === "admin" || state.liveRole === "instructor") return instructorLive();
+  const studentScreens = {
+    waiting: studentLiveWaiting,
+    play: studentLivePlay,
+    submitted: studentLiveSubmitted,
+    result: studentLiveResult
+  };
+  if (studentScreens[state.liveStage]) return studentScreens[state.liveStage]();
+  return `${pageHead("Mode 6 · Collaborate", "Live Class Battle", "Join your class and solve a shared boss challenge together.")}
+    ${liveDemoLabel()}
+    <div class="grid two live-entry-grid">
+      <section class="card soft-blue">
+        <span class="status success">Live now</span>
+        <h2>ML Foundations · Team Battle</h2>
+        <p>18 learners are waiting to diagnose the Broken Model together.</p>
+        <div class="field"><label for="live-code">Class code</label><input class="input" id="live-code" value="${escapeHTML(state.liveCode)}" autocomplete="off" aria-describedby="live-code-help"></div>
+        <small id="live-code-help">Demo code: <strong>${liveChallenge.room}</strong></small>
+        ${state.liveJoinError ? `<p class="live-form-error" role="alert">${escapeHTML(state.liveJoinError)}</p>` : ""}
+        <div class="button-row"><button class="button primary" data-action="join-live">Join battle</button><button class="button secondary" data-action="live-use-code">Use demo code</button></div>
+      </section>
+      ${liveScoringCard()}
+    </div>`;
+}
+
+function studentLiveWaiting() {
+  return `${pageHead(`Live room · ${liveChallenge.room}`, "Your team is ready", "The instructor will start the shared challenge when every team is settled.")}
+    ${liveDemoLabel()}
+    ${liveStageStrip(["Join", "Waiting", "Play", "Result"], "Waiting")}
+    <div class="layout-main">
+      <section class="card soft-blue live-waiting-card">
+        <div class="live-countdown"><span>Starts in</span><strong>03</strong></div>
+        <div><span class="status success">Team assigned</span><h2>Team Gradient</h2><p>You are joining Huy, Mai Anh and Thanh Khoa for the diagnosis phase.</p>
+        <div class="button-row"><button class="button primary" data-action="live-begin-question">Start simulated challenge</button><button class="button secondary" data-action="live-leave-room">Leave room</button></div></div>
+      </section>
+      <aside class="card"><h3>Room snapshot</h3><div class="list">
+        <div class="list-item"><span class="circle-icon">18</span><div class="list-item-main"><strong>Learners joined</strong><small>4 teams ready</small></div></div>
+        <div class="list-item"><span class="circle-icon">4</span><div class="list-item-main"><strong>Challenge phases</strong><small>Diagnosis is first</small></div></div>
+        <div class="list-item"><span class="circle-icon">80</span><div class="list-item-main"><strong>Points available</strong><small>Choice + reasoning + confidence</small></div></div>
+      </div></aside>
+    </div>`;
+}
+
+function studentLivePlay() {
+  return `${pageHead(`Live room · ${liveChallenge.room}`, liveChallenge.title, "Work with Team Gradient. Correctness, explanation quality, and confidence all count.", `<span class="status success">● Live · 01:24</span>`)}
+    ${liveDemoLabel()}
+    ${liveStageStrip(["Join", "Waiting", "Play", "Result"], "Play")}
     <div class="question-shell">
       <div class="boss-bar"><span style="width:42%"></span><strong>Class boss stability 42%</strong></div>
-      <div class="story-banner" style="margin-top:18px"><span class="circle-icon">2</span><div><strong>Phase 2 of 4 · Diagnose</strong><small>14 of 18 learners are answering</small></div></div>
+      <div class="story-banner live-question-meta"><span class="circle-icon">2</span><div><strong>Phase 2 of 4 · Diagnose</strong><small>14 of 18 learners are answering</small></div></div>
       <section class="card question-card">
         <span class="status info">Team challenge · 80 points</span>
-        <h2 style="margin-top:14px">A model has features ranging from 0–1 and 1–100,000. Its loss oscillates during gradient descent. What should your team try first?</h2>
-        <div class="answer-list">${choices.map(choice => `<button class="answer ${state.liveAnswer === choice[0] ? "selected" : ""}" data-live-answer="${choice[0]}"><span class="answer-key">${choice[0]}</span><span>${choice[1]}</span></button>`).join("")}</div>
-        <div class="field"><label>Explain your reasoning to the team</label><textarea class="textarea" id="live-reasoning" placeholder="Why is this the best first action?">${escapeHTML(state.liveReasoning)}</textarea><small>At least 20 characters; your explanation counts as much as the choice.</small></div>
-        <div class="card-head" style="margin-top:16px"><div><strong>Confidence</strong><small>This affects calibration points.</small></div><div class="confidence">${["Low","Medium","High"].map(c => `<button class="${state.confidence === c ? "active" : ""}" data-confidence="${c}">${c}</button>`).join("")}</div></div>
-        <div class="button-row"><button class="button secondary" data-action="hint">Ask team for a hint</button><button class="button primary" data-action="submit-live-answer" ${state.liveAnswer && state.confidence && explainsScaling(state.liveReasoning) ? "" : "disabled"}>Submit for Team Gradient</button></div>
+        <h2>${liveChallenge.prompt}</h2>
+        <div class="answer-list">${liveChallenge.choices.map(choice => `<button class="answer ${state.liveAnswer === choice[0] ? "selected" : ""}" data-live-answer="${choice[0]}"><span class="answer-key">${choice[0]}</span><span>${choice[1]}</span></button>`).join("")}</div>
+        <div class="field"><label for="live-reasoning">Explain your reasoning to the team</label><textarea class="textarea" id="live-reasoning" placeholder="Why is this the best first action?">${escapeHTML(state.liveReasoning)}</textarea><small>At least 20 characters. A plausible wrong explanation is accepted and becomes recovery evidence.</small></div>
+        <div class="card-head live-confidence-row"><div><strong>Confidence</strong><small>This affects calibration points.</small></div><div class="confidence">${[["low","Low"],["medium","Medium"],["high","High"]].map(([value, label]) => `<button class="${state.liveConfidence === value ? "active" : ""}" data-live-confidence="${value}">${label}</button>`).join("")}</div></div>
+        <div class="button-row"><button class="button secondary" data-action="live-team-hint">Ask team for a hint</button><button class="button primary" data-action="submit-live-answer" ${state.liveAnswer && state.liveConfidence && liveReasoningReady() ? "" : "disabled"}>Submit for Team Gradient</button></div>
       </section>
     </div>`;
 }
 
+function studentLiveSubmitted() {
+  const selected = liveChallenge.choices.find(choice => choice[0] === state.liveAnswer)?.[1] || "No answer";
+  return `${pageHead(`Live room · ${liveChallenge.room}`, "Answer submitted", "Your response is locked while the instructor collects the remaining teams.")}
+    ${liveDemoLabel()}
+    ${liveStageStrip(["Join", "Waiting", "Play", "Result"], "Play")}
+    <div class="layout-main">
+      <section class="card soft-green">
+        <div class="feedback-icon correct">✓</div><span class="status success">Team answer received</span>
+        <h2>Team Gradient submitted: ${selected}.</h2>
+        <p>Your explanation and ${liveConfidenceLabel().toLowerCase()} confidence were added to the team response. You cannot edit this submission.</p>
+        <div class="card flat live-response-progress"><div class="progress-label"><span>Class responses</span><strong>14 / 18</strong></div><div class="progress"><span style="width:78%"></span></div></div>
+        <button class="button primary" data-action="live-result">Simulate instructor reveal</button>
+      </section>
+      <aside class="card"><h3>Team Gradient</h3><div class="list">
+        <div class="list-item"><span class="avatar">LM</span><div class="list-item-main"><strong>You</strong><small>Submitted · ${liveConfidenceLabel()} confidence</small></div><span class="status success">Ready</span></div>
+        <div class="list-item"><span class="avatar">HN</span><div class="list-item-main"><strong>Huy Nguyen</strong><small>Submitted</small></div><span class="status success">Ready</span></div>
+        <div class="list-item"><span class="avatar">MA</span><div class="list-item-main"><strong>Mai Anh</strong><small>Writing explanation</small></div><span class="status warning">Working</span></div>
+        <div class="list-item"><span class="avatar">TK</span><div class="list-item-main"><strong>Thanh Khoa</strong><small>Submitted</small></div><span class="status success">Ready</span></div>
+      </div></aside>
+    </div>`;
+}
+
+function liveCalibrationPoints(correct) {
+  if (correct) return { low: 10, medium: 16, high: 20 }[state.liveConfidence] || 0;
+  return { low: 14, medium: 8, high: 2 }[state.liveConfidence] || 0;
+}
+
 function studentLiveResult() {
-  if (state.liveAnswer !== "B") {
-    return `${pageHead("Live battle result", "The class won — your mistake became a mission", "Wrong answers are not punished heavily; this misconception now has a clear recovery path.")}
-      <section class="card soft-pink" style="text-align:center;padding:38px"><div class="feedback-icon" style="margin:0 auto 18px">!</div><div class="eyebrow">Recovery queued</div><h1>That intervention did not repair unstable gradients</h1><p>Your team contribution was recorded, and Feature Scaling is now prioritized in Error Dungeon.</p><div class="tag-row" style="justify-content:center"><span class="tag">+20 participation XP</span><span class="tag">Confidence calibration</span><span class="tag">Recovery mission</span></div></section>
-      <div class="button-row" style="margin-top:18px"><button class="button primary" data-route="recovery">Repair this misconception</button><button class="button secondary" data-action="restart-live">Replay battle</button></div>`;
-  }
-  return `${pageHead("Live battle result", "The class defeated the boss!", "Team Gradient contributed a correct diagnosis and a source-grounded explanation.")}
-    <section class="card soft-blue" style="text-align:center;padding:38px">
-      <div class="feedback-icon correct" style="margin:0 auto 18px">✓</div><div class="eyebrow">Battle complete</div>
-      <h1>Team Gradient placed #1</h1><p>Feature scaling was the decisive fix. The class corrected its most common misconception before the final phase.</p>
-      <div class="tag-row" style="justify-content:center"><span class="tag">+140 XP</span><span class="tag">Team contribution</span><span class="tag">Explanation evidence</span></div>
-    </section>
-    <div class="grid two" style="margin-top:18px">
-      <section class="card"><h2>Your evidence</h2><div class="list">
-        <div class="list-item"><span class="circle-icon">✓</span><div class="list-item-main"><strong>Correct diagnosis</strong><small>Standardized features before training</small></div><span class="status success">Earned</span></div>
-        <div class="list-item"><span class="circle-icon">↗</span><div class="list-item-main"><strong>Team explanation</strong><small>Connected feature scale to gradient stability</small></div><span class="status success">Earned</span></div>
-        <div class="list-item"><span class="circle-icon">◎</span><div class="list-item-main"><strong>Confidence calibration</strong><small>Confidence matched the correct answer</small></div><span class="status info">Matched</span></div>
-      </div></section>
-      <section class="card soft-pink"><span class="status error">Class misconception</span><h2 style="margin-top:12px">“More epochs fix unstable training”</h2><p>43% of the class initially chose this answer. The instructor recommends a short personal recovery mission.</p><div class="button-row"><button class="button primary" data-route="recovery">Start personal recovery</button><button class="button secondary" data-action="restart-live">Replay demo</button></div></section>
+  const correct = state.liveAnswer === liveChallenge.correct;
+  const correctness = correct ? 40 : 0;
+  const explanation = correct && explainsScaling(state.liveReasoning) ? 36 : 18;
+  const calibration = liveCalibrationPoints(correct);
+  const total = correctness + explanation + calibration;
+  const resultHero = correct
+    ? `<section class="card soft-blue live-result-hero"><div class="feedback-icon correct">✓</div><div><div class="eyebrow">Battle complete</div><h1>Team Gradient placed #1</h1><p>Your diagnosis connected feature scale to gradient stability and helped the class defeat the boss.</p></div></section>`
+    : `<section class="card soft-pink live-result-hero"><div class="feedback-icon">!</div><div><div class="eyebrow">Recovery queued</div><h1>The class won; your misconception became a mission</h1><p>Your contribution still counts, and Feature Scaling is now prioritized in personal recovery.</p></div></section>`;
+  return `${pageHead("Live battle result", correct ? "The class defeated the boss!" : "Review the decisive mechanism", "See how correctness, explanation, and confidence contributed to your evidence.")}
+    ${liveDemoLabel()}
+    ${liveStageStrip(["Join", "Waiting", "Play", "Result"], "Result")}
+    ${resultHero}
+    <div class="grid two live-result-grid">
+      <section class="card"><div class="card-head"><div><h2>Your score</h2><p>Personal contribution to Team Gradient</p></div><strong class="live-total-score">${total}/100</strong></div>
+        <div class="list">
+          <div class="list-item"><span class="circle-icon">${correctness}</span><div class="list-item-main"><strong>Correctness</strong><small>${correct ? "Standardize before training" : "Correct answer: standardize the features"}</small></div><span class="status ${correct ? "success" : "error"}">${correctness}/40</span></div>
+          <div class="list-item"><span class="circle-icon">${explanation}</span><div class="list-item-main"><strong>Explanation quality</strong><small>${correct ? "Connected scale to gradient behavior" : "Reasoning captured for recovery"}</small></div><span class="status info">${explanation}/40</span></div>
+          <div class="list-item"><span class="circle-icon">${calibration}</span><div class="list-item-main"><strong>Confidence calibration</strong><small>${liveConfidenceLabel()} confidence on a ${correct ? "correct" : "wrong"} answer</small></div><span class="status info">${calibration}/20</span></div>
+        </div>
+      </section>
+      <section class="card"><span class="status error">Class misconception · 43%</span><h2>“More epochs fix unstable training”</h2><p>More training repeats the same unstable update path. Standardization puts features on comparable ranges so gradient updates become balanced.</p>
+        <div class="button-row"><button class="button primary" data-route="recovery">${correct ? "Practice personal recovery" : "Repair this misconception"}</button><button class="button secondary" data-action="restart-live">Replay student demo</button></div>
+      </section>
+    </div>`;
+}
+
+function instructorLiveSetup() {
+  return `${pageHead("Instructor · Setup", "Create Live Class Battle", "Choose how the class will face this shared challenge.")}
+    ${liveDemoLabel()}
+    ${liveStageStrip(["Setup", "Lobby", "Monitor", "Lock", "Reveal", "Summary"], "Setup")}
+    <div class="layout-main">
+      <section class="card">
+        <div class="form-grid">
+          <div class="field"><label>Course</label><select class="select"><option>ML Foundations</option></select></div>
+          <div class="field"><label>Boss challenge</label><select class="select"><option>${liveChallenge.title}</option></select></div>
+          <div class="field"><label>Team mode</label><select class="select"><option>Small teams</option><option>Individual</option><option>Whole class</option></select></div>
+          <div class="field"><label>Question time</label><select class="select"><option>90 seconds</option><option>60 seconds</option></select></div>
+        </div>
+        <div class="separator"></div>
+        <h3>Scoring model</h3>
+        <div class="live-score-grid"><div class="live-score"><strong>40</strong><span>Correctness</span></div><div class="live-score"><strong>40</strong><span>Explanation</span></div><div class="live-score"><strong>20</strong><span>Calibration</span></div></div>
+        <button class="button primary live-primary-action" data-action="live-start-session">Create room</button>
+      </section>
+      <aside class="card soft-blue"><span class="status info">Demo scope</span><h3>What will be simulated?</h3><p>Join count, team assignment, timer, response distribution, misconception labels and scores are deterministic browser data.</p><div class="source-box"><strong>No realtime dependency</strong><small>This flow does not call WebSocket, backend APIs or AI scoring.</small></div></aside>
+    </div>`;
+}
+
+function instructorLiveLobby() {
+  return `${pageHead("Instructor · Waiting room", "Room is open", "Share the class code, then start when the four teams are ready.", `<button class="button danger-soft" data-action="live-cancel-session">Cancel session</button>`)}
+    ${liveDemoLabel()}
+    ${liveStageStrip(["Setup", "Lobby", "Monitor", "Lock", "Reveal", "Summary"], "Lobby")}
+    <div class="layout-main">
+      <section class="card soft-blue live-room-code"><span>Class code</span><strong>${liveChallenge.room}</strong><small>QR placeholder · expires after this simulated session</small><button class="button primary" data-action="live-open-challenge">Start challenge</button></section>
+      <aside class="card"><div class="card-head"><h3>Waiting room</h3><span class="status success">18 joined</span></div><div class="list">
+        <div class="list-item"><span class="circle-icon">G</span><div class="list-item-main"><strong>Team Gradient</strong><small>4 learners</small></div><span class="status success">Ready</span></div>
+        <div class="list-item"><span class="circle-icon">D</span><div class="list-item-main"><strong>Data Sparks</strong><small>5 learners</small></div><span class="status success">Ready</span></div>
+        <div class="list-item"><span class="circle-icon">V</span><div class="list-item-main"><strong>Vector Crew</strong><small>4 learners</small></div><span class="status success">Ready</span></div>
+        <div class="list-item"><span class="circle-icon">L</span><div class="list-item-main"><strong>Loss Hunters</strong><small>5 learners</small></div><span class="status success">Ready</span></div>
+      </div></aside>
+    </div>`;
+}
+
+function instructorLiveMonitor() {
+  const stage = state.liveInstructorStage;
+  const isLocked = ["locked", "reveal"].includes(stage);
+  const isReveal = stage === "reveal";
+  const stripStage = isReveal ? "Reveal" : isLocked ? "Lock" : "Monitor";
+  return `${pageHead("Instructor control room", "Live Class Battle", "Monitor class reasoning and respond to misconceptions as they appear.", `<button class="button danger-soft" data-action="end-live" ${isReveal ? "" : "disabled"}>End session</button>`)}
+    ${liveDemoLabel()}
+    ${liveStageStrip(["Setup", "Lobby", "Monitor", "Lock", "Reveal", "Summary"], stripStage)}
+    <div class="grid four">
+      <div class="card metric"><small>Room code</small><strong>${liveChallenge.room}</strong><span class="trend">18 joined</span></div>
+      <div class="card metric"><small>Current phase</small><strong>2 / 4</strong><span class="trend">Diagnosis</span></div>
+      <div class="card metric"><small>Responses</small><strong>${isLocked ? "18 / 18" : "14 / 18"}</strong><span class="trend">${isLocked ? "Answers locked" : "4 waiting"}</span></div>
+      <div class="card metric"><small>Top misconception</small><strong>43%</strong><span class="trend">More epochs</span></div>
+    </div>
+    <div class="layout-main live-monitor-layout">
+      <section class="card"><div class="card-head"><div><h2>Answer distribution</h2><p>${liveChallenge.prompt}</p></div><span class="status ${isLocked ? "warning" : "error"}">${isLocked ? "Answers locked" : "Misconception detected"}</span></div>
+        <div class="chart-bars"><div class="bar pink" style="height:43%" data-label="More epochs" data-value="43%"></div><div class="bar" style="height:36%" data-label="Scale features" data-value="36%"></div><div class="bar blue" style="height:14%" data-label="Higher LR" data-value="14%"></div><div class="bar" style="height:7%" data-label="Remove data" data-value="7%"></div></div>
+        ${state.liveHintRevealed ? `<div class="source-box live-reveal-box"><strong>Hint shared with class</strong><p>Compare how much each feature contributes to one gradient update.</p></div>` : ""}
+        ${isReveal ? `<div class="card soft-green flat live-reveal-box"><span class="status success">Correct answer · B</span><h3>Standardize the features before training</h3><p>Comparable feature scales produce more balanced gradient updates. Extra epochs do not repair an unstable optimization path.</p></div>` : ""}
+        <div class="button-row live-monitor-actions">
+          <button class="button secondary" data-action="live-reveal-hint" ${state.liveHintRevealed || isReveal ? "disabled" : ""}>Reveal hint</button>
+          <button class="button secondary" data-action="live-lock" ${isLocked ? "disabled" : ""}>Lock answers</button>
+          <button class="button primary" data-action="live-reveal" ${!isLocked || isReveal ? "disabled" : ""}>Show explanation</button>
+          ${isReveal ? `<button class="button blue" data-action="live-next-phase">Next phase · Summary</button>` : ""}
+        </div>
+      </section>
+      <aside class="card"><h3>Misconception stream</h3><div class="list">
+        <div class="list-item"><span class="circle-icon">!</span><div class="list-item-main"><strong>More epochs fix instability</strong><small>6 learners · rising</small></div></div>
+        <div class="list-item"><span class="circle-icon">!</span><div class="list-item-main"><strong>Higher LR is always faster</strong><small>2 learners</small></div></div>
+      </div><div class="separator"></div><h3>Team scores</h3><div class="list">
+        <div class="list-item"><strong class="live-rank">1</strong><div class="list-item-main"><strong>Team Gradient</strong><small>820 pts</small></div></div>
+        <div class="list-item"><strong class="live-rank">2</strong><div class="list-item-main"><strong>Data Sparks</strong><small>760 pts</small></div></div>
+        <div class="list-item"><strong class="live-rank">3</strong><div class="list-item-main"><strong>Vector Crew</strong><small>710 pts</small></div></div>
+      </div></aside>
+    </div>`;
+}
+
+function instructorLiveSummary() {
+  return `${pageHead("Instructor · Session summary", "The class defeated the Broken Model", "Turn the class misconception into a focused follow-up activity.")}
+    ${liveDemoLabel()}
+    ${liveStageStrip(["Setup", "Lobby", "Monitor", "Lock", "Reveal", "Summary"], "Summary")}
+    <section class="card soft-green live-summary-hero"><div class="feedback-icon correct">✓</div><div><span class="status success">Session complete</span><h1>18 learners · 4 teams · 1 misconception surfaced</h1><p>At least one final explanation was submitted and the simulated class misconception summary is ready.</p></div></section>
+    <div class="grid three live-summary-grid">
+      <section class="card"><h3>Team contributions</h3><div class="list"><div class="list-item"><strong class="live-rank">1</strong><div class="list-item-main"><strong>Team Gradient</strong><small>820 points · strongest explanation</small></div></div><div class="list-item"><strong class="live-rank">2</strong><div class="list-item-main"><strong>Data Sparks</strong><small>760 points · best calibration</small></div></div></div></section>
+      <section class="card soft-pink"><span class="status error">43% initially incorrect</span><h3>More epochs fix instability</h3><p>Assign a short recovery on why repeating an unstable update path does not solve the root cause.</p><button class="button primary" data-action="assign-recovery">Assign recovery</button></section>
+      <section class="card soft-blue"><span class="status info">Suggested follow-up</span><h3>Feature Scaling transfer</h3><p>Ask teams to diagnose the same scale mismatch in a new dataset.</p><button class="button secondary" data-action="restart-live">Create another battle</button></section>
     </div>`;
 }
 
 function instructorLive() {
-  return `${pageHead("Instructor control room", "Live Class Battle", "Monitor class reasoning and respond to misconceptions as they appear.", `<button class="button danger-soft" data-action="end-live">End session</button>`)}
-    <div class="grid four"><div class="card metric"><small>Room code</small><strong>VINC-24</strong><span class="trend">18 joined</span></div><div class="card metric"><small>Current phase</small><strong>2 / 4</strong><span class="trend">Diagnosis</span></div><div class="card metric"><small>Responses</small><strong>14 / 18</strong><span class="trend">4 waiting</span></div><div class="card metric"><small>Top misconception</small><strong>43%</strong><span class="trend">More epochs</span></div></div>
-    <div class="layout-main" style="margin-top:20px">
-      <section class="card"><div class="card-head"><div><h2>Answer distribution</h2><p>What should the team try first?</p></div><span class="status error">Misconception detected</span></div><div class="chart-bars"><div class="bar pink" style="height:43%" data-label="More epochs" data-value="43%"></div><div class="bar" style="height:36%" data-label="Scale features" data-value="36%"></div><div class="bar blue" style="height:14%" data-label="Higher LR" data-value="14%"></div><div class="bar" style="height:7%" data-label="Remove data" data-value="7%"></div></div><div class="button-row" style="margin-top:38px"><button class="button secondary" data-action="hint">Reveal hint</button><button class="button secondary" data-action="lock">Lock answers</button><button class="button primary" data-action="next-live">Show explanation</button></div></section>
-      <aside class="card"><h3>Misconception stream</h3><div class="list"><div class="list-item"><span class="circle-icon">!</span><div class="list-item-main"><strong>More epochs fix instability</strong><small>6 learners · rising</small></div></div><div class="list-item"><span class="circle-icon">!</span><div class="list-item-main"><strong>Higher LR is always faster</strong><small>2 learners</small></div></div></div><div class="separator"></div><h3>Team scores</h3><div class="list-item"><strong style="width:25px">1</strong><div class="list-item-main"><strong>Team Gradient</strong><small>820 pts</small></div></div><div class="list-item"><strong style="width:25px">2</strong><div class="list-item-main"><strong>Data Sparks</strong><small>760 pts</small></div></div></aside>
-    </div>`;
+  const instructorScreens = {
+    setup: instructorLiveSetup,
+    lobby: instructorLiveLobby,
+    monitor: instructorLiveMonitor,
+    locked: instructorLiveMonitor,
+    reveal: instructorLiveMonitor,
+    summary: instructorLiveSummary
+  };
+  return (instructorScreens[state.liveInstructorStage] || instructorLiveSetup)();
 }
 
 function aiAdversary() {
@@ -1489,6 +1695,8 @@ document.addEventListener("click", event => {
   if (checkpointDemoButton) { checkpointDemo(checkpointDemoButton.dataset.checkpointDemo); return; }
   const liveAnswer = event.target.closest("[data-live-answer]");
   if (liveAnswer) { state.liveAnswer = liveAnswer.dataset.liveAnswer; render(); return; }
+  const liveConfidence = event.target.closest("[data-live-confidence]");
+  if (liveConfidence) { state.liveConfidence = liveConfidence.dataset.liveConfidence; render(); return; }
   const recallAnswer = event.target.closest("[data-recall-answer]");
   if (recallAnswer) { state.recallAnswer = recallAnswer.dataset.recallAnswer; render(); return; }
   const recoverySimilar = event.target.closest("[data-recovery-similar]");
@@ -1651,36 +1859,100 @@ document.addEventListener("click", event => {
       state.confidence = null;
       render();
     },
+    "live-use-code": () => {
+      state.liveCode = liveChallenge.room;
+      state.liveJoinError = "";
+      render();
+    },
     "join-live": () => {
-      state.liveStage = "play";
+      if (state.liveCode.trim().toUpperCase() !== liveChallenge.room) {
+        state.liveJoinError = `Room ${state.liveCode.trim() || "—"} is not active. Use ${liveChallenge.room} for this demo.`;
+        render();
+        return;
+      }
+      state.liveStage = "waiting";
+      state.liveJoinError = "";
       state.liveSubmitted = false;
       state.liveAnswer = null;
       state.liveReasoning = "";
-      state.confidence = null;
+      state.liveConfidence = null;
       render();
       toast("Joined Team Gradient");
     },
+    "live-begin-question": () => {
+      state.liveStage = "play";
+      render();
+    },
+    "live-leave-room": () => {
+      state.liveStage = "join";
+      render();
+    },
+    "live-team-hint": () => showModal("Team hint", `<p>Compare how much each feature contributes to a gradient update. The hint does not reveal the answer.</p><button class="button primary" data-action="close-modal">Back to challenge</button>`),
     "submit-live-answer": () => {
+      if (!state.liveAnswer || !state.liveConfidence || !liveReasoningReady()) return;
       state.liveSubmitted = true;
+      state.liveStage = "submitted";
       render();
       toast("Team answer submitted");
     },
     "live-result": () => {
-      complete("live", state.liveAnswer === "B" ? 140 : 20);
+      complete("live", state.liveAnswer === liveChallenge.correct ? 140 : 20);
       state.liveStage = "result";
       render();
     },
     "restart-live": () => {
-      state.liveStage = "lobby";
+      if (state.role === "admin" || state.liveRole === "instructor") {
+        state.liveInstructorStage = "setup";
+        state.liveHintRevealed = false;
+        render();
+        return;
+      }
+      state.liveStage = "join";
       state.liveSubmitted = false;
       state.liveAnswer = null;
       state.liveReasoning = "";
-      state.confidence = null;
+      state.liveConfidence = null;
+      state.liveJoinError = "";
       render();
     },
-    "end-live": () => toast("Live session ended"),
-    "next-live": () => toast("Explanation revealed to class"),
-    "lock": () => toast("Answers locked"),
+    "live-start-session": () => {
+      state.liveInstructorStage = "lobby";
+      state.liveHintRevealed = false;
+      render();
+    },
+    "live-cancel-session": () => {
+      state.liveInstructorStage = "setup";
+      render();
+    },
+    "live-open-challenge": () => {
+      state.liveInstructorStage = "monitor";
+      render();
+    },
+    "live-reveal-hint": () => {
+      state.liveHintRevealed = true;
+      render();
+      toast("Hint revealed to class");
+    },
+    "live-lock": () => {
+      state.liveInstructorStage = "locked";
+      render();
+      toast("Answers locked");
+    },
+    "live-reveal": () => {
+      if (state.liveInstructorStage !== "locked") return;
+      state.liveInstructorStage = "reveal";
+      render();
+    },
+    "live-next-phase": () => {
+      state.liveInstructorStage = "summary";
+      render();
+    },
+    "end-live": () => {
+      if (state.liveInstructorStage !== "reveal") return;
+      state.liveInstructorStage = "summary";
+      render();
+      toast("Live session ended");
+    },
     "boss-next": advanceBoss,
     "restart-boss": () => {
       state.bossPhase = 0;
@@ -1706,6 +1978,10 @@ document.addEventListener("change", event => {
 document.addEventListener("input", event => {
   if (event.target.id === "checkpoint-answer") state.checkpointAnswer = event.target.value;
   if (event.target.id === "lab-code") state.labCode = event.target.value;
+  if (event.target.id === "live-code") {
+    state.liveCode = event.target.value;
+    state.liveJoinError = "";
+  }
   if (event.target.matches("[data-story-blank]")) {
     state.storyCodeAnswers[Number(event.target.dataset.storyBlank)] = event.target.value;
     const question = state.storyZones[state.storyZoneIndex]?.questions[state.storyIndex];
@@ -1720,7 +1996,7 @@ document.addEventListener("input", event => {
   if (event.target.id === "live-reasoning") {
     state.liveReasoning = event.target.value;
     const submit = document.querySelector('[data-action="submit-live-answer"]');
-    if (submit) submit.disabled = !state.liveAnswer || !state.confidence || !explainsScaling(state.liveReasoning);
+    if (submit) submit.disabled = !state.liveAnswer || !state.liveConfidence || !liveReasoningReady();
   }
   if (event.target.id === "boss-text") {
     state.bossText = event.target.value;

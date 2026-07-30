@@ -25,15 +25,19 @@ tiêu đề sử dụng Poppins.
 
 1. Bắt đầu tại màn hình Trang chủ học viên.
 2. Mở `Chế độ chơi` để giới thiệu đủ bảy chế độ học tập.
-3. Mở `Thi đấu lớp học trực tiếp`, tham gia phòng `VINC-24`, trả lời cho Đội
-   Gradient, viết lý do, chọn độ tự tin rồi mô phỏng giảng viên công bố kết quả.
-4. Mở `Bản đồ khóa học`, sau đó bắt đầu nhiệm vụ `Ổn định Gradient`.
-5. Chọn đáp án A và gửi để kích hoạt tính năng phát hiện hiểu lầm.
-6. Bắt đầu Nhiệm vụ khắc phục và hoàn thành năm bước.
-7. Vào Lab, điền hai chỗ trống, chạy test và nộp để mở khóa Trùm.
-8. Hoàn thành đủ năm pha Đại chiến Trùm.
-9. Dùng nút chuyển vai trò ở góc dưới bên trái để vào chế độ Giảng viên.
-10. Tải bài giảng mẫu, tạo thế giới và duyệt nội dung mô phỏng.
+3. Mở `Thi đấu lớp học trực tiếp`, dùng mã `VINC-24`, qua phòng chờ rồi trả lời
+   cho Đội Gradient. Chọn đáp án, viết lý do tối thiểu 20 ký tự, chọn độ tự tin,
+   nộp bài và bấm mô phỏng giảng viên công bố kết quả.
+4. Thử một đáp án sai để cho thấy hệ thống tạo personal recovery; chơi lại và
+   chọn B để xem nhánh evidence đúng.
+5. Chuyển sang vai trò Giảng viên, mở `Live Battle` rồi đi theo flow
+   `Setup -> Lobby -> Monitor -> Lock -> Reveal -> Summary`.
+6. Mở `Bản đồ khóa học`, sau đó bắt đầu nhiệm vụ `Ổn định Gradient`.
+7. Chọn đáp án A và gửi để kích hoạt tính năng phát hiện hiểu lầm.
+8. Bắt đầu Nhiệm vụ khắc phục và hoàn thành năm bước.
+9. Vào Lab, điền hai chỗ trống, chạy test và nộp để mở khóa Trùm.
+10. Hoàn thành đủ năm pha Đại chiến Trùm.
+11. Tải bài giảng mẫu, tạo thế giới và duyệt nội dung mô phỏng.
 
 ## Phạm vi bản demo
 
