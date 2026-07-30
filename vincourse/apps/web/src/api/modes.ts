@@ -23,6 +23,10 @@ export function getProgress() {
   return apiGet<ProgressSummary>("/api/progress");
 }
 
+export function resetProgress() {
+  return apiPost<ProgressSummary>("/api/reset", {});
+}
+
 export function getModeSession(mode: GameMode) {
   return apiGet<GameSession>(`/api/modes/${modePath[mode]}/session`);
 }
@@ -30,4 +34,3 @@ export function getModeSession(mode: GameMode) {
 export function submitMode(mode: GameMode, request: GameSubmitRequest) {
   return apiPost<GameResult>(`/api/modes/${modePath[mode]}/submit`, request);
 }
-

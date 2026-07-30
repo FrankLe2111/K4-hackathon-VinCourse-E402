@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Gamepad2, RefreshCcw } from "lucide-react";
-import { listModes, getProgress } from "../api/modes";
+import { Gamepad2, RefreshCcw, RotateCcw } from "lucide-react";
+import { listModes, getProgress, resetProgress } from "../api/modes";
 import type { GameMode, ModeInfo, ProgressSummary } from "../types/game";
 import { FeatureHost } from "../shared/components/FeatureHost";
 
@@ -18,6 +18,20 @@ export function App() {
       setProgress(progressData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Cannot load API.");
+    }
+  }
+
+  async function handleReset() {
+    setError("");
+    try {
+      const resetData = await resetProgress();
+      setProgress(resetData);
+      // Remount current feature view
+      const current = selectedMode;
+      setSelectedMode("story");
+      setTimeout(() => setSelectedMode(current), 50);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Cannot reset progress.");
     }
   }
 
@@ -56,9 +70,30 @@ export function App() {
             <p>Hackathon base</p>
             <h1>One app, separate feature modules.</h1>
           </div>
-          <button className="icon-button" onClick={() => void reload()} aria-label="Reload">
-            <RefreshCcw size={18} />
-          </button>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={() => void handleReset()}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "8px 14px",
+                borderRadius: "8px",
+                background: "#fef2f2",
+                color: "#dc2626",
+                border: "1px solid #fecaca",
+                fontWeight: 600,
+                fontSize: "13px",
+                cursor: "pointer",
+              }}
+              title="Reset toàn bộ điểm XP và hàng đợi lỗi sai"
+            >
+              <RotateCcw size={15} /> Reset Data 🔄
+            </button>
+            <button className="icon-button" onClick={() => void reload()} aria-label="Reload">
+              <RefreshCcw size={18} />
+            </button>
+          </div>
         </header>
 
         {error && <div className="alert">{error}</div>}
@@ -83,4 +118,3 @@ export function App() {
     </div>
   );
 }
-
