@@ -305,6 +305,198 @@
   cursor: pointer;
 }
 
+.story-zone-intro {
+  position: relative;
+  overflow: hidden;
+  min-height: 560px;
+  padding: 48px;
+  border: 1px solid #cdd9ff;
+  border-radius: 28px;
+  color: #ffffff;
+  background: radial-gradient(circle at 76% 18%, rgba(144, 246, 221, 0.34), transparent 22%), radial-gradient(circle at 20% 80%, rgba(255, 211, 109, 0.2), transparent 24%), linear-gradient(135deg, #151f4c, #4338a8 58%, #137d8d);
+  box-shadow: 0 24px 70px rgba(36, 40, 105, 0.24);
+}
+
+.story-zone-intro::after {
+  content: "✦ · ✧ · ✦ · ✧ · ✦";
+  position: absolute;
+  right: 36px;
+  top: 32px;
+  color: rgba(255, 255, 255, 0.48);
+  letter-spacing: 16px;
+}
+
+.story-zone-intro h1 {
+  max-width: 820px;
+  margin: 12px 0;
+  color: #ffffff;
+  font-size: clamp(42px, 7vw, 78px);
+  line-height: 0.95;
+}
+
+.story-zone-intro p {
+  max-width: 680px;
+  color: #e9edff;
+}
+
+.story-intro-orb {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  border: 7px solid rgba(255, 255, 255, 0.86);
+  border-radius: 28px;
+  background: linear-gradient(145deg, #91f1db, #625be1);
+  box-shadow: 0 20px 50px rgba(7, 11, 53, 0.28);
+  font-size: 42px;
+  animation: story-float 2.4s ease-in-out infinite;
+}
+
+.story-intro-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(130px, 1fr));
+  gap: 12px;
+  max-width: 680px;
+  margin: 26px 0;
+}
+
+.story-intro-grid span {
+  display: grid;
+  gap: 3px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.story-intro-grid strong {
+  color: #90f6dd;
+  font-size: 28px;
+}
+
+.story-dialogue {
+  display: flex;
+  gap: 12px;
+  max-width: 680px;
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.story-dialogue span {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: #1b2953;
+  background: #91f1db;
+  font-weight: 900;
+}
+
+.story-dialogue p {
+  margin: 0;
+  font-style: italic;
+}
+
+.story-achievements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.story-achievements span {
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.story-answer.correct {
+  border-color: #16a34a;
+  background: #dcfce7;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+.story-answer.wrong {
+  border-color: #ef4444;
+  background: #fee2e2;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.story-answer.correct .story-answer-key {
+  color: #ffffff;
+  border-color: #16a34a;
+  background: #16a34a;
+}
+
+.story-answer.wrong .story-answer-key {
+  color: #ffffff;
+  border-color: #ef4444;
+  background: #ef4444;
+}
+
+.story-xp-pop {
+  position: absolute;
+  right: 18px;
+  top: -18px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #064e3b;
+  background: #a7f3d0;
+  box-shadow: 0 12px 28px rgba(22, 163, 74, 0.22);
+  animation: story-pop 0.9s ease-out both;
+}
+
+.story-result {
+  position: relative;
+}
+
+.story-unlock-burst {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 12px;
+  border-radius: 50%;
+  color: #ffffff;
+  background: linear-gradient(145deg, #18b996, #625be1);
+  box-shadow: 0 12px 32px rgba(49, 54, 142, 0.22);
+  font-size: 26px;
+  animation: story-pop 0.65s ease-out both;
+}
+
+@keyframes story-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.82);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes story-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
 .story-result.success,
 .story-result-panel.success {
   border-color: #18a558;
@@ -642,6 +834,15 @@
 
   .story-hero {
     display: grid;
+  }
+
+  .story-zone-intro {
+    min-height: 0;
+    padding: 30px 22px;
+  }
+
+  .story-intro-grid {
+    grid-template-columns: 1fr;
   }
 
   .story-party {

@@ -87,12 +87,14 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
   const [session, setSession] = useState<GameSession | null>(null);
   const [save, setSave] = useState<Save>(loadSave);
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [showIntro, setShowIntro] = useState(true);
   const [selected, setSelected] = useState("");
   const [selfConfidence, setSelfConfidence] = useState(3);
   const [codeAnswers, setCodeAnswers] = useState<string[]>([]);
   const [hintUsed, setHintUsed] = useState(false);
   const [result, setResult] = useState<GameResult | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [soundOn, setSoundOn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -118,6 +120,13 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
   const ready = question?.type === "quiz"
     ? Boolean(selected)
     : codeAnswers.length === (question?.blank_count ?? 0) && codeAnswers.every((answer) => answer.trim());
+  const meta = zoneMeta[save.zoneIndex] ?? ["◆", "Checkpoint AI Odyssey."];
+  const speaker = question?.context.includes("Patch") ? "P" : question?.context.includes("ORA") ? "O" : "M";
+  const achievements = [
+    save.streak >= 3 ? `Streak x${save.streak}` : "",
+    save.perfectZones.includes(zone?.id ?? "") ? "Perfect zone" : "",
+    save.recoveries.length === 0 ? "Clean run" : "",
+  ].filter(Boolean);
 
   function updateSave(patch: Partial<Save> | ((current: Save) => Save)) {
     setSave((current) => typeof patch === "function" ? patch(current) : { ...current, ...patch });
@@ -136,6 +145,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
     if (nextZoneIndex > save.unlocked) return;
     updateSave({ zoneIndex: nextZoneIndex });
     setQuestionIndex(0);
+    setShowIntro(true);
     setShowResult(false);
     resetQuestion();
   }
@@ -154,6 +164,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
         confidence: selfConfidence,
       });
       setResult(next);
+      playTone(next.correct);
       updateSave((current) => {
         const attempts = { ...current.attempts, [question.id]: (current.attempts[question.id] ?? 0) + 1 };
         if (next.correct) {
@@ -196,6 +207,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
     if (!zone) return;
     if (questionIndex < zone.questions.length - 1) {
       setQuestionIndex(questionIndex + 1);
+      setShowIntro(false);
       resetQuestion();
       return;
     }
@@ -220,6 +232,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
     if (nextZoneIndex < 0) return;
     updateSave({ zoneIndex: nextZoneIndex, unlocked: Math.max(save.unlocked, nextZoneIndex) });
     setQuestionIndex(zones[nextZoneIndex].questions.findIndex((candidateQuestion) => candidateQuestion.id === item.question_id));
+    setShowIntro(false);
     setShowResult(false);
     resetQuestion();
   }
@@ -227,13 +240,55 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
   function restartStory() {
     updateSave(EMPTY_SAVE);
     setQuestionIndex(0);
+    setShowIntro(true);
     setShowResult(false);
     resetQuestion();
+  }
+
+  function playTone(correct: boolean) {
+    if (!soundOn) return;
+    const AudioContext = window.AudioContext || (window as Window & { webkitAudioContext?: typeof window.AudioContext }).webkitAudioContext;
+    if (!AudioContext) return;
+    const audio = new AudioContext();
+    const tone = audio.createOscillator();
+    const gain = audio.createGain();
+    tone.frequency.value = correct ? 740 : 190;
+    gain.gain.value = 0.035;
+    tone.connect(gain);
+    gain.connect(audio.destination);
+    tone.start();
+    tone.stop(audio.currentTime + 0.12);
   }
 
   if (loading && !session) return <section className="feature-panel"><h2>Đang tải Story Quest…</h2></section>;
   if (error && !session) return <section className="feature-panel alert">{error}</section>;
   if (!zone || !question) return <section className="feature-panel alert">Question bank chưa sẵn sàng.</section>;
+
+  if (showIntro) {
+    return (
+      <section className="story-shell">
+        <section className="story-zone-intro">
+          <div className="story-intro-orb">{meta[0]}</div>
+          <p className="story-eyebrow">Zone {String(save.zoneIndex).padStart(2, "0")} · Mission Brief</p>
+          <h1>{zone.name}</h1>
+          <p>{meta[1]} Hoàn thành ít nhất {passMark}/{zone.questions.length} question để mở zone tiếp theo.</p>
+          <div className="story-intro-grid">
+            <span><strong>{zone.questions.length}</strong> checkpoint</span>
+            <span><strong>{zone.questions.reduce((total, item) => total + item.xp, 0)}</strong> XP tối đa</span>
+            <span><strong>{zoneRecoveries.length}</strong> câu cần ôn</span>
+          </div>
+          <div className="story-dialogue">
+            <span>M</span>
+            <p>“Đi chậm mà chắc. Mục tiêu không phải đoán đúng, mà là hiểu vì sao đúng.”</p>
+          </div>
+          <div className="button-row">
+            <button className="primary-button" onClick={() => setShowIntro(false)}>Bắt đầu zone</button>
+            <button className="secondary-button" onClick={() => setSoundOn((current) => !current)}>{soundOn ? "Tắt âm thanh" : "Bật âm thanh"}</button>
+          </div>
+        </section>
+      </section>
+    );
+  }
 
   if (showResult) {
     const passed = correctInZone >= passMark;
@@ -241,6 +296,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
     const needsReview = zoneRecoveries.slice(0, 3);
     return (
       <section className={`story-result-panel ${passed ? "success" : "danger"}`}>
+        <div className="story-unlock-burst">{passed ? "✦" : "!"}</div>
         <p className="story-eyebrow">{passed ? "End-of-zone reward" : "Chưa đủ 80%"}</p>
         <h2>{zone.name}</h2>
         <p>{passed ? "Mở khóa zone tiếp theo." : "Chưa mở khóa zone tiếp theo."} Đúng {correctInZone}/{zone.questions.length}, cần ít nhất {passMark} câu.</p>
@@ -291,6 +347,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
             <span style={{ width: `${zoneProgress}%` }} />
           </div>
           <small>Zone progress: {correctInZone}/{passMark} câu đúng để pass · streak hiện tại {save.streak}</small>
+          {achievements.length ? <div className="story-achievements">{achievements.map((item) => <span key={item}>{item}</span>)}</div> : null}
         </div>
         <div className="story-party" aria-label="Đội thám hiểm">
           <span>M</span><span>P</span><span>O</span><b>ĐỘI<br />THÁM HIỂM</b>
@@ -351,16 +408,16 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
 
       <div className="story-layout">
         <aside className="story-journal">
-          <div className="story-emblem">{(zoneMeta[save.zoneIndex] ?? ["✦"])[0]}</div>
+          <div className="story-emblem">{meta[0]}</div>
           <p className="story-eyebrow">Nhật ký nhiệm vụ</p>
           <h2>{titleForConcept(question.concept_id)}</h2>
-          <p>{zoneMeta[save.zoneIndex]?.[1] ?? question.context}</p>
+          <p>{meta[1]}</p>
           <div className="story-stat"><span>Checkpoint</span><strong>{questionIndex + 1}</strong></div>
           <div className="story-stat"><span>Phần thưởng</span><strong>{question.xp} XP</strong></div>
           <div className="story-stat"><span>Lần thử</span><strong>{save.attempts[question.id] ?? 0}</strong></div>
           <div className="story-stat"><span>Zone pass</span><strong>{correctInZone}/{passMark}</strong></div>
           <div className="story-stat"><span>Streak</span><strong>{save.streak}</strong></div>
-          <div className="story-guide"><span>{question.context.includes("Patch") ? "P" : question.context.includes("ORA") ? "O" : "M"}</span><p>“{question.context}”</p></div>
+          <div className="story-guide"><span>{speaker}</span><p>“{result ? result.correct ? "Đẹp. Giữ nhịp này và tiến tiếp checkpoint kế." : "Không sao, lỗi này đã thành nhiệm vụ recovery." : hintUsed ? "Gợi ý đã mở. Dùng nó để kiểm chứng, đừng đoán mò." : question.context}”</p></div>
         </aside>
 
         <main className="feature-panel story-card">
@@ -373,7 +430,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
           {question.type === "quiz" ? (
             <div className="story-answer-list">
               {question.options?.map((option) => (
-                <button key={option.id} className={selected === option.id ? "story-answer selected" : "story-answer"} onClick={() => setSelected(option.id)} disabled={Boolean(result)}>
+                <button key={option.id} className={`story-answer ${selected === option.id ? "selected" : ""} ${result && selected === option.id ? result.correct ? "correct" : "wrong" : ""}`} onClick={() => setSelected(option.id)} disabled={Boolean(result)}>
                   <span className="story-answer-key">{option.id}</span>
                   <span>{option.text}</span>
                 </button>
@@ -403,6 +460,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
 
           {result && (
             <div className={`story-result ${result.correct ? "success" : "danger"}`}>
+              {result.correct ? <b className="story-xp-pop">+{result.xp}{save.streak > 0 && save.streak % 3 === 0 ? " +5" : ""} XP</b> : null}
               <strong>{result.correct ? `Đúng · +${result.xp} XP${save.streak > 0 && save.streak % 3 === 0 ? " · streak +5 XP" : ""}` : "Chưa đúng · đã lưu câu sai"}</strong>
               <p>{result.feedback}</p>
               <p>{result.next_action}</p>
