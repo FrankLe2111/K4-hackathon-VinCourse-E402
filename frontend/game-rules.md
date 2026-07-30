@@ -264,19 +264,30 @@ Live Class Battle la che do thi dau truc tiep theo lop. Ca lop cung giai mot sha
 
 ### Core Loop
 
-1. Nguoi choi vao room bang class code.
-2. Lop duoc chia team, vi du `Team Gradient`.
-3. Moi team chon dap an va viet reasoning.
-4. He thong tinh diem theo correctness, explanation quality va confidence match.
-5. Giao vien reveal dap an va misconception pho bien.
+Student:
+
+1. Nguoi choi vao room bang class code `VINC-24`.
+2. Waiting room hien team va countdown mo phong.
+3. Moi nguoi chon dap an, viet reasoning va chon confidence.
+4. Sau khi submit, dap an bi khoa cho den khi giang vien reveal.
+5. Ket qua hien diem ca nhan, team contribution va evidence.
 6. Nguoi choi sai duoc de xuat personal recovery.
+
+Instructor:
+
+1. Chon challenge, team mode va scoring de tao room.
+2. Xem waiting room va bat dau challenge.
+3. Theo doi answer distribution, misconception stream va team scores.
+4. Reveal hint, lock answers, sau do show explanation.
+5. Ket thuc bang class summary va suggested follow-up.
 
 ### Rule tinh diem
 
 - Correctness: chon chan doan dung.
 - Explanation quality: lap luan ro, gan voi concept.
-- Confidence match: tu tin phu hop voi do dung.
-- Team contribution: ca nhan dong gop vao dap an chung.
+- Confidence calibration: tu tin phu hop voi do dung.
+- Trong demo: `40% correctness + 40% explanation + 20% calibration`.
+- Team contribution duoc hien rieng, khong phai tieu chi thu tu.
 
 ### Instructor View
 
@@ -288,6 +299,13 @@ Giao vien thay:
 - Phan bo dap an.
 - Top misconception cua lop.
 - Nut reveal hint, lock answers, show explanation.
+- Class summary va suggested follow-up.
+
+### Pham vi prototype
+
+- Toan bo room, timer, response, score va misconception la du lieu tinh.
+- Cac action chi doi local state va render lai UI.
+- Khong co WebSocket, realtime backend hoac AI cham lop that.
 
 ## Hieu That AI Checkpoint
 
