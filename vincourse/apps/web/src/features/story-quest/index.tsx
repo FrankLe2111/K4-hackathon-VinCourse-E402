@@ -53,6 +53,18 @@ const confidence = [
   [3, "Vừa"],
   [5, "Cao"],
 ] as const;
+const zoneMeta = [
+  ["✦", "Khởi hành cùng Mira, Patch và ORA."],
+  ["?", "Đóng khung đúng người dùng và pain point."],
+  ["◫", "Đi qua dữ liệu, feature, label và bias."],
+  ["⌁", "Nhận ra pattern, correlation và shortcut learning."],
+  ["⚒", "Hiểu training loop và parameter update."],
+  ["◎", "Chọn metric và đánh giá mô hình phù hợp."],
+  ["△", "Khám phá representation và neural network."],
+  ["◌", "Làm việc với LLM, grounding và hallucination."],
+  ["⚖", "Giữ human review, privacy và escalation an toàn."],
+  ["◆", "Ghép scope, evaluation và oversight."],
+] as const;
 
 function loadSave(): Save {
   try {
@@ -273,12 +285,15 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
       <header className="story-hero">
         <div>
           <p className="story-eyebrow">Story Quest · AI Odyssey</p>
-          <h2>Vượt checkpoint bằng hiểu thật</h2>
-          <p>Sai vẫn được đi tiếp, câu sai tự vào Error Dungeon. Mỗi zone cần đạt 80% để mở khóa vòng sau.</p>
+          <h2>AI Odyssey</h2>
+          <p>Trở thành Nhà Kiến Tạo AI cùng Mira, Patch và ORA. Sai vẫn được đi tiếp; mỗi zone cần đạt 80% để mở khóa vòng sau.</p>
           <div className="story-progress" aria-label={`Tiến độ zone ${zoneProgress}%`}>
             <span style={{ width: `${zoneProgress}%` }} />
           </div>
           <small>Zone progress: {correctInZone}/{passMark} câu đúng để pass · streak hiện tại {save.streak}</small>
+        </div>
+        <div className="story-party" aria-label="Đội thám hiểm">
+          <span>M</span><span>P</span><span>O</span><b>ĐỘI<br />THÁM HIỂM</b>
         </div>
         <button className="secondary-button" onClick={restartStory}>Reset tiến độ</button>
       </header>
@@ -288,20 +303,24 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
           const zoneCorrect = item.questions.filter((candidate) => completed.has(candidate.id)).length;
           const passed = zoneCorrect >= Math.ceil(item.questions.length * 0.8);
           const recovery = save.recoveries.find((candidate) => item.questions.some((itemQuestion) => itemQuestion.id === candidate.question_id));
+          const meta = zoneMeta[index] ?? ["◆", "Checkpoint AI Odyssey."];
           return (
             <button
               key={item.id}
-              className={index === save.zoneIndex ? "active" : passed ? "done" : ""}
+              className={`${index === save.zoneIndex ? "active" : passed ? "done" : ""} ${index > save.unlocked ? "locked" : ""}`}
               disabled={index > save.unlocked}
               onClick={() => selectZone(index)}
             >
-              <strong>{index === 0 ? "Mở đầu" : index === zones.length - 1 ? "Final" : `Zone ${index}`}</strong>
+              <div className="story-zone-marker"><span>{meta[0]}</span><small>{String(index).padStart(2, "0")}</small></div>
               {recovery ? <b className="story-recovery-badge" onClick={(event) => {
                 event.stopPropagation();
                 openRecovery(recovery);
               }}>!</b> : null}
-              <span>{item.name}</span>
-              <span>{index > save.unlocked ? "🔒 Xem trước zone khóa" : `${zoneCorrect}/${item.questions.length}`}</span>
+              <div className="story-zone-copy">
+                <strong>{item.name}</strong>
+                <span>{meta[1]}</span>
+                <span>{index > save.unlocked ? "🔒 Chưa mở khóa" : passed ? "✓ Đã chinh phục" : `${zoneCorrect}/${item.questions.length} question`}</span>
+              </div>
             </button>
           );
         })}
@@ -332,15 +351,16 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
 
       <div className="story-layout">
         <aside className="story-journal">
-          <div className="story-emblem">✦</div>
+          <div className="story-emblem">{(zoneMeta[save.zoneIndex] ?? ["✦"])[0]}</div>
           <p className="story-eyebrow">Nhật ký nhiệm vụ</p>
           <h2>{titleForConcept(question.concept_id)}</h2>
-          <p>{question.context}</p>
+          <p>{zoneMeta[save.zoneIndex]?.[1] ?? question.context}</p>
           <div className="story-stat"><span>Checkpoint</span><strong>{questionIndex + 1}</strong></div>
           <div className="story-stat"><span>Phần thưởng</span><strong>{question.xp} XP</strong></div>
           <div className="story-stat"><span>Lần thử</span><strong>{save.attempts[question.id] ?? 0}</strong></div>
           <div className="story-stat"><span>Zone pass</span><strong>{correctInZone}/{passMark}</strong></div>
           <div className="story-stat"><span>Streak</span><strong>{save.streak}</strong></div>
+          <div className="story-guide"><span>{question.context.includes("Patch") ? "P" : question.context.includes("ORA") ? "O" : "M"}</span><p>“{question.context}”</p></div>
         </aside>
 
         <main className="feature-panel story-card">
