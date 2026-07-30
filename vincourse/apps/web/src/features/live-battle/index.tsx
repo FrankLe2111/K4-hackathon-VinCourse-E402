@@ -1,29 +1,76 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./live-battle.css";
 
-type Stage = "join" | "waiting" | "play" | "submitted" | "result";
+type Stage = "join" | "lobby" | "countdown" | "play" | "feedback" | "result";
+type Answer = { id: string; text: string };
+type Question = { prompt: string; correct: string; answers: Answer[] };
 
 const room = "VINC-24";
-const challenge = {
-  title: "Boss: Gradient Divergence",
-  prompt: "Model không hội tụ dù tăng số epoch. Hành động đầu tiên hợp lý nhất là gì?",
-  correct: "B",
-  choices: [
-    ["A", "Tăng epoch để mô hình có thêm thời gian học."],
-    ["B", "Chuẩn hóa feature trước khi train lại."],
-    ["C", "Xóa validation set để có thêm dữ liệu train."],
-    ["D", "Đổi tên cột để mô hình bớt bias."],
-  ],
-};
+const secondsPerQuestion = 15;
+const questions: Question[] = [
+  {
+    prompt: "Model không hội tụ dù tăng số epoch. Hành động đầu tiên hợp lý nhất là gì?",
+    correct: "B",
+    answers: [
+      { id: "A", text: "Tăng epoch để mô hình học lâu hơn." },
+      { id: "B", text: "Chuẩn hóa feature trước khi train lại." },
+      { id: "C", text: "Xóa validation set để thêm dữ liệu train." },
+      { id: "D", text: "Đổi tên cột để giảm bias." },
+    ],
+  },
+  {
+    prompt: "Cách dùng AI nào khác tự động hóa thông thường nhất?",
+    correct: "C",
+    answers: [
+      { id: "A", text: "Luôn chạy đúng một chuỗi lệnh cố định." },
+      { id: "B", text: "Chỉ copy dữ liệu từ ô này sang ô khác." },
+      { id: "C", text: "Suy luận từ dữ liệu mới và tạo dự đoán/đề xuất." },
+      { id: "D", text: "Bấm nút gửi email theo lịch." },
+    ],
+  },
+  {
+    prompt: "Khi AI trả lời rất tự tin nhưng không nêu nguồn, bước tốt nhất là gì?",
+    correct: "D",
+    answers: [
+      { id: "A", text: "Tin vì câu trả lời nghe chắc chắn." },
+      { id: "B", text: "Yêu cầu AI viết lại tự tin hơn." },
+      { id: "C", text: "Bỏ qua toàn bộ câu trả lời." },
+      { id: "D", text: "Yêu cầu nguồn và kiểm chứng tuyên bố chính." },
+    ],
+  },
+];
+
+const classmates = [
+  ["Minh", 2310],
+  ["Huyen", 2050],
+  ["Duc", 1720],
+  ["Phuoc", 1440],
+] as const;
 
 export function LiveBattle({ onCompleted }: { onCompleted: () => void }) {
   const [stage, setStage] = useState<Stage>("join");
   const [code, setCode] = useState(room);
-  const [answer, setAnswer] = useState("");
-  const [reasoning, setReasoning] = useState("");
-  const [confidence, setConfidence] = useState("");
+  const [name, setName] = useState("Linh");
+  const [index, setIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(secondsPerQuestion);
+  const [selected, setSelected] = useState("");
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [lastPoints, setLastPoints] = useState(0);
   const [error, setError] = useState("");
-  const ready = Boolean(answer && confidence && reasoning.trim().length >= 20);
+  const question = questions[index];
+  const correct = selected === question.correct;
+
+  useEffect(() => {
+    if (stage !== "play") return;
+    if (timeLeft <= 0) {
+      lockAnswer("");
+      return;
+    }
+    const timer = window.setTimeout(() => setTimeLeft((current) => current - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [stage, timeLeft]);
 
   function join() {
     if (code.trim().toUpperCase() !== room) {
@@ -31,26 +78,62 @@ export function LiveBattle({ onCompleted }: { onCompleted: () => void }) {
       return;
     }
     setError("");
-    setStage("waiting");
+    setStage("lobby");
   }
 
-  function submit() {
-    if (!ready) return;
-    setStage("submitted");
-    onCompleted();
+  function startRound() {
+    setIndex(0);
+    setScore(0);
+    setStreak(0);
+    setBestStreak(0);
+    startQuestion(0);
+  }
+
+  function startQuestion(nextIndex: number) {
+    setIndex(nextIndex);
+    setSelected("");
+    setLastPoints(0);
+    setTimeLeft(secondsPerQuestion);
+    setStage("countdown");
+    window.setTimeout(() => setStage("play"), 700);
+  }
+
+  function lockAnswer(answerId: string) {
+    if (stage !== "play") return;
+    const isCorrect = answerId === question.correct;
+    const nextStreak = isCorrect ? streak + 1 : 0;
+    const speedPoints = isCorrect ? Math.max(250, Math.round(1000 * (timeLeft / secondsPerQuestion))) : 0;
+    const streakBonus = isCorrect && nextStreak >= 2 ? nextStreak * 100 : 0;
+    const points = speedPoints + streakBonus;
+    setSelected(answerId);
+    setLastPoints(points);
+    setScore((current) => current + points);
+    setStreak(nextStreak);
+    setBestStreak((current) => Math.max(current, nextStreak));
+    setStage("feedback");
+    if (index === questions.length - 1) onCompleted();
+  }
+
+  function nextQuestion() {
+    if (index === questions.length - 1) {
+      setStage("result");
+      return;
+    }
+    startQuestion(index + 1);
   }
 
   if (stage === "join") {
     return (
-      <section className="live-shell">
+      <section className="live-shell live-kahoot">
         <div className="live-hero">
-          <p className="live-eyebrow">Live Class Battle · Simulated demo</p>
-          <h2>Cả lớp cùng đánh boss kiến thức.</h2>
-          <p>Vào phòng, trả lời theo team, giải thích lý do và nhận điểm từ độ đúng, chất lượng lập luận, calibration.</p>
+          <p className="live-eyebrow">Live Class Battle · Kahoot style</p>
+          <h2>Vào phòng. Trả lời nhanh. Giữ streak.</h2>
+          <p>Mỗi học viên tham gia độc lập. Điểm giảm dần theo thời gian, trả lời đúng liên tiếp sẽ có bonus.</p>
         </div>
         <div className="live-grid">
           <section className="live-card">
-            <h3>Join room</h3>
+            <h3>Join class battle</h3>
+            <label className="live-field">Tên người chơi<input value={name} onChange={(event) => setName(event.target.value)} /></label>
             <label className="live-field">Class code<input value={code} onChange={(event) => setCode(event.target.value)} /></label>
             {error ? <p className="live-error">{error}</p> : <small>Demo code: {room}</small>}
             <div className="button-row">
@@ -58,100 +141,103 @@ export function LiveBattle({ onCompleted }: { onCompleted: () => void }) {
               <button className="secondary-button" onClick={() => setCode(room)}>Use demo code</button>
             </div>
           </section>
-          <ScoringCard />
+          <section className="live-card">
+            <h3>Scoring</h3>
+            <div className="live-score-grid">
+              <Score label="Fast correct" score={1000} />
+              <Score label="Minimum correct" score={250} />
+              <Score label="Streak bonus" score={200} />
+            </div>
+          </section>
         </div>
       </section>
     );
   }
 
-  if (stage === "waiting") {
+  if (stage === "lobby") {
     return (
       <section className="live-shell">
-        <StageStrip stage={stage} />
         <section className="live-card live-waiting">
-          <div className="live-countdown"><span>Starts in</span><strong>03</strong></div>
-          <div><h2>Team Gradient đã sẵn sàng</h2><p>Giảng viên sẽ mở shared challenge khi các team đã vào phòng.</p><button className="primary-button" onClick={() => setStage("play")}>Start simulated challenge</button></div>
+          <div className="live-countdown"><span>Room</span><strong>{room}</strong></div>
+          <div>
+            <p className="live-eyebrow">Lobby</p>
+            <h2>{name || "Player"} đã vào phòng</h2>
+            <p>18 learners online · battle gồm {questions.length} câu hỏi · trả lời càng nhanh điểm càng cao.</p>
+            <button className="primary-button" onClick={startRound}>Start battle</button>
+          </div>
         </section>
+        <Leaderboard name={name} score={score} />
       </section>
     );
+  }
+
+  if (stage === "countdown") {
+    return <section className="live-shell"><section className="live-card live-countdown-screen"><strong>{index + 1}</strong><h2>Question incoming…</h2></section></section>;
   }
 
   if (stage === "play") {
+    const percent = Math.round((timeLeft / secondsPerQuestion) * 100);
     return (
-      <section className="live-shell">
-        <StageStrip stage={stage} />
-        <section className="live-card">
-          <p className="live-eyebrow">Room {room} · Team Gradient</p>
-          <h2>{challenge.title}</h2>
-          <p>{challenge.prompt}</p>
+      <section className="live-shell live-kahoot">
+        <div className="live-topline">
+          <strong>Question {index + 1}/{questions.length}</strong>
+          <span>{score} pts</span>
+          <span>🔥 streak {streak}</span>
+        </div>
+        <div className="live-timer"><span style={{ width: `${percent}%` }} /></div>
+        <section className="live-card live-question">
+          <div className="live-clock">{timeLeft}</div>
+          <h2>{question.prompt}</h2>
           <div className="live-answer-list">
-            {challenge.choices.map(([id, text]) => (
-              <button key={id} className={answer === id ? "selected" : ""} onClick={() => setAnswer(id)}>
-                <span>{id}</span>{text}
+            {question.answers.map((answerItem) => (
+              <button key={answerItem.id} className={`answer-${answerItem.id.toLowerCase()}`} onClick={() => lockAnswer(answerItem.id)}>
+                <span>{answerItem.id}</span>{answerItem.text}
               </button>
             ))}
           </div>
-          <label className="live-field">Explain your reasoning<textarea value={reasoning} onChange={(event) => setReasoning(event.target.value)} placeholder="Vì sao đây là hành động tốt nhất cho team?" /></label>
-          <div className="live-confidence">
-            {["low", "medium", "high"].map((item) => <button key={item} className={confidence === item ? "active" : ""} onClick={() => setConfidence(item)}>{item}</button>)}
-          </div>
-          <button className="primary-button" disabled={!ready} onClick={submit}>Submit for Team Gradient</button>
         </section>
       </section>
     );
   }
 
-  if (stage === "submitted") {
+  if (stage === "feedback") {
     return (
       <section className="live-shell">
-        <StageStrip stage="play" />
-        <section className="live-card live-submitted">
-          <h2>Answer submitted</h2>
-          <p>Câu trả lời đã khóa. Đang chờ giảng viên reveal kết quả toàn lớp.</p>
-          <div className="live-progress"><span style={{ width: "78%" }} /></div>
-          <button className="primary-button" onClick={() => setStage("result")}>Simulate instructor reveal</button>
+        <section className={`live-card live-result ${correct ? "success" : "danger"}`}>
+          <div className="live-badge">{correct ? "✓" : "!"}</div>
+          <div>
+            <p className="live-eyebrow">{correct ? "Correct" : selected ? "Not quite" : "Time up"}</p>
+            <h2>{correct ? `+${lastPoints} điểm` : "0 điểm · câu này vào recovery"}</h2>
+            <p>Đáp án đúng: {question.correct}. {correct ? `Streak hiện tại: ${streak}.` : "Đừng lo, sai là tín hiệu để ôn đúng chỗ."}</p>
+          </div>
         </section>
+        <Leaderboard name={name} score={score} />
+        <button className="primary-button" onClick={nextQuestion}>{index === questions.length - 1 ? "Xem bảng xếp hạng" : "Câu tiếp theo"}</button>
       </section>
     );
   }
 
-  const correct = answer === challenge.correct;
   return (
     <section className="live-shell">
-      <StageStrip stage="result" />
-      <section className={`live-card live-result ${correct ? "success" : "danger"}`}>
-        <div className="live-badge">{correct ? "✓" : "!"}</div>
+      <section className="live-card live-result success">
+        <div className="live-badge">🏆</div>
         <div>
-          <p className="live-eyebrow">{correct ? "Battle complete" : "Recovery queued"}</p>
-          <h2>{correct ? "Team Gradient placed #1" : "Cả lớp thắng; misconception thành nhiệm vụ ôn"}</h2>
-          <p>{correct ? "Bạn liên kết được feature scale với gradient stability." : "Đóng góp vẫn được ghi nhận, Feature Scaling được đưa vào recovery."}</p>
+          <p className="live-eyebrow">Battle complete</p>
+          <h2>{name || "Player"} đạt {score} điểm</h2>
+          <p>Best streak: {bestStreak}. Trả lời nhanh + giữ streak là chìa khóa thắng lớp.</p>
         </div>
       </section>
-      <div className="live-grid">
-        <Score label="Correctness" score={correct ? 40 : 0} />
-        <Score label="Explanation" score={correct && reasoning.length > 30 ? 36 : 18} />
-        <Score label="Calibration" score={correct ? 20 : confidence === "low" ? 14 : 8} />
-      </div>
-      <button className="secondary-button" onClick={() => {
-        setStage("join");
-        setAnswer("");
-        setReasoning("");
-        setConfidence("");
-      }}>Replay student demo</button>
+      <Leaderboard name={name} score={score} />
+      <button className="secondary-button" onClick={() => setStage("join")}>Replay battle</button>
     </section>
   );
 }
 
-function StageStrip({ stage }: { stage: Stage }) {
-  const stages: Stage[] = ["join", "waiting", "play", "result"];
-  const active = stages.indexOf(stage === "submitted" ? "play" : stage);
-  return <div className="live-stage-strip">{stages.map((item, index) => <span key={item} className={index < active ? "done" : index === active ? "active" : ""}>{index + 1}<small>{item}</small></span>)}</div>;
-}
-
-function ScoringCard() {
-  return <section className="live-card"><h3>How your team scores</h3><div className="live-score-grid"><Score label="Correctness" score={40} /><Score label="Explanation" score={40} /><Score label="Calibration" score={20} /></div></section>;
-}
-
 function Score({ label, score }: { label: string; score: number }) {
   return <div className="live-score"><strong>{score}</strong><span>{label}</span></div>;
+}
+
+function Leaderboard({ name, score }: { name: string; score: number }) {
+  const rows = [...classmates, [name || "You", score] as const].sort((left, right) => right[1] - left[1]);
+  return <section className="live-card"><h3>Live leaderboard</h3><div className="live-leaderboard">{rows.map(([player, points], index) => <div key={player} className={player === (name || "You") ? "me" : ""}><strong>#{index + 1}</strong><span>{player}</span><b>{points} pts</b></div>)}</div></section>;
 }

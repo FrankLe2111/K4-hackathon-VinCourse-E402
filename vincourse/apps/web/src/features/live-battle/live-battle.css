@@ -51,6 +51,10 @@
   gap: 16px;
 }
 
+.live-kahoot {
+  max-width: 1120px;
+}
+
 .live-field {
   display: grid;
   gap: 8px;
@@ -163,6 +167,7 @@
 
 .live-answer-list {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 18px 0;
 }
@@ -171,12 +176,16 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  border: 1px solid #d9deea;
-  border-radius: 12px;
-  background: #ffffff;
-  padding: 14px;
+  min-height: 92px;
+  border: 0;
+  border-radius: 18px;
+  color: #ffffff;
+  background: #4338a8;
+  padding: 18px;
   text-align: left;
   cursor: pointer;
+  font-weight: 800;
+  box-shadow: 0 12px 28px rgba(35, 39, 92, 0.12);
 }
 
 .live-answer-list button.selected {
@@ -184,13 +193,30 @@
   background: #eef4ff;
 }
 
+.live-answer-list .answer-a {
+  background: #ef4444;
+}
+
+.live-answer-list .answer-b {
+  background: #2563eb;
+}
+
+.live-answer-list .answer-c {
+  background: #f59e0b;
+}
+
+.live-answer-list .answer-d {
+  background: #16a34a;
+}
+
 .live-answer-list span {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
   border-radius: 8px;
-  background: #eef4ff;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.86);
   font-weight: 900;
 }
 
@@ -237,9 +263,119 @@
   background: #fff1f1;
 }
 
+.live-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: #ffffff;
+  border-radius: 18px;
+  background: #1e1b4b;
+  padding: 14px 18px;
+}
+
+.live-topline span,
+.live-topline strong {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 8px 12px;
+}
+
+.live-timer {
+  height: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8edf5;
+}
+
+.live-timer span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444);
+  transition: width 1s linear;
+}
+
+.live-question {
+  position: relative;
+  padding: 28px;
+}
+
+.live-question h2 {
+  max-width: 840px;
+  margin-right: 90px;
+  font-size: clamp(24px, 4vw, 42px);
+}
+
+.live-clock {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  width: 70px;
+  height: 70px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #4338a8;
+  font-size: 30px;
+  font-weight: 900;
+  box-shadow: 0 12px 28px rgba(67, 56, 168, 0.25);
+}
+
+.live-countdown-screen {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #ffffff;
+  background: radial-gradient(circle at 50% 30%, rgba(144, 246, 221, 0.3), transparent 22%), linear-gradient(135deg, #1e1b4b, #4338a8);
+}
+
+.live-countdown-screen strong {
+  display: grid;
+  place-items: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #4338a8;
+  font-size: 58px;
+}
+
+.live-countdown-screen h2 {
+  color: #ffffff;
+}
+
+.live-leaderboard {
+  display: grid;
+  gap: 10px;
+}
+
+.live-leaderboard div {
+  display: grid;
+  grid-template-columns: 54px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #d9deea;
+  border-radius: 14px;
+  background: #f8fbff;
+  padding: 12px;
+}
+
+.live-leaderboard div.me {
+  border-color: #4338a8;
+  background: #eef4ff;
+}
+
+.live-leaderboard strong {
+  color: #4338a8;
+}
+
 @media (max-width: 900px) {
   .live-grid,
-  .live-score-grid {
+  .live-score-grid,
+  .live-answer-list {
     grid-template-columns: 1fr;
   }
 
