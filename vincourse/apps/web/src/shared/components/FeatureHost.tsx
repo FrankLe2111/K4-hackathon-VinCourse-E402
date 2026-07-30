@@ -5,6 +5,7 @@ import { StoryQuest } from "../../features/story-quest";
 import { LiveBattle } from "../../features/live-battle";
 import { DailyRecallView } from "../../features/daily-recall";
 import { ErrorDungeonView } from "../../features/error-dungeon";
+import { LabArenaView } from "../../features/lab-arena";
 
 type Props = {
   mode: GameMode;
@@ -74,6 +75,10 @@ function GenericFeatureHost({ mode, onCompleted }: Props) {
 
   if (session && mode === "error_dungeon") {
     return <ErrorDungeonView session={session} onCompleted={onCompleted} />;
+  }
+
+  if (session && mode === "lab_arena") {
+    return <LabArenaView session={session} onCompleted={onCompleted} />;
   }
 
   return (

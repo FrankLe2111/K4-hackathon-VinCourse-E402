@@ -1,2 +1,1 @@
-export const featureName = "Lab Arena";
-
+export { LabArenaView } from "./LabArenaView";
