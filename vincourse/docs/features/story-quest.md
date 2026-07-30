@@ -11,8 +11,8 @@ Mode chính của AI Odyssey. Người học đi qua 10 zone, trả lời 50 che
 ```text
 Open Story Quest
   -> load question bank from backend session payload
-  -> choose quiz answer or fill code blanks
-  -> select confidence for quiz
+  -> answer multiple-choice question or fill code blanks
+  -> select confidence for multiple-choice question
   -> submit to backend
   -> show feedback
   -> wrong answer is saved to Error Dungeon panel
@@ -66,7 +66,7 @@ Hidden answers are not sent to frontend.
 
 ## Submit
 
-Quiz answer:
+Multiple-choice answer:
 
 ```json
 {
@@ -92,7 +92,7 @@ Code blanks are serialized as JSON string:
 ## GameResult Notes
 
 - Correct: `status=mastered`, XP from bank, `recovery_created=false`.
-- Wrong quiz: `status=misconception`, option-specific feedback, `recovery_created=true`.
+- Wrong multiple-choice question: `status=misconception`, option-specific feedback, `recovery_created=true`.
 - Wrong code: `status=misconception`, `misconception_id=code-logic`.
 - Invalid answer: HTTP error with short `detail`.
 

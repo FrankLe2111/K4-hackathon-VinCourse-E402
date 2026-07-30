@@ -866,7 +866,7 @@ function courseMap() {
   const cleared = state.storyZones.filter(zone => state.completed.has(`story-zone-${zone.id}`)).length;
   return `<div class="odyssey-map">
     <section class="odyssey-intro">
-      <div><span class="odyssey-kicker">STORY QUEST · 50 CHECKPOINT</span><h1>AI Odyssey</h1><p>Trở thành Nhà Kiến Tạo AI. Đồng hành cùng <strong>Mira</strong>, <strong>Patch</strong> và <strong>ORA</strong> qua Cánh Cổng Tò Mò, tám vùng tri thức và Biên Giới cuối cùng.</p><div class="tag-row"><span class="odyssey-pill">30 quiz</span><span class="odyssey-pill">20 code trial</span><span class="odyssey-pill">${cleared}/10 zone hoàn thành</span></div></div>
+      <div><span class="odyssey-kicker">STORY QUEST · 50 CHECKPOINT</span><h1>AI Odyssey</h1><p>Trở thành Nhà Kiến Tạo AI. Đồng hành cùng <strong>Mira</strong>, <strong>Patch</strong> và <strong>ORA</strong> qua Cánh Cổng Tò Mò, tám vùng tri thức và Biên Giới cuối cùng.</p><div class="tag-row"><span class="odyssey-pill">30 question</span><span class="odyssey-pill">20 code question</span><span class="odyssey-pill">${cleared}/10 zone hoàn thành</span></div></div>
       <div class="odyssey-party" aria-label="Đội thám hiểm"><span title="Mira">M</span><span title="Patch">P</span><span title="ORA">O</span><b>ĐỘI<br>THÁM HIỂM</b></div>
     </section>
     <div class="odyssey-progress">${progress(Math.round(cleared / state.storyZones.length * 100), "Tiến độ hành trình")}</div>
@@ -878,7 +878,7 @@ function courseMap() {
         const current = index === state.storyUnlocked && !done;
         return `<article class="odyssey-zone ${done ? "done" : current ? "current" : unlocked ? "open" : "locked"}">
           <div class="zone-marker"><span>${meta[0]}</span><small>${String(index).padStart(2, "0")}</small></div>
-          <div class="zone-copy"><div class="zone-status">${done ? "✓ ĐÃ CHINH PHỤC" : current ? "NHIỆM VỤ HIỆN TẠI" : unlocked ? "CÓ THỂ CHƠI LẠI" : "🔒 CHƯA MỞ KHÓA"}</div><h2>${escapeHTML(zone.name)}</h2><p>${meta[1]}</p><div class="tag-row"><span class="tag">3 Quiz</span><span class="tag">2 Code</span><span class="tag">5 Checkpoint</span></div></div>
+          <div class="zone-copy"><div class="zone-status">${done ? "✓ ĐÃ CHINH PHỤC" : current ? "NHIỆM VỤ HIỆN TẠI" : unlocked ? "CÓ THỂ CHƠI LẠI" : "🔒 CHƯA MỞ KHÓA"}</div><h2>${escapeHTML(zone.name)}</h2><p>${meta[1]}</p><div class="tag-row"><span class="tag">5 Question</span><span class="tag">gồm cả code</span><span class="tag">5 Checkpoint</span></div></div>
           <button class="button ${current ? "primary" : "secondary"}" data-action="story-select-zone" data-zone-index="${index}" ${unlocked ? "" : "disabled"}>${done ? "Chơi lại" : current ? "Bắt đầu hành trình" : "Mở zone"} →</button>
         </article>`;
       }).join("")}
@@ -949,11 +949,11 @@ function questPlay() {
     <div class="odyssey-play-layout">
       <aside class="odyssey-journal">
         <div class="journal-emblem">${meta[0]}</div><span class="zone-status">NHẬT KÝ NHIỆM VỤ</span><h2>${escapeHTML(question.concept_id)}</h2><p>${meta[1]}</p>
-        <div class="journal-stat"><span>Thử thách</span><strong>${question.type === "quiz" ? "Quiz" : "Code Trial"}</strong></div><div class="journal-stat"><span>Phần thưởng</span><strong>${question.xp} XP</strong></div><div class="journal-stat"><span>Recovery</span><strong>${state.storyRecoveries.length}</strong></div>
+        <div class="journal-stat"><span>Thử thách</span><strong>Question</strong></div><div class="journal-stat"><span>Phần thưởng</span><strong>${question.xp} XP</strong></div><div class="journal-stat"><span>Recovery</span><strong>${state.storyRecoveries.length}</strong></div>
         <div class="odyssey-guide"><span>${question.context.includes("Patch") ? "P" : question.context.includes("ORA") ? "O" : "M"}</span><p>“${escapeHTML(question.context)}”</p></div>
       </aside>
       <section class="card question-card odyssey-question-card">
-        <div class="card-head"><div><span class="status info">${question.type === "quiz" ? `Quiz · ${escapeHTML(question.difficulty)}` : "Điền code"}</span><h2 style="margin-top:12px">${escapeHTML(question.prompt || question.task)}</h2></div><span class="tag">${escapeHTML(question.id)}</span></div>
+        <div class="card-head"><div><span class="status info">${question.type === "quiz" ? `Question · ${escapeHTML(question.difficulty)}` : "Question · Điền code"}</span><h2 style="margin-top:12px">${escapeHTML(question.prompt || question.task)}</h2></div><span class="tag">${escapeHTML(question.id)}</span></div>
         ${answerArea}
         ${state.storyHintUsed ? `<div class="hint"><strong>Gợi ý từ Mira</strong><small>${escapeHTML(question.hint || question.hints[0])}</small></div>` : ""}
         ${feedbackArea}

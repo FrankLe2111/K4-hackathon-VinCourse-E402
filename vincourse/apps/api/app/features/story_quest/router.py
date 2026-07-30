@@ -89,7 +89,7 @@ def grade_story(request: GameSubmitRequest) -> GameResult:
     if question["type"] == "quiz":
         answer = request.answer.strip()
         if answer not in {"A", "B", "C", "D"}:
-            raise HTTPException(status_code=400, detail="Quiz cần một đáp án A, B, C hoặc D.")
+            raise HTTPException(status_code=400, detail="Question cần một đáp án A, B, C hoặc D.")
         correct = answer == question["answer"]
         selected = question["options"].get(answer, {})
         feedback = question["explanation"] if correct else selected.get("feedback", "Hãy xem gợi ý và thử lại.")

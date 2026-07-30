@@ -192,7 +192,7 @@ def check_story(payload: Any) -> dict[str, Any]:
         answer = payload.get("answer")
         confidence = payload.get("confidence")
         if answer not in {"A", "B", "C", "D"} or confidence not in {"low", "medium", "high"}:
-            raise AppError("Quiz cần một đáp án và mức tự tin hợp lệ.")
+            raise AppError("Question cần một đáp án và mức tự tin hợp lệ.")
         correct = answer == question["answer"]
         selected = question["options"].get(answer, {})
         feedback = question["explanation"] if correct else selected.get("feedback", "Hãy xem gợi ý và thử lại.")

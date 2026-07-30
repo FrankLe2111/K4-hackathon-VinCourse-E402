@@ -345,7 +345,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
 
         <main className="feature-panel story-card">
           <div className="story-card-head">
-            <span className="story-tag">{question.type === "quiz" ? `Quiz ${questionIndex + 1}` : "Code Trial"}</span>
+            <span className="story-tag">Question {questionIndex + 1}</span>
             <span className="story-tag">{question.id}</span>
           </div>
           <h2>{question.prompt ?? question.task}</h2>
