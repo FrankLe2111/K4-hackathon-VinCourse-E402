@@ -15,15 +15,25 @@ export function FeatureHost({ mode, onCompleted }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const isLabArena = mode === "lab_arena";
+  const visibleTests = session?.payload?.visible_tests as string[] | undefined;
+  const conceptIds = session?.payload?.concept_ids as string[] | undefined;
+  const starterCode = session?.payload?.starter_code as string | undefined;
+
   useEffect(() => {
     setSession(null);
     setResult(null);
     setAnswer("");
     setError("");
     void getModeSession(mode)
-      .then(setSession)
+      .then((nextSession) => {
+        setSession(nextSession);
+        if (isLabArena && typeof nextSession.payload?.starter_code === "string") {
+          setAnswer(nextSession.payload.starter_code);
+        }
+      })
       .catch((err) => setError(err instanceof Error ? err.message : "Cannot load mode session."));
-  }, [mode]);
+  }, [mode, isLabArena]);
 
   async function submit() {
     if (!session) return;
@@ -36,7 +46,7 @@ export function FeatureHost({ mode, onCompleted }: Props) {
         session_id: session.session_id,
         question_id: "q-demo-001",
         answer,
-        confidence
+        confidence,
       });
       setResult(nextResult);
       onCompleted();
@@ -52,9 +62,32 @@ export function FeatureHost({ mode, onCompleted }: Props) {
       <h2>{session?.title ?? "Loading mode..."}</h2>
       <p>{session?.prompt ?? "Please wait."}</p>
       {session?.evidence_ids.length ? <p>Evidence: {session.evidence_ids.join(", ")}</p> : null}
+      {isLabArena && visibleTests?.length ? (
+        <div className="test-summary">
+          <strong>Visible tests</strong>
+          <ul>
+            {visibleTests.map((test) => (
+              <li key={test}>{test}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {isLabArena && conceptIds?.length ? (
+        <div className="concept-tags">
+          {conceptIds.map((concept) => (
+            <span key={concept} className="badge">
+              {concept}
+            </span>
+          ))}
+        </div>
+      ) : null}
 
       <div className="answer-box">
-        <textarea value={answer} onChange={(event) => setAnswer(event.target.value)} placeholder="Write your answer..." />
+        <textarea
+          value={answer}
+          onChange={(event) => setAnswer(event.target.value)}
+          placeholder={isLabArena ? "Write your code here..." : "Write your answer..."}
+        />
         <div className="button-row">
           <label>
             Confidence{" "}
@@ -67,7 +100,7 @@ export function FeatureHost({ mode, onCompleted }: Props) {
             />
           </label>
           <button className="primary-button" onClick={() => void submit()} disabled={loading || !session}>
-            {loading ? "Submitting..." : "Submit"}
+            {loading ? "Submitting..." : isLabArena ? "Run tests" : "Submit"}
           </button>
         </div>
       </div>
