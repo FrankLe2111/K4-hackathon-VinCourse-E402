@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getModeSession, submitMode } from "../../api/modes";
 import type { GameMode, GameResult, GameSession } from "../../types/game";
+import { DailyRecallView } from "../../features/daily-recall";
+import { ErrorDungeonView } from "../../features/error-dungeon";
 
 type Props = {
   mode: GameMode;
@@ -36,7 +38,7 @@ export function FeatureHost({ mode, onCompleted }: Props) {
         session_id: session.session_id,
         question_id: "q-demo-001",
         answer,
-        confidence
+        confidence,
       });
       setResult(nextResult);
       onCompleted();
@@ -45,6 +47,15 @@ export function FeatureHost({ mode, onCompleted }: Props) {
     } finally {
       setLoading(false);
     }
+  }
+
+  // Render feature-specific custom views when session is loaded
+  if (session && mode === "daily_recall") {
+    return <DailyRecallView session={session} onCompleted={onCompleted} />;
+  }
+
+  if (session && mode === "error_dungeon") {
+    return <ErrorDungeonView session={session} onCompleted={onCompleted} />;
   }
 
   return (
@@ -84,4 +95,3 @@ export function FeatureHost({ mode, onCompleted }: Props) {
     </section>
   );
 }
-
