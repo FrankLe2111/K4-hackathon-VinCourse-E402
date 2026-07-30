@@ -33,6 +33,7 @@ type Save = {
   bestStreak: number;
   bonusXp: number;
   perfectZones: string[];
+  startedZones: string[];
 };
 
 const SAVE_KEY = "vincourse-story-quest";
@@ -47,6 +48,7 @@ const EMPTY_SAVE: Save = {
   bestStreak: 0,
   bonusXp: 0,
   perfectZones: [],
+  startedZones: [],
 };
 const confidence = [
   [2, "Thấp"],
@@ -87,7 +89,6 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
   const [session, setSession] = useState<GameSession | null>(null);
   const [save, setSave] = useState<Save>(loadSave);
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [showIntro, setShowIntro] = useState(true);
   const [selected, setSelected] = useState("");
   const [selfConfidence, setSelfConfidence] = useState(3);
   const [codeAnswers, setCodeAnswers] = useState<string[]>([]);
@@ -121,6 +122,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
     ? Boolean(selected)
     : codeAnswers.length === (question?.blank_count ?? 0) && codeAnswers.every((answer) => answer.trim());
   const meta = zoneMeta[save.zoneIndex] ?? ["◆", "Checkpoint AI Odyssey."];
+  const showIntro = zone ? !save.startedZones.includes(zone.id) : false;
   const speaker = question?.context.includes("Patch") ? "P" : question?.context.includes("ORA") ? "O" : "M";
   const achievements = [
     save.streak >= 3 ? `Streak x${save.streak}` : "",
@@ -145,7 +147,6 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
     if (nextZoneIndex > save.unlocked) return;
     updateSave({ zoneIndex: nextZoneIndex });
     setQuestionIndex(0);
-    setShowIntro(true);
     setShowResult(false);
     resetQuestion();
   }
@@ -207,7 +208,6 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
     if (!zone) return;
     if (questionIndex < zone.questions.length - 1) {
       setQuestionIndex(questionIndex + 1);
-      setShowIntro(false);
       resetQuestion();
       return;
     }
@@ -232,7 +232,6 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
     if (nextZoneIndex < 0) return;
     updateSave({ zoneIndex: nextZoneIndex, unlocked: Math.max(save.unlocked, nextZoneIndex) });
     setQuestionIndex(zones[nextZoneIndex].questions.findIndex((candidateQuestion) => candidateQuestion.id === item.question_id));
-    setShowIntro(false);
     setShowResult(false);
     resetQuestion();
   }
@@ -240,7 +239,6 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
   function restartStory() {
     updateSave(EMPTY_SAVE);
     setQuestionIndex(0);
-    setShowIntro(true);
     setShowResult(false);
     resetQuestion();
   }
@@ -282,7 +280,10 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
             <p>“Đi chậm mà chắc. Mục tiêu không phải đoán đúng, mà là hiểu vì sao đúng.”</p>
           </div>
           <div className="button-row">
-            <button className="primary-button" onClick={() => setShowIntro(false)}>Bắt đầu zone</button>
+            <button className="primary-button" onClick={() => updateSave((current) => ({
+              ...current,
+              startedZones: current.startedZones.includes(zone.id) ? current.startedZones : [...current.startedZones, zone.id],
+            }))}>Bắt đầu zone</button>
             <button className="secondary-button" onClick={() => setSoundOn((current) => !current)}>{soundOn ? "Tắt âm thanh" : "Bật âm thanh"}</button>
           </div>
         </section>
