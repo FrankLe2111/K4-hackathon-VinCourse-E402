@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getModeSession, submitMode } from "../../api/modes";
 import type { GameResult, GameSession } from "../../types/game";
+import odysseyOwl from "../../assets/odyssey-owl.png";
 import "./story-quest.css";
 
 type StoryOption = { id: string; text: string };
@@ -85,6 +86,13 @@ function titleForConcept(id: string) {
   return known[id] ?? id.split("-").map((word) => word[0]?.toUpperCase() + word.slice(1)).join(" ");
 }
 
+function mentorLine(result: GameResult | null, hintUsed: boolean, context: string) {
+  if (result?.correct) return "Tốt lắm. Cú trả lời này không chỉ đúng — nó có lý do phía sau.";
+  if (result) return "Sai là dữ liệu học tập. Ta đã đánh dấu nó để quay lại mạnh hơn.";
+  if (hintUsed) return "Gợi ý là la bàn, không phải đáp án. Hãy dùng nó để kiểm chứng suy nghĩ của mình.";
+  return context;
+}
+
 export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
   const [session, setSession] = useState<GameSession | null>(null);
   const [save, setSave] = useState<Save>(loadSave);
@@ -123,7 +131,6 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
     : codeAnswers.length === (question?.blank_count ?? 0) && codeAnswers.every((answer) => answer.trim());
   const meta = zoneMeta[save.zoneIndex] ?? ["◆", "Checkpoint AI Odyssey."];
   const showIntro = zone ? !save.startedZones.includes(zone.id) : false;
-  const speaker = question?.context.includes("Patch") ? "P" : question?.context.includes("ORA") ? "O" : "M";
   const achievements = [
     save.streak >= 3 ? `Streak x${save.streak}` : "",
     save.perfectZones.includes(zone?.id ?? "") ? "Perfect zone" : "",
@@ -276,7 +283,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
             <span><strong>{zoneRecoveries.length}</strong> câu cần ôn</span>
           </div>
           <div className="story-dialogue">
-            <span>M</span>
+            <img src={odysseyOwl} alt="Mascot cú AI Odyssey" />
             <p>“Đi chậm mà chắc. Mục tiêu không phải đoán đúng, mà là hiểu vì sao đúng.”</p>
           </div>
           <div className="button-row">
@@ -297,6 +304,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
     const needsReview = zoneRecoveries.slice(0, 3);
     return (
       <section className={`story-result-panel ${passed ? "success" : "danger"}`}>
+        <img className="story-result-mascot" src={odysseyOwl} alt="Mascot cú chúc mừng học tập" />
         <div className="story-unlock-burst">{passed ? "✦" : "!"}</div>
         <p className="story-eyebrow">{passed ? "End-of-zone reward" : "Chưa đủ 80%"}</p>
         <h2>{zone.name}</h2>
@@ -350,8 +358,9 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
           <small>Zone progress: {correctInZone}/{passMark} câu đúng để pass · streak hiện tại {save.streak}</small>
           {achievements.length ? <div className="story-achievements">{achievements.map((item) => <span key={item}>{item}</span>)}</div> : null}
         </div>
-        <div className="story-party" aria-label="Đội thám hiểm">
-          <span>M</span><span>P</span><span>O</span><b>ĐỘI<br />THÁM HIỂM</b>
+        <div className="story-mascot-stage" aria-label="Mascot AI Odyssey">
+          <img src={odysseyOwl} alt="Mascot cú AI Odyssey" />
+          <b>MENTOR<br />CÚ LA BÀN</b>
         </div>
         <button className="secondary-button" onClick={restartStory}>Reset tiến độ</button>
       </header>
@@ -418,7 +427,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
           <div className="story-stat"><span>Lần thử</span><strong>{save.attempts[question.id] ?? 0}</strong></div>
           <div className="story-stat"><span>Zone pass</span><strong>{correctInZone}/{passMark}</strong></div>
           <div className="story-stat"><span>Streak</span><strong>{save.streak}</strong></div>
-          <div className="story-guide"><span>{speaker}</span><p>“{result ? result.correct ? "Đẹp. Giữ nhịp này và tiến tiếp checkpoint kế." : "Không sao, lỗi này đã thành nhiệm vụ recovery." : hintUsed ? "Gợi ý đã mở. Dùng nó để kiểm chứng, đừng đoán mò." : question.context}”</p></div>
+          <div className="story-guide"><img src={odysseyOwl} alt="Mascot mentor" /><p>“{mentorLine(result, hintUsed, question.context)}”</p></div>
         </aside>
 
         <main className="feature-panel story-card">
