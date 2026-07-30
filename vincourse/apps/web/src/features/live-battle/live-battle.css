@@ -1,0 +1,251 @@
+.live-shell {
+  display: grid;
+  gap: 18px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.live-hero,
+.live-card {
+  border: 1px solid #d8def0;
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 22px;
+  box-shadow: 0 12px 32px rgba(35, 39, 92, 0.08);
+}
+
+.live-hero {
+  min-height: 240px;
+  color: #ffffff;
+  background: radial-gradient(circle at 80% 20%, rgba(144, 246, 221, 0.34), transparent 24%), linear-gradient(135deg, #14213d, #4338a8 60%, #0f766e);
+}
+
+.live-hero h2 {
+  max-width: 720px;
+  margin: 8px 0 12px;
+  color: #ffffff;
+  font-size: clamp(36px, 6vw, 68px);
+  line-height: 0.95;
+}
+
+.live-hero p {
+  max-width: 680px;
+  color: #e9edff;
+}
+
+.live-eyebrow {
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.live-hero .live-eyebrow {
+  color: #90f6dd;
+}
+
+.live-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.live-field {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+  font-weight: 800;
+}
+
+.live-field input,
+.live-field textarea {
+  border: 1px solid #d9deea;
+  border-radius: 10px;
+  padding: 11px 12px;
+}
+
+.live-field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.live-error {
+  color: #b91c1c;
+}
+
+.live-stage-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.live-stage-strip span {
+  display: grid;
+  place-items: center;
+  min-height: 58px;
+  border-radius: 14px;
+  background: #eef4ff;
+  color: #64748b;
+  font-weight: 900;
+}
+
+.live-stage-strip small {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.live-stage-strip .active {
+  color: #ffffff;
+  background: #4338a8;
+}
+
+.live-stage-strip .done {
+  color: #047857;
+  background: #dcfce7;
+}
+
+.live-score-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.live-score {
+  border: 1px solid #d9deea;
+  border-radius: 14px;
+  padding: 14px;
+  background: #f8fbff;
+}
+
+.live-score strong {
+  display: block;
+  color: #4338a8;
+  font-size: 30px;
+}
+
+.live-score span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.live-waiting,
+.live-result {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+}
+
+.live-countdown,
+.live-badge {
+  width: 112px;
+  height: 112px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #eef4ff;
+}
+
+.live-countdown strong,
+.live-badge {
+  color: #4338a8;
+  font-size: 44px;
+  font-weight: 900;
+}
+
+.live-countdown span {
+  color: #64748b;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.live-answer-list {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.live-answer-list button {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #d9deea;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.live-answer-list button.selected {
+  border-color: #4338a8;
+  background: #eef4ff;
+}
+
+.live-answer-list span {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #eef4ff;
+  font-weight: 900;
+}
+
+.live-confidence {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.live-confidence button {
+  border: 1px solid #d9deea;
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.live-confidence button.active {
+  border-color: #047857;
+  background: #dcfce7;
+  color: #047857;
+}
+
+.live-progress {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8edf5;
+  margin: 18px 0;
+}
+
+.live-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4338a8, #14b8a6);
+}
+
+.live-result.success {
+  background: #f0fff4;
+}
+
+.live-result.danger {
+  background: #fff1f1;
+}
+
+@media (max-width: 900px) {
+  .live-grid,
+  .live-score-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .live-waiting,
+  .live-result {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

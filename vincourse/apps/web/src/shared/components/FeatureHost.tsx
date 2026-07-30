@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getModeSession, submitMode } from "../../api/modes";
 import type { GameMode, GameResult, GameSession } from "../../types/game";
 import { StoryQuest } from "../../features/story-quest";
+import { LiveBattle } from "../../features/live-battle";
 
 type Props = {
   mode: GameMode;
@@ -10,6 +11,7 @@ type Props = {
 
 export function FeatureHost({ mode, onCompleted }: Props) {
   if (mode === "story") return <StoryQuest onCompleted={onCompleted} />;
+  if (mode === "live_battle") return <LiveBattle onCompleted={onCompleted} />;
   return <GenericFeatureHost mode={mode} onCompleted={onCompleted} />;
 }
 
