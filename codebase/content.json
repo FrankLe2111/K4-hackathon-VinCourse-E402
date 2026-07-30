@@ -1,0 +1,84 @@
+[
+  {
+    "id": "llm-chatbot",
+    "order": 1,
+    "title": "LLM không phải chatbot",
+    "eyebrow": "FOUNDATION · MENTAL MODEL",
+    "question": "Giải thích sự khác nhau giữa LLM và chatbot bằng lời của bạn trong 1–2 câu.",
+    "xp": 120,
+    "evidence": [
+      {
+        "id": "T04-046",
+        "label": "Day 1 · Foundation",
+        "text": "Chatbot chỉ là một dạng giao diện để tương tác với con người; cái nền của nó được xây dựng dựa trên các mô hình ngôn ngữ lớn."
+      }
+    ],
+    "key_points": [
+      "LLM là mô hình nền/ngôn ngữ ở phía dưới.",
+      "Chatbot là một giao diện hoặc sản phẩm dùng mô hình đó để tương tác.",
+      "LLM có thể được dùng trong trải nghiệm không phải chat."
+    ],
+    "common_misconceptions": [
+      "LLM và chatbot là cùng một thứ.",
+      "Không có giao diện chat thì LLM không thể hoạt động."
+    ]
+  },
+  {
+    "id": "next-token-hallucination",
+    "order": 2,
+    "title": "Từ next token đến hallucination",
+    "eyebrow": "FOUNDATION · CAUSE & EFFECT",
+    "question": "Vì sao văn bản do LLM tạo ra có thể rất trôi chảy nhưng vẫn sai? Trả lời trong 1–2 câu.",
+    "xp": 160,
+    "evidence": [
+      {
+        "id": "T04-047",
+        "label": "Day 1 · Next-token prediction",
+        "text": "LLM dự đoán token tiếp theo, nối token đó vào chuỗi rồi lặp lại quá trình theo xác suất."
+      },
+      {
+        "id": "T04-048",
+        "label": "Day 1 · Hallucination",
+        "text": "Văn bản có thể trông rất có lý nhưng thông tin vẫn sai; đó là hiện tượng hallucination."
+      }
+    ],
+    "key_points": [
+      "LLM sinh chuỗi bằng dự đoán token tiếp theo theo xác suất.",
+      "Tính trôi chảy/hợp lý về ngôn ngữ không bảo đảm thông tin đúng.",
+      "Hallucination là output có vẻ hợp lý nhưng chứa thông tin sai."
+    ],
+    "common_misconceptions": [
+      "LLM lấy từng token từ một database sự thật nên không thể sai.",
+      "Hallucination là hành vi nói dối có chủ ý."
+    ]
+  },
+  {
+    "id": "automate-augment",
+    "order": 3,
+    "title": "Automate hay augment?",
+    "eyebrow": "DAY 2 · PRODUCT DECISION",
+    "question": "Phân biệt automate và augment; khi sai gây hậu quả lớn thì nên nghiêng về phía nào?",
+    "xp": 200,
+    "evidence": [
+      {
+        "id": "T02-032",
+        "label": "Day 2 · Automation spectrum",
+        "text": "Automation là máy tự làm thay; augmentation là AI hỗ trợ và con người vẫn tham gia. Hai mức nằm trên một phổ."
+      },
+      {
+        "id": "T02-034",
+        "label": "Day 2 · Cost of error",
+        "text": "Nếu sai gây hậu quả nghiêm trọng, công việc cần nằm gần phía augmentation hơn là automate."
+      }
+    ],
+    "key_points": [
+      "Automate nghĩa là hệ thống làm thay nhiều hơn.",
+      "Augment nghĩa là hỗ trợ, con người vẫn tham gia/quyết định.",
+      "Cost of error cao thì nên giữ gần phía augment."
+    ],
+    "common_misconceptions": [
+      "Automate và augment là hai tên của cùng một mức.",
+      "Hậu quả càng cao càng nên loại con người khỏi luồng."
+    ]
+  }
+]

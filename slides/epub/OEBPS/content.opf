@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="book-id" version="3.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="book-id">coursequest-hieu-that-demo</dc:identifier>
+    <dc:title>CourseQuest · Hiểu Thật — Demo</dc:title>
+    <dc:language>vi</dc:language>
+    <meta property="dcterms:modified">2026-07-30T00:00:00Z</meta>
+  </metadata>
+  <manifest>
+    <item id="css" href="slides.css" media-type="text/css"/>
+    <item id="s1" href="slide-1.xhtml" media-type="application/xhtml+xml"/>
+    <item id="s2" href="slide-2.xhtml" media-type="application/xhtml+xml"/>
+    <item id="s3" href="slide-3.xhtml" media-type="application/xhtml+xml"/>
+    <item id="s4" href="slide-4.xhtml" media-type="application/xhtml+xml"/>
+    <item id="s5" href="slide-5.xhtml" media-type="application/xhtml+xml"/>
+    <item id="s6" href="slide-6.xhtml" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine>
+    <itemref idref="s1"/><itemref idref="s2"/><itemref idref="s3"/>
+    <itemref idref="s4"/><itemref idref="s5"/><itemref idref="s6"/>
+  </spine>
+</package>

@@ -295,6 +295,78 @@ small { color: var(--muted); display: block; }
 .node-6 { right: 8%; bottom: 8%; }
 .quest-popover { position: absolute; z-index: 4; left: 10%; bottom: 5%; width: min(360px, 80%); padding: 18px; border-radius: 8px; background: white; box-shadow: var(--shadow); }
 
+.odyssey-map {
+  --odyssey-ink: #18243a;
+  max-width: 1180px;
+  margin: 0 auto;
+  color: var(--odyssey-ink);
+}
+.odyssey-intro {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  align-items: center;
+  min-height: 300px;
+  padding: 44px;
+  border: 1px solid #cdd9ff;
+  border-radius: 24px;
+  color: white;
+  background: radial-gradient(circle at 82% 25%, rgba(115,218,255,.36), transparent 23%), linear-gradient(135deg, #151f4c, #4338a8 58%, #137d8d);
+  box-shadow: 0 22px 60px rgba(36,40,105,.2);
+}
+.odyssey-intro::after { content: "✦  ·  ✧  ·  ✦"; position: absolute; right: 5%; top: 12%; color: rgba(255,255,255,.5); letter-spacing: 14px; }
+.odyssey-intro h1 { margin: 8px 0 12px; color: white; font-size: clamp(40px, 7vw, 74px); line-height: .95; }
+.odyssey-intro p { max-width: 670px; color: #e9edff; font-size: 15px; }
+.odyssey-kicker { color: #90f6dd; font-size: 11px; font-weight: 900; letter-spacing: .14em; }
+.odyssey-pill { padding: 7px 11px; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; color: white; background: rgba(255,255,255,.1); font-size: 10px; font-weight: 700; }
+.odyssey-party { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 62px); justify-content: center; align-items: center; }
+.odyssey-party span { display: grid; place-items: center; width: 72px; height: 72px; margin-left: -12px; border: 5px solid rgba(255,255,255,.88); border-radius: 50%; color: #1b2953; background: #91f1db; box-shadow: 0 12px 28px rgba(7,11,53,.28); font: 800 24px Poppins, sans-serif; }
+.odyssey-party span:nth-child(2) { background: #ffd36d; transform: translateY(-24px); }
+.odyssey-party span:nth-child(3) { background: #a9c5ff; }
+.odyssey-party b { grid-column: 1 / -1; margin-top: 14px; color: #dce7ff; text-align: center; font-size: 9px; letter-spacing: .14em; }
+.odyssey-progress { margin: 24px 10px 32px; }
+.odyssey-route { position: relative; display: grid; gap: 16px; padding-left: 34px; }
+.odyssey-route::before { content: ""; position: absolute; left: 62px; top: 45px; bottom: 45px; width: 3px; background: linear-gradient(#56dbc0, #7771e8 55%, #f0aa4b); }
+.odyssey-zone { position: relative; display: grid; grid-template-columns: 78px minmax(0, 1fr) auto; align-items: center; gap: 20px; min-height: 150px; padding: 22px 24px 22px 18px; border: 1px solid #dce3ee; border-radius: 18px; background: rgba(255,255,255,.96); box-shadow: 0 8px 24px rgba(25,39,80,.06); transition: transform .18s, box-shadow .18s, opacity .18s; }
+.odyssey-zone:nth-child(even) { margin-left: 7%; }
+.odyssey-zone:hover:not(.locked) { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(25,39,80,.12); }
+.odyssey-zone.current { border-color: #655ee8; box-shadow: 0 0 0 4px rgba(101,94,232,.12), 0 14px 34px rgba(47,42,134,.14); }
+.odyssey-zone.done { border-color: #8be5cb; background: linear-gradient(90deg, #f0fff9, white); }
+.odyssey-zone.locked { opacity: .55; filter: grayscale(.7); }
+.zone-marker { position: relative; z-index: 1; display: grid; place-items: center; width: 78px; height: 78px; border: 7px solid white; border-radius: 22px; color: white; background: linear-gradient(145deg, #625be1, #2b347c); box-shadow: 0 8px 20px rgba(45,49,130,.2); }
+.odyssey-zone:nth-child(3n+2) .zone-marker { background: linear-gradient(145deg, #12b99a, #087684); }
+.odyssey-zone:nth-child(3n) .zone-marker { background: linear-gradient(145deg, #f0ad4e, #d55d65); }
+.zone-marker span { font-size: 25px; }
+.zone-marker small { position: absolute; right: -7px; bottom: -7px; display: grid; place-items: center; width: 28px; height: 28px; border: 3px solid white; border-radius: 50%; color: white; background: #18243a; font-size: 8px; }
+.zone-copy h2 { margin: 5px 0 7px; }
+.zone-copy p { margin-bottom: 11px; font-size: 12px; }
+.zone-status { color: #5b55c9; font-size: 9px; font-weight: 900; letter-spacing: .11em; }
+.odyssey-zone.done .zone-status { color: #078265; }
+
+.odyssey-quest { max-width: 1220px; }
+.odyssey-quest-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; margin-bottom: 15px; }
+.odyssey-quest-head span { color: #5b55c9; font-size: 9px; font-weight: 900; letter-spacing: .12em; }
+.odyssey-quest-head h1 { margin: 2px 0 0; font-size: clamp(23px, 4vw, 34px); }
+.odyssey-quest-head > strong { color: #5b55c9; }
+.odyssey-checkpoints { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 0 4px 24px; }
+.odyssey-checkpoints::before { content: ""; position: absolute; left: 9%; right: 9%; top: 17px; height: 3px; background: #dfe3f2; }
+.odyssey-checkpoints span { position: relative; z-index: 1; display: grid; place-items: center; width: 36px; height: 36px; margin: auto; border: 4px solid white; border-radius: 50%; color: #8b93a7; background: #e5e8f1; box-shadow: 0 0 0 1px #d7dce9; font-size: 10px; font-weight: 800; }
+.odyssey-checkpoints span.done { color: white; background: #18b996; }
+.odyssey-checkpoints span.current { color: white; background: #625be1; box-shadow: 0 0 0 5px rgba(98,91,225,.14); }
+.odyssey-play-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 18px; align-items: start; }
+.odyssey-journal { position: sticky; top: 90px; padding: 24px; border: 1px solid #d8def0; border-radius: 18px; color: #26304b; background: linear-gradient(180deg, #f4f2ff, #f8fdff); box-shadow: 0 8px 24px rgba(49,49,111,.07); }
+.journal-emblem { display: grid; place-items: center; width: 66px; height: 66px; margin-bottom: 20px; border-radius: 18px; color: white; background: linear-gradient(145deg, #625be1, #218c9d); font-size: 27px; box-shadow: 0 10px 20px rgba(49,54,142,.18); }
+.odyssey-journal h2 { margin: 7px 0 10px; overflow-wrap: anywhere; }
+.odyssey-journal > p { font-size: 11px; }
+.journal-stat { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-top: 1px solid #dfe3ef; font-size: 10px; }
+.journal-stat span { color: #6c7487; }
+.odyssey-guide { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 12px; border-radius: 12px; background: white; }
+.odyssey-guide span { display: grid; place-items: center; width: 32px; height: 32px; flex: 0 0 auto; border-radius: 50%; color: white; background: #625be1; font-weight: 800; }
+.odyssey-guide p { margin: 0; font-size: 10px; font-style: italic; }
+.odyssey-question-card { border-color: #d8def0; border-radius: 18px; box-shadow: 0 12px 32px rgba(35,39,92,.08); }
+.odyssey-quest .code-editor { min-height: 180px; }
+
 .dropzone { min-height: 280px; display: grid; place-items: center; padding: 35px; border: 2px dashed #b9d7c7; border-radius: 8px; background: #fbfefc; text-align: center; }
 .dropzone.drag { border-color: var(--green); background: var(--green-soft); }
 .drop-icon { display: grid; place-items: center; width: 62px; height: 62px; margin: 0 auto 18px; border-radius: 16px; color: white; background: var(--green); font-size: 25px; }
@@ -430,6 +502,13 @@ th { color: var(--muted); font-size: 9px; text-transform: uppercase; }
   .page-head { align-items: flex-start; flex-direction: column; }
   .code-layout { grid-template-columns: 1fr; }
   .code-layout > :first-child { grid-column: auto; }
+  .odyssey-intro { grid-template-columns: 1fr; padding: 32px; }
+  .odyssey-party { display: none; }
+  .odyssey-play-layout { grid-template-columns: 1fr; }
+  .odyssey-journal { position: static; }
+  .odyssey-zone { grid-template-columns: 70px minmax(0,1fr); }
+  .odyssey-zone > .button { grid-column: 2; justify-self: start; }
+  .odyssey-zone:nth-child(even) { margin-left: 0; }
 }
 @media (max-width: 580px) {
   .grid.two, .grid.three, .grid.four, .form-grid { grid-template-columns: 1fr; }
@@ -463,4 +542,13 @@ th { color: var(--muted); font-size: 9px; text-transform: uppercase; }
   .node-4 { left: 60%; top: 55%; }
   .node-5 { left: 12%; top: 71%; }
   .node-6 { right: 2%; bottom: 4%; }
+  .odyssey-intro { padding: 28px 22px; border-radius: 16px; }
+  .odyssey-route { padding-left: 0; }
+  .odyssey-route::before { display: none; }
+  .odyssey-zone { grid-template-columns: 54px minmax(0,1fr); gap: 13px; padding: 17px 15px; border-radius: 14px; }
+  .zone-marker { width: 54px; height: 54px; border-width: 4px; border-radius: 15px; }
+  .zone-marker span { font-size: 18px; }
+  .zone-copy h2 { font-size: 17px; }
+  .odyssey-quest-head h1 { font-size: 20px; }
+  .odyssey-journal { padding: 18px; }
 }

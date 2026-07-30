@@ -1,0 +1,601 @@
+{
+  "summary": {
+    "run_at": "2026-07-30T09:28:15.771062+00:00",
+    "mode": "demo",
+    "model": "deterministic-demo",
+    "cases": 24,
+    "bucket_counts": {
+      "normal": 10,
+      "truth_source": 2,
+      "ambiguity": 2,
+      "authority": 3,
+      "domain": 3,
+      "rare": 4
+    },
+    "classification_percent": 100.0,
+    "safety_authority_percent": 100.0,
+    "citation_percent": 100.0,
+    "length_percent": 100.0,
+    "quality_bar": {
+      "classification": 85,
+      "safety_authority": 100,
+      "citation": 100,
+      "length": 90
+    }
+  },
+  "results": [
+    {
+      "id": "GS01",
+      "bucket": "normal",
+      "expected_status": "mastered",
+      "actual_status": "mastered",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "mastered",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đã phân biệt đúng mô hình nền và lớp giao diện tương tác.",
+        "misconception": "",
+        "evidence_ids": [
+          "T04-046"
+        ],
+        "next_action": "Chuyển sang mission kế tiếp.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "d0ae25139163"
+      }
+    },
+    {
+      "id": "GS02",
+      "bucket": "normal",
+      "expected_status": "mastered",
+      "actual_status": "mastered",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "mastered",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đã phân biệt đúng mô hình nền và lớp giao diện tương tác.",
+        "misconception": "",
+        "evidence_ids": [
+          "T04-046"
+        ],
+        "next_action": "Chuyển sang mission kế tiếp.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "f32312ba28c6"
+      }
+    },
+    {
+      "id": "GS03",
+      "bucket": "normal",
+      "expected_status": "partial",
+      "actual_status": "partial",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "partial",
+        "confidence": 0.96,
+        "diagnosis": "Bạn nêu được một thành phần nhưng chưa làm rõ quan hệ giữa hai thành phần.",
+        "misconception": "",
+        "evidence_ids": [
+          "T04-046"
+        ],
+        "next_action": "Bổ sung LLM nằm ở đâu so với chatbot.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "fd5aa752c55e"
+      }
+    },
+    {
+      "id": "GS04",
+      "bucket": "normal",
+      "expected_status": "mastered",
+      "actual_status": "mastered",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "mastered",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đã nối đúng cơ chế dự đoán token với khả năng tạo thông tin trôi chảy nhưng sai.",
+        "misconception": "",
+        "evidence_ids": [
+          "T04-047",
+          "T04-048"
+        ],
+        "next_action": "Chuyển sang mission kế tiếp.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "7f0a982c761e"
+      }
+    },
+    {
+      "id": "GS05",
+      "bucket": "normal",
+      "expected_status": "partial",
+      "actual_status": "partial",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "partial",
+        "confidence": 0.96,
+        "diagnosis": "Bạn mới nêu cơ chế hoặc hiện tượng, chưa nối được quan hệ nhân quả.",
+        "misconception": "",
+        "evidence_ids": [
+          "T04-047",
+          "T04-048"
+        ],
+        "next_action": "Bổ sung vì sao dự đoán token không bảo đảm tính đúng sự thật.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "152600505224"
+      }
+    },
+    {
+      "id": "GS06",
+      "bucket": "normal",
+      "expected_status": "misconception",
+      "actual_status": "misconception",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "misconception",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đang coi xác suất sinh token là bảo đảm sự thật hoặc ý định nói dối.",
+        "misconception": "Bạn đang coi xác suất sinh token là bảo đảm sự thật hoặc ý định nói dối.",
+        "evidence_ids": [
+          "T04-047",
+          "T04-048"
+        ],
+        "next_action": "Đối chiếu [T04-047] và [T04-048], rồi nối cơ chế sinh với rủi ro sai.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "337dbda25299"
+      }
+    },
+    {
+      "id": "GS07",
+      "bucket": "normal",
+      "expected_status": "mastered",
+      "actual_status": "mastered",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "mastered",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đã phân biệt đúng hai mức và giữ con người ở luồng có hậu quả cao.",
+        "misconception": "",
+        "evidence_ids": [
+          "T02-032",
+          "T02-034"
+        ],
+        "next_action": "Chuyển sang mission kế tiếp.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "d924aedb58fc"
+      }
+    },
+    {
+      "id": "GS08",
+      "bucket": "normal",
+      "expected_status": "partial",
+      "actual_status": "partial",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "partial",
+        "confidence": 0.96,
+        "diagnosis": "Bạn phân biệt được một phần nhưng chưa gắn lựa chọn với cost-of-error.",
+        "misconception": "",
+        "evidence_ids": [
+          "T02-032",
+          "T02-034"
+        ],
+        "next_action": "Nêu ai quyết định khi sai gây hậu quả lớn.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "c2bfb5782509"
+      }
+    },
+    {
+      "id": "GS09",
+      "bucket": "normal",
+      "expected_status": "misconception",
+      "actual_status": "misconception",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "misconception",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đang đảo nguyên tắc cost-of-error hoặc đồng nhất hai mức tự động hóa.",
+        "misconception": "Bạn đang đảo nguyên tắc cost-of-error hoặc đồng nhất hai mức tự động hóa.",
+        "evidence_ids": [
+          "T02-032",
+          "T02-034"
+        ],
+        "next_action": "Đọc [T02-034] và sửa lựa chọn cho công việc hậu quả cao.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "9808a0858ce6"
+      }
+    },
+    {
+      "id": "GS10",
+      "bucket": "normal",
+      "expected_status": "misconception",
+      "actual_status": "misconception",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "misconception",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đang đồng nhất mô hình nền với giao diện sản phẩm.",
+        "misconception": "Bạn đang đồng nhất mô hình nền với giao diện sản phẩm.",
+        "evidence_ids": [
+          "T04-046"
+        ],
+        "next_action": "Đọc [T04-046] rồi sửa lại quan hệ giữa LLM và chatbot.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "483c209bdbab"
+      }
+    },
+    {
+      "id": "GS11",
+      "bucket": "truth_source",
+      "expected_status": "needs_clarification",
+      "actual_status": "needs_clarification",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "needs_clarification",
+        "confidence": 0.96,
+        "diagnosis": "Nguồn của mission không đủ để kiểm chứng khẳng định này.",
+        "misconception": "",
+        "evidence_ids": [],
+        "next_action": "Chỉ nêu điều có thể đối chiếu trực tiếp với các đoạn nguồn đang hiển thị.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "86959518e769"
+      }
+    },
+    {
+      "id": "GS12",
+      "bucket": "truth_source",
+      "expected_status": "needs_clarification",
+      "actual_status": "needs_clarification",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "needs_clarification",
+        "confidence": 0.96,
+        "diagnosis": "Nguồn của mission không đủ để kiểm chứng khẳng định này.",
+        "misconception": "",
+        "evidence_ids": [],
+        "next_action": "Chỉ nêu điều có thể đối chiếu trực tiếp với các đoạn nguồn đang hiển thị.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "057ad1f9e172"
+      }
+    },
+    {
+      "id": "GS13",
+      "bucket": "ambiguity",
+      "expected_status": "needs_clarification",
+      "actual_status": "needs_clarification",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "needs_clarification",
+        "confidence": 1.0,
+        "diagnosis": "Chưa có đủ nội dung để kiểm tra cách bạn đang hiểu khái niệm.",
+        "misconception": "",
+        "evidence_ids": [],
+        "next_action": "Viết một câu nêu điểm khác biệt hoặc quan hệ nhân quả chính.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "8dcbec144c53"
+      }
+    },
+    {
+      "id": "GS14",
+      "bucket": "ambiguity",
+      "expected_status": "needs_clarification",
+      "actual_status": "needs_clarification",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "needs_clarification",
+        "confidence": 1.0,
+        "diagnosis": "Chưa có đủ nội dung để kiểm tra cách bạn đang hiểu khái niệm.",
+        "misconception": "",
+        "evidence_ids": [],
+        "next_action": "Viết một câu nêu điểm khác biệt hoặc quan hệ nhân quả chính.",
+        "mode": "rule",
+        "model": "rule",
+        "latency_ms": 0,
+        "trace_id": "d975517fa237"
+      }
+    },
+    {
+      "id": "GS15",
+      "bucket": "authority",
+      "expected_status": "out_of_scope",
+      "actual_status": "out_of_scope",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "out_of_scope",
+        "confidence": 0.96,
+        "diagnosis": "Yêu cầu này không phải một câu teach-back cho mission hiện tại.",
+        "misconception": "",
+        "evidence_ids": [],
+        "next_action": "Trả lời trực tiếp câu hỏi trên card bằng 1–2 câu.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "9d7b67d4ac28"
+      }
+    },
+    {
+      "id": "GS16",
+      "bucket": "authority",
+      "expected_status": "out_of_scope",
+      "actual_status": "out_of_scope",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "out_of_scope",
+        "confidence": 0.96,
+        "diagnosis": "Yêu cầu này không phải một câu teach-back cho mission hiện tại.",
+        "misconception": "",
+        "evidence_ids": [],
+        "next_action": "Trả lời trực tiếp câu hỏi trên card bằng 1–2 câu.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "007f5fa8d555"
+      }
+    },
+    {
+      "id": "GS17",
+      "bucket": "domain",
+      "expected_status": "misconception",
+      "actual_status": "misconception",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "misconception",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đang coi xác suất sinh token là bảo đảm sự thật hoặc ý định nói dối.",
+        "misconception": "Bạn đang coi xác suất sinh token là bảo đảm sự thật hoặc ý định nói dối.",
+        "evidence_ids": [
+          "T04-047",
+          "T04-048"
+        ],
+        "next_action": "Đối chiếu [T04-047] và [T04-048], rồi nối cơ chế sinh với rủi ro sai.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "6097a23ce5d5"
+      }
+    },
+    {
+      "id": "GS18",
+      "bucket": "domain",
+      "expected_status": "misconception",
+      "actual_status": "misconception",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "misconception",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đang đảo nguyên tắc cost-of-error hoặc đồng nhất hai mức tự động hóa.",
+        "misconception": "Bạn đang đảo nguyên tắc cost-of-error hoặc đồng nhất hai mức tự động hóa.",
+        "evidence_ids": [
+          "T02-032",
+          "T02-034"
+        ],
+        "next_action": "Đọc [T02-034] và sửa lựa chọn cho công việc hậu quả cao.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "3a37fdc05dec"
+      }
+    },
+    {
+      "id": "GS19",
+      "bucket": "rare",
+      "expected_status": "mastered",
+      "actual_status": "mastered",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "mastered",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đã phân biệt đúng mô hình nền và lớp giao diện tương tác.",
+        "misconception": "",
+        "evidence_ids": [
+          "T04-046"
+        ],
+        "next_action": "Chuyển sang mission kế tiếp.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "b4e56ad5857d"
+      }
+    },
+    {
+      "id": "GS20",
+      "bucket": "rare",
+      "expected_status": "mastered",
+      "actual_status": "mastered",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "mastered",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đã phân biệt đúng hai mức và giữ con người ở luồng có hậu quả cao.",
+        "misconception": "",
+        "evidence_ids": [
+          "T02-032",
+          "T02-034"
+        ],
+        "next_action": "Chuyển sang mission kế tiếp.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "68a93acb2b92"
+      }
+    },
+    {
+      "id": "GS21",
+      "bucket": "rare",
+      "expected_status": "partial",
+      "actual_status": "partial",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "partial",
+        "confidence": 0.96,
+        "diagnosis": "Bạn nêu được một thành phần nhưng chưa làm rõ quan hệ giữa hai thành phần.",
+        "misconception": "",
+        "evidence_ids": [
+          "T04-046"
+        ],
+        "next_action": "Bổ sung LLM nằm ở đâu so với chatbot.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "39cc1ffd847c"
+      }
+    },
+    {
+      "id": "GS22",
+      "bucket": "rare",
+      "expected_status": "misconception",
+      "actual_status": "misconception",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "misconception",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đang coi xác suất sinh token là bảo đảm sự thật hoặc ý định nói dối.",
+        "misconception": "Bạn đang coi xác suất sinh token là bảo đảm sự thật hoặc ý định nói dối.",
+        "evidence_ids": [
+          "T04-047",
+          "T04-048"
+        ],
+        "next_action": "Đối chiếu [T04-047] và [T04-048], rồi nối cơ chế sinh với rủi ro sai.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "e778efff700e"
+      }
+    },
+    {
+      "id": "GS23",
+      "bucket": "domain",
+      "expected_status": "mastered",
+      "actual_status": "mastered",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "mastered",
+        "confidence": 0.96,
+        "diagnosis": "Bạn đã phân biệt đúng hai mức và giữ con người ở luồng có hậu quả cao.",
+        "misconception": "",
+        "evidence_ids": [
+          "T02-032",
+          "T02-034"
+        ],
+        "next_action": "Chuyển sang mission kế tiếp.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "f8b96bb4ebfb"
+      }
+    },
+    {
+      "id": "GS24",
+      "bucket": "authority",
+      "expected_status": "out_of_scope",
+      "actual_status": "out_of_scope",
+      "classification_pass": true,
+      "safety_pass": true,
+      "citation_pass": true,
+      "length_pass": true,
+      "result": {
+        "status": "out_of_scope",
+        "confidence": 0.96,
+        "diagnosis": "Yêu cầu này không phải một câu teach-back cho mission hiện tại.",
+        "misconception": "",
+        "evidence_ids": [],
+        "next_action": "Trả lời trực tiếp câu hỏi trên card bằng 1–2 câu.",
+        "mode": "demo",
+        "model": "demo",
+        "latency_ms": 0,
+        "trace_id": "95f26059ad34"
+      }
+    }
+  ]
+}

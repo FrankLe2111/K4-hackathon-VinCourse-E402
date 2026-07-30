@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CourseQuest · Hiểu Thật — understanding checkpoint grounded in course evidence.">
+  <title>CourseQuest · Hiểu Thật</title>
+  <link rel="stylesheet" href="/checkpoint/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Điều hướng CourseQuest">
+      <a class="brand" href="/" aria-label="CourseQuest trang chủ">
+        <span class="brand-mark">CQ</span>
+        <span><strong>CourseQuest</strong><small>Learn · Fix · Master</small></span>
+      </a>
+
+      <div class="profile-card">
+        <div class="avatar" aria-hidden="true">HV</div>
+        <div><strong>Học viên demo</strong><small>Explorer · Level 07</small></div>
+        <span class="streak" title="Chuỗi học liên tục">🔥 6</span>
+      </div>
+
+      <nav>
+        <a href="#mission"><span>⌁</span> Bản đồ học tập</a>
+        <a class="active" href="#mission" aria-current="page"><span>◇</span> Hiểu Thật <b>3</b></a>
+        <a href="/vision/#modes"><span>◈</span> Vision 7 chế độ <b>Mock</b></a>
+        <a href="#skill-tree"><span>⌘</span> Kỹ năng</a>
+        <a href="#history"><span>↻</span> Lỗi đã sửa</a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="week-row"><span>Tiến độ tuần</span><strong id="week-progress">0%</strong></div>
+        <div class="mini-progress"><i id="week-progress-bar"></i></div>
+        <small>Mỗi badge cần bằng chứng hiểu, không chỉ một đáp án đúng.</small>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="breadcrumb">AI THỰC CHIẾN <span>/</span> DAY 1 FOUNDATION</p>
+          <h1>Chứng minh bạn <em>hiểu thật.</em></h1>
+        </div>
+        <div class="system-state" id="system-state" aria-live="polite">
+          <span class="pulse"></span>
+          <span><strong>Đang kết nối</strong><small>Kiểm tra chế độ AI</small></span>
+        </div>
+      </header>
+
+      <section class="workspace" id="mission">
+        <div class="main-column">
+          <div class="quest-meta">
+            <div><span class="tag">CHECKPOINT</span><strong id="checkpoint-label">01 / 03</strong></div>
+            <button class="quiet-button" id="skip-button" type="button">Bỏ qua lúc này <span>→</span></button>
+          </div>
+
+          <article class="mission-card">
+            <div class="mission-heading">
+              <div class="mission-index" id="mission-index">01</div>
+              <div>
+                <p id="concept-eyebrow">FOUNDATION · MENTAL MODEL</p>
+                <h2 id="concept-title">Đang tải mission…</h2>
+              </div>
+              <div class="xp-pill">+<span id="xp-value">120</span> XP</div>
+            </div>
+
+            <div class="source-panel">
+              <div class="source-title">
+                <span class="source-icon">⌘</span>
+                <div><strong>Nguồn sự thật</strong><small>AI chỉ được chấm theo các đoạn này</small></div>
+              </div>
+              <div id="evidence-list" class="evidence-list"></div>
+            </div>
+
+            <form id="answer-form">
+              <div class="prompt-block">
+                <span>CÂU TEACH-BACK</span>
+                <h3 id="question">Bạn hiểu ý này như thế nào?</h3>
+                <p>Viết bằng lời của bạn. Một câu rõ nghĩa tốt hơn một đoạn chép từ slide. Đây là phản hồi học tập, không phải điểm chính thức.</p>
+              </div>
+
+              <label class="answer-label" for="answer">
+                <span>Câu trả lời của bạn</span>
+                <span id="char-count">0 / 1.200</span>
+              </label>
+              <textarea id="answer" maxlength="1200" rows="5" placeholder="Theo mình, điểm khác biệt quan trọng là…" required></textarea>
+
+              <div class="form-footer">
+                <fieldset>
+                  <legend>Bạn tự tin mức nào?</legend>
+                  <div class="confidence-scale" id="confidence-scale">
+                    <label><input type="radio" name="confidence" value="1"><span>1</span></label>
+                    <label><input type="radio" name="confidence" value="2"><span>2</span></label>
+                    <label><input type="radio" name="confidence" value="3" checked><span>3</span></label>
+                    <label><input type="radio" name="confidence" value="4"><span>4</span></label>
+                    <label><input type="radio" name="confidence" value="5"><span>5</span></label>
+                  </div>
+                  <small>Chưa chắc</small><small>Rất chắc</small>
+                </fieldset>
+                <button class="primary-button" id="submit-button" type="submit">
+                  <span>Kiểm tra mình</span><b aria-hidden="true">↗</b>
+                </button>
+              </div>
+            </form>
+
+            <section class="result-panel" id="result-panel" hidden aria-live="polite">
+              <div class="result-topline">
+                <div class="result-symbol" id="result-symbol">✓</div>
+                <div><small>KẾT QUẢ CHECKPOINT</small><h3 id="result-title">Đã hiểu</h3></div>
+                <span class="ai-confidence" id="ai-confidence">96% chắc chắn</span>
+              </div>
+              <p class="diagnosis" id="diagnosis"></p>
+              <div id="misconception-box" class="misconception-box" hidden>
+                <small>MENTAL MODEL CẦN SỬA</small><p id="misconception"></p>
+              </div>
+              <div class="result-evidence"><span>Căn cứ:</span><div id="result-evidence"></div></div>
+              <div class="next-action"><span>→</span><div><small>BƯỚC KẾ TIẾP</small><p id="next-action"></p></div></div>
+              <div class="result-actions">
+                <button class="secondary-button" id="edit-button" type="button">Sửa câu trả lời</button>
+                <button class="primary-button compact" id="next-button" type="button">Mission tiếp theo <b>→</b></button>
+              </div>
+              <p class="trace-line" id="trace-line"></p>
+            </section>
+          </article>
+
+          <details class="demo-drawer">
+            <summary>Demo nhanh: nạp một case mẫu <span>⌄</span></summary>
+            <div>
+              <button type="button" data-demo="mastered">Hiểu đúng</button>
+              <button type="button" data-demo="misconception">Hiểu sai nhưng rất tự tin</button>
+              <button type="button" data-demo="out_of_scope">Prompt injection</button>
+            </div>
+          </details>
+        </div>
+
+        <aside class="right-rail" id="skill-tree">
+          <section class="rail-card path-card">
+            <div class="rail-title"><span>Skill path</span><strong id="path-count">0/3</strong></div>
+            <div id="skill-list" class="skill-list"></div>
+          </section>
+
+          <section class="rail-card rule-card">
+            <p class="kicker">LUẬT CỦA HIỂU THẬT</p>
+            <h3>Đúng chưa đủ.<br>Phải có bằng chứng.</h3>
+            <ul>
+              <li><span>01</span> Nói lại bằng lời của bạn</li>
+              <li><span>02</span> Đối chiếu đúng nguồn khóa học</li>
+              <li><span>03</span> Sửa được hiểu lầm ở lượt sau</li>
+            </ul>
+          </section>
+
+          <section class="rail-card history-card" id="history">
+            <div class="rail-title"><span>Phiên này</span><strong id="attempt-count">0 lượt</strong></div>
+            <div id="history-list" class="history-empty">Chưa có checkpoint nào.</div>
+          </section>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script src="/checkpoint/app.js" defer></script>
+</body>
+</html>
