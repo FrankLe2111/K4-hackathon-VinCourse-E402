@@ -4,68 +4,123 @@ Owner: ThanhToan
 
 ## Goal
 
-Mode chinh dua nguoi hoc di qua cac checkpoint theo cot truyen. Nguoi hoc tra loi quiz/code/short answer de mo khoa node tiep theo.
+Mode chính của AI Odyssey. Người học đi qua 10 zone, trả lời 50 checkpoint lấy từ `ai_odyssey_question_bank_vi.md`; sai vẫn được đi tiếp nhưng mỗi zone cần đạt 80% câu đúng để mở khóa zone sau.
 
 ## Demo Path
 
 ```text
 Open Story Quest
-  -> load current quest/session
-  -> answer one checkpoint
-  -> submit
-  -> receive GameResult
-  -> if wrong, recovery_created true
+  -> load question bank from backend session payload
+  -> choose quiz answer or fill code blanks
+  -> select confidence for quiz
+  -> submit to backend
+  -> show feedback
+  -> wrong answer is saved to Error Dungeon panel
+  -> red recovery badges appear on map/checkpoints
+  -> continue through zone
+  -> pass zone if correct >= 80%
+  -> end-of-zone reward card shows unlock, XP, bonus, review list
 ```
 
 ## Allowed Folders
 
-Allowed folders:
-
 - `vincourse/apps/web/src/features/story-quest/**`
 - `vincourse/apps/api/app/features/story_quest/**`
-
-Do not edit shared app shell or API client.
+- `vincourse/docs/features/story-quest.md`
 
 ## Endpoints
-
-Endpoint:
 
 ```text
 GET  /api/modes/story/session
 POST /api/modes/story/submit
 ```
 
-## Suggested Session Payload
+## Session Payload
+
+`GET /session` returns the shared `GameSession` contract. `payload` contains:
 
 ```json
 {
-  "quest_id": "stabilize-gradient",
-  "checkpoint_index": 1,
-  "total_checkpoints": 5,
-  "question_type": "multiple_choice",
-  "options": [
-    { "id": "A", "text": "Increase epochs" },
-    { "id": "B", "text": "Scale the features" }
+  "zones": [
+    {
+      "id": "prologue",
+      "name": "Mở đầu — Cánh Cổng Tò Mò",
+      "questions": [
+        {
+          "id": "prologue_quiz_01",
+          "type": "quiz",
+          "concept_id": "ai-vs-automation",
+          "xp": 20,
+          "context": "Một cánh cổng...",
+          "prompt": "Mô tả nào phù hợp nhất?",
+          "options": [{ "id": "A", "text": "..." }]
+        }
+      ]
+    }
   ],
-  "xp": 80
+  "pass_rate": 0.8
+}
+```
+
+Hidden answers are not sent to frontend.
+
+## Submit
+
+Quiz answer:
+
+```json
+{
+  "user_id": "demo-user",
+  "course_id": "ml-foundations",
+  "session_id": "story-quest-bank",
+  "question_id": "prologue_quiz_01",
+  "answer": "B",
+  "confidence": 5
+}
+```
+
+Code blanks are serialized as JSON string:
+
+```json
+{
+  "question_id": "zone6_code_01",
+  "answer": "[\"max(x, 0)\"]",
+  "confidence": 3
 }
 ```
 
 ## GameResult Notes
 
-- Correct first try: `status=mastered`, `xp>0`.
-- Wrong misconception: `status=misconception`, `recovery_created=true`.
-- Missing answer: `status=needs_clarification`.
+- Correct: `status=mastered`, XP from bank, `recovery_created=false`.
+- Wrong quiz: `status=misconception`, option-specific feedback, `recovery_created=true`.
+- Wrong code: `status=misconception`, `misconception_id=code-logic`.
+- Invalid answer: HTTP error with short `detail`.
 
-## What Can Be Mocked
+## Frontend State
 
-- Map unlock.
-- Long-term mastery.
-- Multi-quest campaign.
+Stored in `localStorage` under `vincourse-story-quest`:
 
-## What Should Feel Real
+- current zone
+- unlocked zone
+- completed checkpoint IDs
+- earned XP
+- streak / best streak / bonus XP
+- attempts per question
+- recovery queue
+- perfect zones
 
-- The current question.
-- Submit action.
-- Feedback.
-- XP/recovery trigger.
+## What Is Real
+
+- 10 zones / 50 checkpoints from the Markdown bank.
+- Server-side grading.
+- No answer leakage in session payload.
+- Wrong-answer recovery list.
+- 80% zone pass rule.
+- Live zone progress bar, locked zone preview, recovery badges.
+- Streak bonus every 3 new correct answers and perfect-zone bonus.
+
+## What Is Still Mocked
+
+- Real database persistence.
+- Shared Error Dungeon integration across modes.
+- XP penalty for hints/attempts.

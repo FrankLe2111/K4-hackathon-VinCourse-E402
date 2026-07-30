@@ -66,7 +66,10 @@ X_scaled = standardize(X_train)`,
   storyAttempts: {},
   storyEarnedXP: 0,
   storyStartedAt: 0,
-  storyRecoveries: []
+  storyRecoveries: [],
+  questionBank: [],
+  questionBankLoading: false,
+  questionBankError: ""
 };
 
 const vi = [
@@ -553,6 +556,9 @@ function render() {
   if (["map", "quest"].includes(state.route) && !state.storyZones.length && !state.storyLoading && !state.storyError) {
     void loadStory();
   }
+  if (["recall", "admin-questions"].includes(state.route) && !state.questionBank.length && !state.questionBankLoading && !state.questionBankError) {
+    void loadQuestionBank();
+  }
 }
 
 const pageHead = (eyebrow, title, subtitle, actions = "") => `
@@ -599,6 +605,22 @@ async function loadStory() {
     state.storyError = error.message;
   } finally {
     state.storyLoading = false;
+    render();
+  }
+}
+
+async function loadQuestionBank() {
+  state.questionBankLoading = true;
+  state.questionBankError = "";
+  render();
+  try {
+    const response = await fetch("/api/questions");
+    if (!response.ok) throw new Error("Không tải được kho câu hỏi chung.");
+    state.questionBank = (await response.json()).questions;
+  } catch (error) {
+    state.questionBankError = error.message;
+  } finally {
+    state.questionBankLoading = false;
     render();
   }
 }
@@ -1038,74 +1060,58 @@ function questResult() {
   </div>`;
 }
 
-const recallQuestions = [
-  {
-    concept: "Feature Scaling",
-    reason: "Due because last review was 7 days ago",
-    prompt: "A gradient descent model oscillates because two numeric features use very different ranges. Which response best addresses the cause?",
-    answers: [["A", "Scale the input features to comparable ranges"], ["B", "Increase training epochs only"], ["C", "Remove the feature with the largest values"], ["D", "Use the test set for tuning"]],
-    correct: "A",
-  },
-  {
-    concept: "MSE Loss",
-    reason: "Confidence lower than accuracy",
-    prompt: "Which loss gives larger prediction errors extra weight by squaring every residual?",
-    answers: [["A", "Mean squared error"], ["B", "Accuracy"], ["C", "Train/test split"], ["D", "Feature scaling"]],
-    correct: "A",
-  },
-  {
-    concept: "Train / Test Split",
-    reason: "One prior error",
-    prompt: "Which data should remain untouched until the final evaluation?",
-    answers: [["A", "Training data"], ["B", "Test data"], ["C", "Every row"], ["D", "No data"]],
-    correct: "B",
-  },
-  {
-    concept: "Learning Rate",
-    reason: "Newly learned concept",
-    prompt: "Features are already scaled, but loss still jumps past the minimum. What should you try next?",
-    answers: [["A", "Add more test data"], ["B", "Increase the learning rate"], ["C", "Reduce the learning rate"], ["D", "Remove the smallest feature"]],
-    correct: "C",
-  },
-];
+const recallQuestions = () => state.questionBank
+  .filter(question => question.modes.includes("daily_recall"))
+  .slice(0, 4);
 
 function dailyRecall() {
+  if (state.questionBankLoading) return `${pageHead("Spaced practice", "Daily Recall", "Đang tải kho câu hỏi chung.")}<section class="card generation-visual"><div class="spinner-ring"></div></section>`;
+  if (state.questionBankError) return `${pageHead("Spaced practice", "Daily Recall", "Không tải được kho câu hỏi chung.")}<section class="card soft-pink"><p>${escapeHTML(state.questionBankError)}</p><button class="button primary" data-action="question-bank-reload">Thử lại</button></section>`;
+  const questions = recallQuestions();
+  if (!questions.length) return `${pageHead("Spaced practice", "Daily Recall", "Kho câu hỏi chung chưa có quiz ôn tập.")}<section class="card soft-pink"><p>Chưa có câu hỏi phù hợp.</p></section>`;
   if (state.recallStage === "play") return dailyRecallPlay();
   if (state.recallStage === "result") return dailyRecallResult();
   return `${pageHead("Spaced practice", "Daily Recall", "A short review generated from your forgetting forecast.", `<button class="button primary" data-action="start-recall">Start 5-minute review</button>`)}
     <div class="layout-main">
       <section class="card">
-        <div class="card-head"><div><h2>Due today</h2><p>4 concepts selected for maximum learning value.</p></div><span class="status info">5 min</span></div>
-        ${[
-          ["Feature Scaling","Last reviewed 7 days ago","Today",68],
-          ["MSE Loss","Confidence lower than accuracy","Today",71],
-          ["Train / Test Split","One prior error","Today",62],
-          ["Learning Rate","Newly learned concept","Today",45]
-        ].map(x => `<div class="list-item"><span class="circle-icon">↻</span><div class="list-item-main"><strong>${x[0]}</strong><small>${x[1]}</small>${progress(x[3])}</div><span class="status info">${x[2]}</span></div>`).join("")}
+        <div class="card-head"><div><h2>Due today</h2><p>${questions.length} câu được lấy từ kho câu hỏi chung.</p></div><span class="status info">5 min</span></div>
+        ${questions.map((question, index) => `<div class="list-item"><span class="circle-icon">↻</span><div class="list-item-main"><strong>${escapeHTML(conceptTitles[question.concept_id] || question.concept_id)}</strong><small>${escapeHTML(question.zone_name)}</small>${progress(45 + index * 8)}</div><span class="status info">Today</span></div>`).join("")}
       </section>
       <aside class="card soft-blue"><h3>Session settings</h3><div class="field" style="margin-top:15px"><label>Duration</label><select class="select"><option>5 minutes</option><option>10 minutes</option></select></div><div class="field" style="margin-top:15px"><label>Questions</label><select class="select"><option>4 questions</option><option>8 questions</option></select></div><div class="separator"></div><h3>Evidence collected</h3><p>Delayed recall and confidence calibration for every answer.</p></aside>
     </div>`;
 }
 
 function dailyRecallPlay() {
-  const question = recallQuestions[state.recallIndex];
-  const percent = Math.round(state.recallIndex / recallQuestions.length * 100);
+  const questions = recallQuestions();
+  const question = questions[state.recallIndex];
+  const percent = Math.round(state.recallIndex / questions.length * 100);
   return `<div class="question-shell">
-    <div class="question-top"><button class="icon-button" data-action="exit-recall">←</button>${progress(percent)}<strong>${state.recallIndex + 1} / ${recallQuestions.length}</strong><span class="status info">5 min</span></div>
+    <div class="question-top"><button class="icon-button" data-action="exit-recall">←</button>${progress(percent)}<strong>${state.recallIndex + 1} / ${questions.length}</strong><span class="status info">5 min</span></div>
     <section class="card question-card">
-      <div class="card-head"><div><span class="status info">${question.reason}</span><h2 style="margin-top:14px">${question.prompt}</h2></div><span class="tag">${question.concept}</span></div>
-      <div class="answer-list">${question.answers.map(answer => `<button class="answer ${state.recallAnswer === answer[0] ? "selected" : ""}" data-recall-answer="${answer[0]}"><span class="answer-key">${answer[0]}</span><span>${answer[1]}</span></button>`).join("")}</div>
+      <div class="card-head"><div><span class="status info">${escapeHTML(question.zone_name)}</span><h2 style="margin-top:14px">${escapeHTML(question.prompt)}</h2></div><span class="tag">${escapeHTML(conceptTitles[question.concept_id] || question.concept_id)}</span></div>
+      <div class="answer-list">${question.options.map(answer => `<button class="answer ${state.recallAnswer === answer.id ? "selected" : ""}" data-recall-answer="${answer.id}"><span class="answer-key">${answer.id}</span><span>${escapeHTML(answer.text)}</span></button>`).join("")}</div>
       <div class="card-head"><div><strong>How confident are you?</strong><small>Confidence is required for spaced recall.</small></div><div class="confidence">${["Low","Medium","High"].map(c => `<button class="${state.confidence === c ? "active" : ""}" data-confidence="${c}">${c}</button>`).join("")}</div></div>
-      <button class="button primary" data-action="submit-recall" ${state.recallAnswer && state.confidence ? "" : "disabled"}>${state.recallIndex === recallQuestions.length - 1 ? "Finish recall" : "Next question"}</button>
+      <button class="button primary" data-action="submit-recall" ${state.recallAnswer && state.confidence ? "" : "disabled"}>${state.recallIndex === questions.length - 1 ? "Finish recall" : "Next question"}</button>
     </section>
   </div>`;
 }
 
-function submitRecall() {
-  const question = recallQuestions[state.recallIndex];
-  if (state.recallAnswer === question.correct) state.recallScore += 1;
-  else state.recallMistakes.push(question.concept);
-  if (state.recallIndex === recallQuestions.length - 1) {
+async function submitRecall() {
+  const questions = recallQuestions();
+  const question = questions[state.recallIndex];
+  const response = await fetch("/api/story/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({question_id: question.id, answer: state.recallAnswer, confidence: state.confidence.toLowerCase()}),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    toast(result.error || "Không chấm được câu ôn tập.");
+    return;
+  }
+  if (result.correct) state.recallScore += 1;
+  else state.recallMistakes.push(conceptTitles[question.concept_id] || question.concept_id);
+  if (state.recallIndex === questions.length - 1) {
     state.recallStage = "result";
     complete("daily", 35);
   } else {
@@ -1118,8 +1124,9 @@ function submitRecall() {
 
 function dailyRecallResult() {
   const mistakes = state.recallMistakes.length;
+  const questions = recallQuestions();
   return `${pageHead("Daily Recall result", "Review complete", "Your recall schedule has been updated from this session.")}
-    <section class="card soft-blue" style="text-align:center;padding:38px"><div class="feedback-icon correct" style="margin:0 auto 18px">✓</div><h1>${recallQuestions.length} concepts refreshed</h1><p>You answered ${state.recallScore} of ${recallQuestions.length} correctly and calibrated your confidence.</p><div class="tag-row" style="justify-content:center"><span class="tag">+35 XP</span><span class="tag">${state.recallScore} correct</span><span class="tag">${mistakes} recovery queued</span></div></section>
+    <section class="card soft-blue" style="text-align:center;padding:38px"><div class="feedback-icon correct" style="margin:0 auto 18px">✓</div><h1>${questions.length} concepts refreshed</h1><p>You answered ${state.recallScore} of ${questions.length} correctly and calibrated your confidence.</p><div class="tag-row" style="justify-content:center"><span class="tag">+35 XP</span><span class="tag">${state.recallScore} correct</span><span class="tag">${mistakes} recovery queued</span></div></section>
     <div class="grid two" style="margin-top:18px"><section class="card"><h2>Next review schedule</h2><div class="list"><div class="list-item"><span class="circle-icon">3</span><div class="list-item-main"><strong>Feature Scaling</strong><small>Review again in 3 days</small></div><span class="status success">Refreshed</span></div><div class="list-item"><span class="circle-icon">1</span><div class="list-item-main"><strong>MSE Loss</strong><small>Review again tomorrow</small></div><span class="status warning">Due soon</span></div></div></section><section class="card"><h2>Confidence calibration</h2><p>High confidence + correct answer strengthened your delayed-recall evidence.</p><div class="button-row"><button class="button primary" data-action="restart-recall">Practice again</button><button class="button secondary" data-route="home">Back home</button></div></section></div>`;
 }
 
@@ -1419,10 +1426,14 @@ function adminWorld() {
 }
 
 function questionStudio() {
+  if (state.questionBankLoading) return `${pageHead("Content quality", "Question Review Studio", "Đang tải kho câu hỏi chung.")}<section class="card generation-visual"><div class="spinner-ring"></div></section>`;
+  if (state.questionBankError) return `${pageHead("Content quality", "Question Review Studio", "Không tải được kho câu hỏi chung.")}<section class="card soft-pink"><p>${escapeHTML(state.questionBankError)}</p><button class="button primary" data-action="question-bank-reload">Thử lại</button></section>`;
+  const question = state.questionBank[0];
+  if (!question) return `${pageHead("Content quality", "Question Review Studio", "Kho câu hỏi chung đang trống.")}<section class="card soft-pink"><p>Chưa có câu hỏi để review.</p></section>`;
   return `${pageHead("Content quality", "Question Review Studio", "Review prompts, answers, misconception labels, and exact source evidence.", `<button class="button primary" data-action="approve-all">Approve verified items</button>`)}
     <div class="layout-main">
-      <section class="card"><div class="card-head"><div><span class="status warning">Needs review · 3 of 24</span><h2 style="margin-top:12px">Feature Scaling · Apply</h2></div><span class="tag">Question 08</span></div><div class="field"><label>Prompt</label><textarea class="textarea">A model uses one feature from 0–1 and another from 1–100,000. Training oscillates. What should you try first?</textarea></div><div class="grid two" style="margin-top:14px"><div class="field"><label>Correct answer</label><input class="input" value="Standardize the feature scales"></div><div class="field"><label>Difficulty</label><select class="select"><option>Apply · Medium</option></select></div></div><div class="field" style="margin-top:14px"><label>Detected misconception for option A</label><input class="input" value="More epochs can compensate for missing scaling"></div><div class="button-row" style="margin-top:16px"><button class="button secondary" data-action="reject">Request regeneration</button><button class="button primary" data-action="approve-question">Approve question</button></div></section>
-      <aside class="card"><h3>Source evidence</h3><div class="source-box"><strong>Lecture 02 · page 14</strong><small>Section 2.3 · Optimization path</small><p style="margin:10px 0 0">Scaling creates a more direct, stable path toward the minimum when feature ranges differ.</p></div><div class="separator"></div><h3>Quality checks</h3><div class="list"><div class="list-item"><span class="status success">Pass</span><div class="list-item-main"><strong>Single correct answer</strong></div></div><div class="list-item"><span class="status success">Pass</span><div class="list-item-main"><strong>Source supports answer</strong></div></div><div class="list-item"><span class="status warning">Check</span><div class="list-item-main"><strong>Distractor specificity</strong></div></div></div></aside>
+      <section class="card"><div class="card-head"><div><span class="status warning">Kho chung · ${state.questionBank.length} câu</span><h2 style="margin-top:12px">${escapeHTML(conceptTitles[question.concept_id] || question.concept_id)}</h2></div><span class="tag">${escapeHTML(question.id)}</span></div><div class="field"><label>Prompt</label><textarea class="textarea">${escapeHTML(question.prompt || question.task)}</textarea></div>${question.options ? `<div class="list" style="margin-top:14px">${question.options.map(option => `<div class="list-item"><span class="circle-icon">${option.id}</span><div class="list-item-main"><strong>${escapeHTML(option.text)}</strong></div></div>`).join("")}</div>` : `<div class="field" style="margin-top:14px"><label>Starter code</label><textarea class="textarea">${escapeHTML(question.starter_code)}</textarea></div>`}<div class="button-row" style="margin-top:16px"><button class="button secondary" data-action="reject">Request regeneration</button><button class="button primary" data-action="approve-question">Approve question</button></div></section>
+      <aside class="card"><h3>Source evidence</h3><div class="source-box"><strong>${escapeHTML(question.zone_name)}</strong><small>${escapeHTML(question.type)} · ${escapeHTML(question.modes.join(", "))}</small><p style="margin:10px 0 0">${escapeHTML(question.hint || question.visible_tests?.[0] || "Câu hỏi lấy từ question bank chung.")}</p></div><div class="separator"></div><h3>Quality checks</h3><div class="list"><div class="list-item"><span class="status success">Pass</span><div class="list-item-main"><strong>Không leak đáp án</strong></div></div><div class="list-item"><span class="status success">Pass</span><div class="list-item-main"><strong>Dùng chung cho gamemode</strong></div></div><div class="list-item"><span class="status warning">Check</span><div class="list-item-main"><strong>Instructor review</strong></div></div></div></aside>
     </div>`;
 }
 
@@ -1533,6 +1544,11 @@ document.addEventListener("click", event => {
     "checkpoint-reload": () => {
       state.checkpointError = "";
       state.checkpointConcepts = [];
+      render();
+    },
+    "question-bank-reload": () => {
+      state.questionBankError = "";
+      state.questionBank = [];
       render();
     },
     "story-reload": () => {

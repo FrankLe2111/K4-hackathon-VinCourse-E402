@@ -6,7 +6,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import random
 import re
 import threading
 import time
@@ -161,12 +160,21 @@ def public_concepts() -> list[dict[str, Any]]:
 
 
 def public_story() -> dict[str, Any]:
-    zones = json.loads(json.dumps(STORY_ZONES, ensure_ascii=False))
-    for zone in zones:
+    return {"zones": json.loads(json.dumps(STORY_ZONES, ensure_ascii=False))}
+
+
+def public_questions() -> dict[str, Any]:
+    questions = []
+    for zone in public_story()["zones"]:
         for question in zone["questions"]:
-            if question["type"] == "quiz":
-                random.shuffle(question["options"])
-    return {"zones": zones}
+            item = {key: question[key] for key in question if key != "context"}
+            item.update({
+                "zone_id": zone["id"],
+                "zone_name": zone["name"],
+                "modes": ["story_quest", "daily_recall"] if question["type"] == "quiz" else ["story_quest", "lab_arena"],
+            })
+            questions.append(item)
+    return {"questions": questions}
 
 
 def check_story(payload: Any) -> dict[str, Any]:
@@ -449,6 +457,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if self.path == "/api/story":
             self.send_json(public_story())
+            return
+        if self.path == "/api/questions":
+            self.send_json(public_questions())
             return
         if self.path == "/api/health":
             self.send_json({"ok": True, "mode": "demo" if DEMO_MODE else "openai",

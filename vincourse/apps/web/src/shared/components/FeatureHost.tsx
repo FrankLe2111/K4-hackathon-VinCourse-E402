@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getModeSession, submitMode } from "../../api/modes";
 import type { GameMode, GameResult, GameSession } from "../../types/game";
+import { StoryQuest } from "../../features/story-quest";
 
 type Props = {
   mode: GameMode;
@@ -8,6 +9,11 @@ type Props = {
 };
 
 export function FeatureHost({ mode, onCompleted }: Props) {
+  if (mode === "story") return <StoryQuest onCompleted={onCompleted} />;
+  return <GenericFeatureHost mode={mode} onCompleted={onCompleted} />;
+}
+
+function GenericFeatureHost({ mode, onCompleted }: Props) {
   const [session, setSession] = useState<GameSession | null>(null);
   const [answer, setAnswer] = useState("");
   const [confidence, setConfidence] = useState(3);
@@ -84,4 +90,3 @@ export function FeatureHost({ mode, onCompleted }: Props) {
     </section>
   );
 }
-
