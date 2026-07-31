@@ -102,7 +102,7 @@ def _boss_session() -> GameSession:
     return GameSession(
         mode=GameMode.boss_battle,
         session_id=session_id,
-        title="Đại chiến Trùm: Mô hình Hỏng",
+        title="Đại chiến Trùm: The Hallucination Hydra",
         prompt="Người chơi vào phòng bằng nickname, trả lời độc lập như Kahoot. Nếu ít nhất 80% người chơi đúng trong một câu, boss mất máu.",
         evidence_ids=["BOSS-LIVE-ROOM-001"],
         payload={
@@ -114,7 +114,7 @@ def _boss_session() -> GameSession:
             },
             "boss": {
                 "boss_id": "broken-model",
-                "boss_name": "Mô hình Hỏng",
+                "boss_name": "The Hallucination Hydra",
                 "max_hp": 100,
                 "hp": 100,
                 "attack_damage": ATTACK_DAMAGE,

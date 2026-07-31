@@ -601,7 +601,7 @@ export function BossBattleView({ session, onCompleted }: Props) {
   return (
     <section className={`boss-shell state-${gameState}`}>
       <AudioStrip muted={muted} gameState={gameState} onToggle={() => setMuted((value) => !value)} />
-      {gameState === "lobby" ? <Hero bossName={payload.boss?.boss_name ?? "Mô hình Hỏng"} roomCode={roomCode} joinUrl={joinUrl} threshold={threshold} /> : null}
+      {gameState === "lobby" ? <Hero bossName={payload.boss?.boss_name ?? "The Hallucination Hydra"} roomCode={roomCode} joinUrl={joinUrl} threshold={threshold} /> : null}
       {gameState === "lobby" ? <StatusRow totalScore={totalScore} activeCount={activeCount} threshold={threshold} bossHp={bossHp} maxHp={maxHp} /> : null}
 
       {gameState === "lobby" ? <Lobby nickname={nickname} joined={joined} roomCode={roomCode} players={projectedPlayers} onNameChange={setNickname} onJoin={joinRoom} onStart={startBattle} /> : null}
