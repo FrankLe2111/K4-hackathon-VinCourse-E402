@@ -1,1 +1,608 @@
-.react-lab{color:#17231d}.react-lab-loading,.react-lab-card,.react-lab-hero{background:#fff;border:1px solid #dfe7e2;border-radius:12px}.react-lab-loading{padding:30px}.react-lab-hero{display:flex;justify-content:space-between;gap:24px;padding:24px 28px;margin-bottom:16px}.react-lab-hero>div>span{display:flex;align-items:center;gap:7px;color:#008f57;font-size:12px;font-weight:800}.react-lab-hero h2{margin:7px 0;font-size:27px}.react-lab-hero p{margin:0;color:#647269}.react-lab-hero button{display:flex;align-items:center;gap:7px;align-self:center;padding:10px 13px;border:1px solid #dbe4de;border-radius:9px;background:#fff;cursor:pointer}.react-lab-grid{display:grid;grid-template-columns:280px minmax(420px,1fr) 330px;gap:14px}.react-lab-card{padding:20px}.react-lab-card h3{margin:13px 0 8px}.react-lab-card p{color:#66756c;line-height:1.55;font-size:13px}.react-lab-chip{padding:6px 9px;border-radius:999px;background:#edf3ef;font-size:10px}.react-lab-tags{display:flex;flex-wrap:wrap;gap:6px}.react-lab-tags span{padding:6px 9px;border-radius:999px;background:#edf3ef;font-size:10px;font-weight:700}.react-lab-card hr{border:0;border-top:1px solid #e3e8e5;margin:20px 0}.react-lab-card>small,.react-lab-card>strong{display:block}.react-lab-card details{padding:10px 0;border-bottom:1px solid #e5e9e7;font-size:11px}.react-lab-card summary{cursor:pointer}.react-lab-card summary b{color:#0781e6}.react-lab-editor{display:flex;flex-direction:column;min-height:620px;overflow:hidden;border-radius:12px;background:#172128}.react-lab-editor>div{display:flex;align-items:center;gap:8px;padding:14px 16px;color:#dce5df;background:#111920;font-size:12px}.react-lab-editor>div span{margin-left:auto;color:#82928a}.react-lab-editor textarea{flex:1;resize:none;border:0;outline:0;padding:22px;color:#dce5df;background:#172128;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace}.react-lab-editor>small{padding:10px 16px;color:#7e9087;border-top:1px solid #29343a}.react-lab-result-head{display:flex;align-items:center;justify-content:space-between}.react-lab-result-head h3{margin:0}.react-lab-result-head span{padding:6px 9px;border-radius:999px;background:#e3fff1;color:#00884f;font-size:10px;font-weight:800}.react-lab-results article{display:flex;gap:9px;padding:13px 0;border-bottom:1px solid #e3e8e5}.react-lab-results article i{display:grid;place-content:center;width:23px;height:23px;flex:none;border-radius:50%;color:#fff;background:#06c875;font-style:normal}.react-lab-results article.failed i{background:#d74c64}.react-lab-results article code{color:#009d5d;font-size:10px;line-height:1.5}.react-lab-results dl{display:grid;grid-template-columns:60px 1fr;gap:4px;margin:8px 0;font-size:9px}.react-lab-results dd{margin:0;font-family:monospace}.react-lab-results article small{color:#758078}.react-lab-empty{display:grid;gap:8px;padding:42px 10px;text-align:center;color:#6d7971}.react-lab-empty b,.react-lab-empty small{display:block}.react-lab-error{padding:10px;border-radius:8px;background:#fff0f1;color:#ad2840}.react-lab-proof{display:flex;gap:7px;margin-top:14px;padding:12px;border-radius:9px;background:#dcfff0;color:#08784a;font-size:11px}.react-lab-run{display:flex;justify-content:center;align-items:center;gap:7px;width:100%;margin-top:14px;padding:12px;border:0;border-radius:9px;color:#fff;background:#06c875;font-weight:800;cursor:pointer}.react-lab-run:disabled{opacity:.6}.react-lab-source{display:flex;gap:6px;margin-top:10px;color:#7b867f;font-size:10px}@media(max-width:1150px){.react-lab-grid{grid-template-columns:260px 1fr}.react-lab-results{grid-column:1/-1}}@media(max-width:760px){.react-lab-grid{grid-template-columns:1fr}.react-lab-results{grid-column:auto}.react-lab-editor{min-height:460px}.react-lab-hero{display:block}.react-lab-hero button{margin-top:14px}}
+/* ==========================================================================
+   LAB ARENA — BASE LAYOUT & COMPONENTS
+   ========================================================================== */
+
+.react-lab { color: #17231d; }
+
+.react-lab-loading,
+.react-lab-card,
+.react-lab-hero {
+  background: #fff;
+  border: 1px solid #dfe7e2;
+  border-radius: 12px;
+}
+
+.react-lab-loading { padding: 30px; }
+
+.react-lab-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px;
+  margin-bottom: 16px;
+}
+
+.react-lab-hero > div > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #008f57;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.react-lab-hero h2 { margin: 7px 0; font-size: 27px; }
+.react-lab-hero p { margin: 0; color: #647269; }
+
+.react-lab-hero button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  align-self: center;
+  padding: 10px 13px;
+  border: 1px solid #dbe4de;
+  border-radius: 9px;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* ── VERTICAL LAYOUT ── */
+.react-lab-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1220px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.react-lab-vertical .react-lab-hero {
+  margin-bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.lab-v-problem,
+.lab-v-editor,
+.lab-v-results,
+.lab-v-ai {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* ── 1. Problem card ── */
+.lab-v-problem { padding: 0; overflow: hidden; }
+
+.lab-v-problem-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 12px;
+}
+
+.lab-v-problem-toggle > span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.lab-v-problem-title {
+  font-size: 16px;
+  color: #17231d;
+  font-weight: 700;
+}
+
+.lab-v-problem-body {
+  padding: 0 20px 20px;
+  border-top: 1px solid #e8efeb;
+}
+
+.lab-v-evidence {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e8efeb;
+}
+
+/* ── 2. Editor ── */
+.lab-v-editor {
+  min-height: unset !important;
+}
+
+.lab-v-run-bar {
+  padding: 12px 16px;
+  background: #181825;
+  border-top: 1px solid #313244;
+}
+
+.lab-v-run-bar .react-lab-run {
+  margin-top: 0;
+  border-radius: 8px;
+}
+
+/* ── 3. Results ── */
+.lab-v-results { padding: 20px; }
+
+.lab-v-tests {
+  margin-top: 14px;
+}
+
+/* ── 4. AI hint strip ── */
+.lab-v-ai {
+  border-left: 4px solid #7c3aed;
+}
+
+.lab-ai-subtext {
+  color: #6366f1;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Legacy grid — kept for reference, not used */
+.react-lab-grid {
+  display: grid;
+  grid-template-columns: 280px minmax(420px, 1fr) 330px;
+  gap: 14px;
+}
+
+
+.react-lab-card { padding: 20px; }
+.react-lab-card h3 { margin: 13px 0 8px; }
+.react-lab-card p { color: #66756c; line-height: 1.55; font-size: 13px; }
+
+.react-lab-chip {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #edf3ef;
+  font-size: 10px;
+}
+
+.react-lab-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.react-lab-tags span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #edf3ef;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.react-lab-card hr { border: 0; border-top: 1px solid #e3e8e5; margin: 20px 0; }
+.react-lab-card > small,
+.react-lab-card > strong { display: block; }
+.react-lab-card details { padding: 10px 0; border-bottom: 1px solid #e5e9e7; font-size: 11px; }
+.react-lab-card summary { cursor: pointer; }
+.react-lab-card summary b { color: #0781e6; }
+
+
+/* ==========================================================================
+   CODE EDITOR — CATPPUCCIN MOCHA THEME
+   ========================================================================== */
+
+.react-lab-editor {
+  display: flex;
+  flex-direction: column;
+  min-height: 360px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #1e1e2e;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.3),
+    0 10px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Title Bar — VS Code style */
+.react-lab-editor-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  color: #cdd6f4;
+  background: #181825;
+  font-size: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid #313244;
+  letter-spacing: 0.02em;
+}
+
+.react-lab-editor-header b {
+  color: #89b4fa;
+}
+
+.react-lab-editor-header span {
+  margin-left: auto;
+  color: #a6adc8;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* Traffic lights decoration (macOS-style dots) */
+.react-lab-editor-header::before {
+  content: "";
+  display: inline-flex;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #f38ba8;
+  box-shadow:
+    18px 0 0 #a6e3a1,
+    36px 0 0 #f9e2af;
+  margin-right: 28px;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   PYTHON SYNTAX HIGHLIGHTING & OVERLAY EDITOR STYLES
+   ========================================================================== */
+
+.py-editor-container {
+  display: flex;
+  flex: 1;
+  min-height: 520px;
+  background: #1e1e2e;
+  position: relative;
+  overflow: hidden;
+}
+
+.py-line-numbers {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 12px 18px 16px;
+  background: #181825;
+  color: #585b70;
+  font: 15.5px/1.75 "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  text-align: right;
+  user-select: none;
+  border-right: 1px solid #313244;
+  min-width: 48px;
+}
+
+.py-editor-wrapper {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.py-syntax-display,
+.py-syntax-textarea {
+  margin: 0;
+  padding: 18px 20px;
+  font: 15.5px/1.75 "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  tab-size: 4;
+  letter-spacing: 0.01em;
+  white-space: pre;
+  word-wrap: normal;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.py-syntax-display {
+  pointer-events: none;
+  background: transparent;
+  color: #cdd6f4;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.py-syntax-display code {
+  font-family: inherit;
+}
+
+.py-syntax-textarea {
+  background: transparent;
+  color: transparent;
+  caret-color: #89b4fa;
+  resize: none;
+  border: 0;
+  outline: 0;
+  z-index: 2;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #45475a #1e1e2e;
+}
+
+.py-syntax-textarea::selection {
+  background: rgba(137, 180, 250, 0.25);
+}
+
+/* TOKEN COLORS (CATPPUCCIN MOCHA SYNTAX THEME) */
+.py-keyword {
+  color: #cba6f7;
+  font-weight: bold;
+}
+
+.py-builtin {
+  color: #89b4fa;
+  font-weight: 500;
+}
+
+.py-func {
+  color: #89dceb;
+  font-weight: bold;
+}
+
+.py-string {
+  color: #a6e3a1;
+}
+
+.py-number {
+  color: #fab387;
+}
+
+.py-comment {
+  color: #6c7086;
+  font-style: italic;
+}
+
+.py-decorator {
+  color: #f9e2af;
+  font-weight: 500;
+}
+
+/* Footer bar */
+.react-lab-editor > small {
+  padding: 8px 18px;
+  color: #6c7086;
+  background: #181825;
+  border-top: 1px solid #313244;
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: 0.02em;
+}
+
+
+/* ==========================================================================
+   RESULTS PANEL
+   ========================================================================== */
+
+.react-lab-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.react-lab-result-head h3 { margin: 0; }
+
+.react-lab-result-head span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #e3fff1;
+  color: #00884f;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.react-lab-results article {
+  display: flex;
+  gap: 9px;
+  padding: 13px 0;
+  border-bottom: 1px solid #e3e8e5;
+}
+
+.react-lab-results article i {
+  display: grid;
+  place-content: center;
+  width: 23px;
+  height: 23px;
+  flex: none;
+  border-radius: 50%;
+  color: #fff;
+  background: #06c875;
+  font-style: normal;
+}
+
+.react-lab-results article.failed i { background: #d74c64; }
+
+.react-lab-results article code {
+  color: #009d5d;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.react-lab-results dl {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 4px;
+  margin: 8px 0;
+  font-size: 9px;
+}
+
+.react-lab-results dd { margin: 0; font-family: monospace; }
+.react-lab-results article small { color: #758078; }
+
+.react-lab-empty {
+  display: grid;
+  gap: 8px;
+  padding: 42px 10px;
+  text-align: center;
+  color: #6d7971;
+}
+
+.react-lab-empty b,
+.react-lab-empty small { display: block; }
+
+.react-lab-error {
+  padding: 10px;
+  border-radius: 8px;
+  background: #fff0f1;
+  color: #ad2840;
+}
+
+.react-lab-proof {
+  display: flex;
+  gap: 7px;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #dcfff0;
+  color: #08784a;
+  font-size: 11px;
+}
+
+.react-lab-run {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  border: 0;
+  border-radius: 9px;
+  color: #fff;
+  background: #06c875;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.react-lab-run:hover { background: #05a862; }
+.react-lab-run:disabled { opacity: .6; }
+
+.react-lab-source {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  color: #7b867f;
+  font-size: 10px;
+}
+
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 1150px) {
+  .react-lab-grid { grid-template-columns: 260px 1fr; }
+  .react-lab-results { grid-column: 1 / -1; }
+}
+
+@media (max-width: 760px) {
+  .react-lab-grid { grid-template-columns: 1fr; }
+  .react-lab-results { grid-column: auto; }
+  .react-lab-editor { min-height: 460px; }
+  .react-lab-hero { display: block; }
+  .react-lab-hero button { margin-top: 14px; }
+}
+
+
+/* ==========================================================================
+   DYNAMIC AI COACH DEBUG HINT
+   ========================================================================== */
+
+.lab-dynamic-ai-box {
+  margin-top: 20px;
+  border: 1px solid #c7d2fe;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+  padding: 16px;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.06);
+}
+
+.lab-ai-box-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.lab-ai-badge {
+  background: #ffffff;
+  color: #4f46e5;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #c7d2fe;
+}
+
+.lab-toggle-hint {
+  border: none;
+  background: transparent;
+  color: #6366f1;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lab-ai-hint-text {
+  margin: 0;
+  color: #312e81;
+  font-size: 13px;
+  line-height: 1.8;
+  font-weight: 500;
+}
+
+.lab-ai-hint-text strong {
+  color: #1e1b4b;
+  font-weight: 800;
+}
+
+.lab-ai-hint-text code.py-hint-code {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4338ca;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.py-hint-bad { font-size: 14px; }
+.py-hint-good { font-size: 14px; }
+
+/* AI Coach Banner inside Editor — Catppuccin accent */
+.lab-editor-ai-banner {
+  background: #181825;
+  border-top: 1px solid #45475a;
+  border-left: 3px solid #89b4fa;
+  padding: 14px 18px;
+  color: #cdd6f4;
+  font-size: 12px;
+}
+
+.lab-editor-ai-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #f9e2af;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.lab-editor-ai-detail {
+  margin: 0;
+  color: #cdd6f4;
+  line-height: 1.8;
+  font-size: 12.5px;
+}
+
+.lab-editor-ai-detail strong {
+  color: #f9e2af;
+  font-weight: 700;
+}
+
+.lab-editor-ai-detail code.py-hint-code {
+  background: rgba(137, 180, 250, 0.15);
+  color: #89dceb;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+}
+
