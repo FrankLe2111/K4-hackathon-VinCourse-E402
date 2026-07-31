@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.ai.tutor import boss_class_coach
 from app.schemas import GameMode, GameSession, GameSubmitRequest, GameResult, GameStatus
 from app.storage.memory import record_result
 
@@ -7,6 +8,15 @@ router = APIRouter(tags=["boss-battle"])
 
 
 def _boss_session() -> GameSession:
+    threshold = 80
+    teams = [
+        {"name": "Team Gradient", "correct": True},
+        {"name": "Team Dataset", "correct": True},
+        {"name": "Team Metric", "correct": True},
+        {"name": "Team Prompt", "correct": True},
+        {"name": "Team Debug", "correct": False},
+    ]
+    correct_rate = round(sum(1 for team in teams if team["correct"]) / len(teams) * 100)
     return GameSession(
         mode=GameMode.boss_battle,
         session_id="boss-class-raid-001",
@@ -16,7 +26,7 @@ def _boss_session() -> GameSession:
         payload={
             "boss_id": "broken-model-boss",
             "boss_name": "The Broken Model",
-            "attack_threshold": 80,
+            "attack_threshold": threshold,
             "attack_damage": 25,
             "boss_hp": 100,
             "round_time_seconds": 60,
@@ -28,13 +38,8 @@ def _boss_session() -> GameSession:
                 "If the class correct rate is below 80%, wrong teams receive recovery hints.",
                 "When boss HP reaches 0, the class wins and unlocks the next zone.",
             ],
-            "teams": [
-                {"name": "Team Gradient", "correct": True},
-                {"name": "Team Dataset", "correct": True},
-                {"name": "Team Metric", "correct": True},
-                {"name": "Team Prompt", "correct": True},
-                {"name": "Team Debug", "correct": False},
-            ],
+            "teams": teams,
+            "ai_class_coach": boss_class_coach(teams, correct_rate, threshold),
             "phases": ["Diagnose", "Choose fix", "Explain", "Transfer", "Final strike"],
             "rewards": ["+250 XP", "Boss badge", "Next zone unlocked"],
         },

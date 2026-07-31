@@ -25,6 +25,7 @@ def _lab_arena_session() -> GameSession:
             "concept_ids": challenge["concept_ids"],
             "function_name": challenge["function_name"],
             "constraints": challenge["constraints"],
+            "ai_coach": challenge["ai_coach"],
         },
     )
 

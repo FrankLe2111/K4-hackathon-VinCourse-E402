@@ -25,6 +25,7 @@ export function BossBattleView({ session, onCompleted }: Props) {
     teams?: Team[];
     phases?: string[];
     rewards?: string[];
+    ai_class_coach?: string;
   };
   const teams = Array.isArray(payload.teams) ? payload.teams : [];
   const threshold = Number(payload.attack_threshold ?? 80);
@@ -79,6 +80,7 @@ export function BossBattleView({ session, onCompleted }: Props) {
             <span><Zap size={18} /> Attack threshold</span>
             <strong>{threshold}%</strong>
           </div>
+          <p className="boss-ai-coach">{payload.ai_class_coach ?? "AI Coach: Theo dõi tỉ lệ đúng của cả lớp để quyết định lúc nào được tấn công Boss."}</p>
           <button className="boss-attack" onClick={() => void attackBoss()} disabled={!attackReady || loading}>
             {attackReady ? "Tấn công Boss" : "Chưa đủ 80% đội đúng"}
           </button>

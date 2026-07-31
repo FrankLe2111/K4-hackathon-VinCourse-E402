@@ -56,6 +56,9 @@ export function DailyRecallView({ session, onCompleted }: Props) {
   const [sideTab, setSideTab] = useState<"summary" | "quiz">("summary");
 
   const payload = session.payload || {};
+  const aiSummary = selectedDay === 3 ? (payload.ai_summary as string[] | undefined) ?? summaries[selectedDay] : summaries[selectedDay];
+  const aiFlashcards = selectedDay === 3 ? (payload.ai_flashcards as Array<{ front: string; back: string }> | undefined) ?? [] : [];
+  const aiGeneratedQuestions = selectedDay === 3 ? (payload.ai_generated_questions as string[] | undefined) ?? [] : [];
   const allQuestions = (payload.all_questions as Array<{
     question_id: string;
     title: string;
@@ -215,10 +218,24 @@ export function DailyRecallView({ session, onCompleted }: Props) {
           <div className="daily-summary">
             <div className="daily-quiz-head"><span>{days[selectedDay].title}</span><b>{doc.name}</b></div>
             <h2>Tóm tắt bài giảng</h2>
-            <p>Ôn nhanh các ý chính trước khi làm câu hỏi recall.</p>
+            <p>AI Coach tóm tắt nhanh các ý chính trước khi làm câu hỏi recall.</p>
             <div className="daily-summary-list">
-              {summaries[selectedDay].map((item, index) => <article key={item}><strong>{index + 1}</strong><p>{item}</p></article>)}
+              {aiSummary.map((item, index) => <article key={item}><strong>{index + 1}</strong><p>{item}</p></article>)}
             </div>
+            {aiFlashcards.length ? (
+              <>
+                <h3>Flashcard AI</h3>
+                <div className="daily-summary-list">
+                  {aiFlashcards.map((card) => <article key={card.front}><strong>Q</strong><p><b>{card.front}</b><br />{card.back}</p></article>)}
+                </div>
+              </>
+            ) : null}
+            {aiGeneratedQuestions.length ? (
+              <div className="daily-summary-callout">
+                <strong>Câu hỏi AI gợi ý</strong>
+                <p>{aiGeneratedQuestions.join(" · ")}</p>
+              </div>
+            ) : null}
             <div className="daily-summary-callout">
               <strong>Gợi ý học tập</strong>
               <p>Đọc summary trước, tự giải thích lại bằng lời của bạn, rồi chuyển sang trắc nghiệm để kiểm tra trí nhớ.</p>

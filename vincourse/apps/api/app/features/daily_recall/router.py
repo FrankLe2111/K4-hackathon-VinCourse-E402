@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, Query
+from app.ai.tutor import daily_recall_feedback, daily_recall_pack
 from app.schemas import GameMode, GameResult, GameSession, GameStatus, GameSubmitRequest
 from app.storage.memory import record_result
 
@@ -88,6 +89,7 @@ MOCK_DAILY_RECALL_QUEUE = [
 def get_session(index: int = Query(default=0, ge=0)) -> GameSession:
     question_index = index % len(MOCK_DAILY_RECALL_QUEUE)
     item = MOCK_DAILY_RECALL_QUEUE[question_index]
+    ai_pack = daily_recall_pack()
     return GameSession(
         mode=GameMode.daily_recall,
         session_id=f"dr-{uuid.uuid4().hex[:8]}",
@@ -100,6 +102,9 @@ def get_session(index: int = Query(default=0, ge=0)) -> GameSession:
             "current_index": question_index + 1,
             "due_reason": item["due_reason"],
             "options": item["options"],
+            "ai_summary": ai_pack["summary"],
+            "ai_flashcards": ai_pack["flashcards"],
+            "ai_generated_questions": ai_pack["generated_questions"],
             "all_questions": [
                 {
                     "question_id": q["question_id"],
@@ -130,7 +135,7 @@ def submit(request: GameSubmitRequest) -> GameResult:
             mode=GameMode.daily_recall,
             correct=False,
             status=GameStatus.needs_clarification,
-            feedback=f"Bạn đã bỏ qua câu hỏi này (Recall Gap). Khái niệm [{item['question_id']}] đã được tự động thêm vào Error Dungeon để bạn ôn lại.",
+            feedback=daily_recall_feedback(item["prompt"], False, f"Bạn đã bỏ qua câu hỏi này (Recall Gap). Khái niệm [{item['question_id']}] đã được tự động thêm vào Error Dungeon để bạn ôn lại."),
             evidence_ids=item["evidence_ids"],
             misconception_id=item["misconception_id"],
             xp=0,
@@ -178,7 +183,7 @@ def submit(request: GameSubmitRequest) -> GameResult:
         mode=GameMode.daily_recall,
         correct=is_correct,
         status=status,
-        feedback=feedback,
+        feedback=daily_recall_feedback(item["prompt"], is_correct, feedback),
         evidence_ids=item["evidence_ids"],
         misconception_id=misconception_id,
         xp=xp,

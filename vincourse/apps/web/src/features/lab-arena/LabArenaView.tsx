@@ -33,6 +33,7 @@ export function LabArenaView({ session, onCompleted }: Props) {
   const title = String(payload.title ?? "Schedule Tool Calls");
   const difficulty = String(payload.difficulty ?? "Medium");
   const constraints = (payload.constraints as string[] | undefined) ?? [];
+  const aiCoach = String(payload.ai_coach ?? "AI Coach sẽ đưa hint theo lỗi test của bạn.");
   const [code, setCode] = useState(starterCode);
   const [confidence, setConfidence] = useState(3);
   const [result, setResult] = useState<GameResult | null>(null);
@@ -127,6 +128,7 @@ Explanation: dependency cycle exists.`}</pre>
               </ul>
               <button className="secondary-button" onClick={() => setHintOpen((current) => !current)}><Lightbulb size={16} /> Hint</button>
               {hintOpen ? <p className="lab-hint">Dùng Kahn&apos;s topological sort: tạo graph + indegree, mỗi lần lấy toàn bộ node indegree bằng 0 làm một round.</p> : null}
+              <p className="lab-ai-coach"><strong>AI Coach</strong>{aiCoach}</p>
             </article>
           ) : tab === "editorial" ? (
             <article className="lab-description">

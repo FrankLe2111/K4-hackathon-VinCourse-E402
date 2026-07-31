@@ -6,6 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
+from app.ai.tutor import story_mentor_feedback
 from app.schemas import GameMode, GameResult, GameSession, GameStatus, GameSubmitRequest
 from app.storage.memory import record_result
 
@@ -95,6 +96,7 @@ def grade_story(request: GameSubmitRequest) -> GameResult:
         feedback = question["explanation"] if correct else selected.get("feedback", "Hãy xem gợi ý và thử lại.")
         misconception_id = "" if correct else selected.get("misconception_id", "")
         recovery_created = not correct
+        concept_id = selected.get("misconception_id", "") or request.question_id
     else:
         try:
             answer = json.loads(request.answer)
@@ -108,13 +110,14 @@ def grade_story(request: GameSubmitRequest) -> GameResult:
         feedback = "Các token đã khớp yêu cầu logic và visible tests." if correct else "Logic chưa đúng; dùng gợi ý rồi thử lại."
         misconception_id = "" if correct else "code-logic"
         recovery_created = not correct
+        concept_id = misconception_id or request.question_id
 
     xp = question["xp"] if correct else 0
     return GameResult(
         mode=GameMode.story,
         correct=correct,
         status=GameStatus.mastered if correct else GameStatus.misconception,
-        feedback=feedback,
+        feedback=story_mentor_feedback(concept_id, correct, feedback),
         evidence_ids=[request.question_id],
         misconception_id=misconception_id,
         xp=xp,

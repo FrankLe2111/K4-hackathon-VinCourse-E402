@@ -178,6 +178,19 @@
   padding: 12px;
 }
 
+.lab-ai-coach {
+  border-radius: 12px;
+  background: #102419;
+  color: #bbf7d0 !important;
+  padding: 12px;
+}
+
+.lab-ai-coach strong {
+  display: block;
+  color: #22c55e;
+  margin-bottom: 4px;
+}
+
 .lab-code-panel {
   display: grid;
   grid-template-rows: auto minmax(390px, 1fr) auto auto;

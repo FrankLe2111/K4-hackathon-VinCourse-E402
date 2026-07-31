@@ -4,6 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from app.core.config import settings
+from app.ai.tutor import lab_code_hint
 from app.schemas import GameMode, GameResult, GameStatus
 
 
@@ -105,6 +106,7 @@ assert schedule_tools(1, []) == [[0]]
             "Tools in the same round must be sorted increasingly",
             "Return [] if a dependency cycle exists",
         ],
+        "ai_coach": "AI Coach sẽ đọc lỗi test và đưa hint từng bước, không bật mí full solution ngay.",
     }
 
 
@@ -170,11 +172,12 @@ def grade_lab_arena(mode: GameMode, code: str, session_id: str) -> GameResult:
             )
         except subprocess.CalledProcessError as exc:
             output = exc.stderr.strip() or exc.stdout.strip()
+            friendly = _friendly_lab_feedback(output)
             return GameResult(
                 mode=mode,
                 correct=False,
                 status=GameStatus.partial,
-                feedback=_friendly_lab_feedback(output),
+                feedback=f"{friendly} {lab_code_hint(code, output)}",
                 xp=20,
                 mastery_delta=0,
                 recovery_created=True,
