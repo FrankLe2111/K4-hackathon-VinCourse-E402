@@ -23,7 +23,7 @@ const confidenceLevels = [
   { level: 2, label: "Phân vân", emoji: "🧐" },
   { level: 3, label: "Vừa", emoji: "👍" },
   { level: 4, label: "Tự tin", emoji: "💪" },
-  { level: 5, label: "Chắc chắn", emoji: "🔥" },
+  { level: 5, label: "Rất chắc", emoji: "🔥" },
 ];
 
 const summaries = [
@@ -42,6 +42,7 @@ const summaries = [
 ];
 
 export function DailyRecallView({ session, onCompleted }: Props) {
+  const [viewLevel, setViewLevel] = useState<"doc_list" | "doc_reader">("doc_list");
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
   const [confidence, setConfidence] = useState(3);
@@ -79,6 +80,17 @@ export function DailyRecallView({ session, onCompleted }: Props) {
     due_reason: (payload.due_reason as string) || "Ôn tập định kỳ",
     options: (payload.options as Array<{ id: string; text: string }>) || [],
   };
+
+  function selectDoc(dayIndex: number, docIndex: number) {
+    setSelectedDay(dayIndex);
+    setSelectedDoc(docIndex);
+    setPage(1);
+    setViewLevel("doc_reader");
+  }
+
+  function backToDocList() {
+    setViewLevel("doc_list");
+  }
 
   async function handleSubmit() {
     if (!selectedOption) return setError("Vui lòng chọn 1 đáp án trước khi nộp!");
@@ -139,6 +151,7 @@ export function DailyRecallView({ session, onCompleted }: Props) {
     setError("");
     setSessionTotalXp(0);
     setActiveQuestionIndex(0);
+    setViewLevel("doc_list");
   }
 
   if (isFinished) {
@@ -153,125 +166,234 @@ export function DailyRecallView({ session, onCompleted }: Props) {
     );
   }
 
-  return (
-    <section className="daily-shell">
-      <aside className="daily-library">
-        <div className="daily-library-head"><BookOpen size={22} /><div><h2>Học liệu môn học</h2><p>Chương, slide và tài liệu đã upload</p></div></div>
-        {days.map((day, dayIndex) => (
-          <section key={day.title} className={dayIndex === selectedDay ? "daily-day active" : "daily-day"}>
-            <button onClick={() => {
-              setSelectedDay(dayIndex);
-              setSelectedDoc(0);
-              setPage(1);
-            }}><PlayCircle size={18} /><strong>{day.title}</strong><span>{day.docs.length} tài liệu · published</span></button>
-            {dayIndex === selectedDay ? day.docs.map((item, docIndex) => (
-              <button key={item.name} className={docIndex === selectedDoc ? "daily-doc selected" : "daily-doc"} onClick={() => {
-                setSelectedDoc(docIndex);
-                setPage(1);
-              }}>
-                <PlayCircle size={16} /><strong>{item.name}</strong><span>{item.pages} trang</span>
-              </button>
-            )) : null}
-          </section>
-        ))}
-      </aside>
-
-      <main className="daily-study">
-        <div className="daily-toolbar">
-          <button className="secondary-button"><PlayCircle size={16} /> Đọc</button>
-          <button className="secondary-button"><PenLine size={16} /> Bút</button>
-          <button className="secondary-button"><Highlighter size={16} /> Highlight</button>
-          <span>Trang {page} · 1 note</span>
-          <button className="secondary-button" onClick={() => setZoom((value) => Math.max(70, value - 10))}><ZoomOut size={16} /></button>
-          <strong>{zoom}%</strong>
-          <button className="secondary-button" onClick={() => setZoom((value) => Math.min(140, value + 10))}><ZoomIn size={16} /></button>
-        </div>
-
-        <section className="daily-reader">
-          <div className="daily-page-meta"><span>Trang {page} / {doc.pages}</span><span>{doc.name}</span></div>
-          {isRealPdf ? (
-            <iframe className="daily-pdf" src={`${doc.src}#page=${page}&zoom=${zoom}`} title={doc.name} />
-          ) : (
-            <article className="daily-slide" style={{ transform: `scale(${zoom / 100})` }}>
-              <small>AI IN ACTION — {days[selectedDay].title}</small>
-              <h1>{selectedDay === 0 ? "AI & LLM Foundation" : currentQ.title.replace("Daily Recall — ", "")}</h1>
-              <p>Bạn đang ôn lại phần kiến thức sẽ được hỏi trong Daily Recall. Sau này khu vực này hiển thị PDF thật bạn upload.</p>
-              <b>VinCourse</b>
-            </article>
-          )}
-        </section>
-
-        <div className="daily-page-nav">
-          <button className="secondary-button" onClick={() => setPage((value) => Math.max(1, value - 1))}>‹</button>
-          <span>Trang {page} / {doc.pages}</span>
-          <button className="secondary-button" onClick={() => setPage((value) => Math.min(doc.pages, value + 1))}>›</button>
-        </div>
-      </main>
-
-      <aside className="daily-quiz">
-        <div className="daily-side-tabs">
-          <button className={sideTab === "summary" ? "active" : ""} onClick={() => setSideTab("summary")}><FileText size={15} /> Summary slide</button>
-          <button className={sideTab === "quiz" ? "active" : ""} onClick={() => setSideTab("quiz")}><HelpCircle size={15} /> Trắc nghiệm</button>
-        </div>
-
-        {sideTab === "summary" ? (
-          <div className="daily-summary">
-            <div className="daily-quiz-head"><span>{days[selectedDay].title}</span><b>{doc.name}</b></div>
-            <h2>Tóm tắt bài giảng</h2>
-            <p>AI Coach tóm tắt nhanh các ý chính trước khi làm câu hỏi recall.</p>
-            <div className="daily-summary-list">
-              {aiSummary.map((item, index) => <article key={item}><strong>{index + 1}</strong><p>{item}</p></article>)}
+  // =========================================================================
+  // LEVEL 1: DANH SÁCH HỌC LIỆU MÔN HỌC (DOCUMENT LIST SELECTION VIEW)
+  // =========================================================================
+  if (viewLevel === "doc_list") {
+    return (
+      <section className="daily-shell-list">
+        {/* Banner Header */}
+        <header className="daily-list-hero">
+          <div>
+            <span className="daily-tag">Ôn Tập Hằng Ngày · Spaced Practice</span>
+            <h2>Học Liệu Môn Học</h2>
+            <p>Danh sách các bài giảng, slide PDF và tài liệu môn học. Bấm vào tài liệu bên dưới để mở Slide và bắt đầu ôn tập.</p>
+            <div className="daily-list-stats">
+              <span>📚 5 Ngày học bài giảng</span>
+              <span>⚡ {queueSize} Câu hỏi recall đến hạn</span>
             </div>
-            {aiFlashcards.length ? (
-              <>
-                <h3>Flashcard AI</h3>
-                <div className="daily-summary-list">
-                  {aiFlashcards.map((card) => <article key={card.front}><strong>Q</strong><p><b>{card.front}</b><br />{card.back}</p></article>)}
-                </div>
-              </>
-            ) : null}
-            {aiGeneratedQuestions.length ? (
-              <div className="daily-summary-callout">
-                <strong>Câu hỏi AI gợi ý</strong>
-                <p>{aiGeneratedQuestions.join(" · ")}</p>
-              </div>
-            ) : null}
-            <div className="daily-summary-callout">
-              <strong>Gợi ý học tập</strong>
-              <p>Đọc summary trước, tự giải thích lại bằng lời của bạn, rồi chuyển sang trắc nghiệm để kiểm tra trí nhớ.</p>
-            </div>
-            <button className="primary-button" onClick={() => setSideTab("quiz")}>Làm trắc nghiệm <ArrowRight size={16} /></button>
           </div>
-        ) : (
-          <>
-            <div className="daily-quiz-head"><span>Câu {activeQuestionIndex + 1}/{queueSize}</span><b>{currentQ.due_reason}</b></div>
-            <h2>{currentQ.title}</h2>
-            <p>{currentQ.prompt}</p>
-            <div className="daily-source">{currentQ.evidence_ids.map((id) => <span key={id}>[{id}]</span>)}</div>
-            <div className="daily-options">
-              {currentQ.options.map((opt) => (
-                <button key={opt.id} className={selectedOption === opt.id ? "selected" : ""} onClick={() => !result && setSelectedOption(opt.id)} disabled={Boolean(result)}>
-                  <span>{opt.id}</span>{opt.text}
-                </button>
-              ))}
-            </div>
-            {!result ? (
-              <>
-                <div className="daily-confidence"><HelpCircle size={16} />{confidenceLevels.map((item) => <button key={item.level} className={confidence === item.level ? "active" : ""} onClick={() => setConfidence(item.level)}>{item.emoji}<small>{item.label}</small></button>)}</div>
-                {error ? <p className="daily-error">{error}</p> : null}
-                <div className="button-row"><button className="primary-button" disabled={loading || !selectedOption} onClick={() => void handleSubmit()}>{loading ? "Đang xử lý…" : <>Nộp bài <ArrowRight size={16} /></>}</button><button className="secondary-button" disabled={loading} onClick={() => void handleSkip()}><SkipForward size={16} /> Bỏ qua</button></div>
-              </>
-            ) : (
-              <div className={result.correct ? "daily-result success" : "daily-result danger"}>
-                {result.correct ? <CheckCircle2 /> : <ShieldAlert />}
-                <strong>{result.correct ? "Chính xác!" : "Cần ôn lại"} · +{result.xp} XP</strong>
-                <p>{result.feedback}</p>
-                <button className="primary-button" onClick={handleNextQuestion}>{activeQuestionIndex + 1 < queueSize ? "Sang câu tiếp theo" : "Xem tổng kết"}</button>
+        </header>
+
+        {/* Document Selection Grid */}
+        <div className="daily-doc-grid">
+          {days.map((day, dayIndex) => (
+            <div key={day.title} className="daily-day-group">
+              <div className="daily-day-head">
+                <BookOpen size={20} />
+                <h3>{day.title}</h3>
+                <span>{day.docs.length} Tài liệu · Published</span>
               </div>
+              
+              <div className="daily-day-docs">
+                {day.docs.map((item, docIndex) => (
+                  <button
+                    key={item.name}
+                    className="daily-doc-card"
+                    onClick={() => selectDoc(dayIndex, docIndex)}
+                  >
+                    <div className="daily-doc-icon">
+                      <FileText size={24} />
+                    </div>
+                    <div className="daily-doc-info">
+                      <strong>{item.name}</strong>
+                      <p>{item.pages} trang · Tài liệu slide chính thức</p>
+                    </div>
+                    <span className="daily-doc-btn">Xem Slide & Ôn tập ➔</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  // =========================================================================
+  // LEVEL 2: GIAO DIỆN 2 CỘT (SLIDE PDF 60% + TÓM TẮT & TRẮC NGHIỆM 40%)
+  // =========================================================================
+  return (
+    <section className="daily-shell-reader">
+      {/* FLOATING XP TOAST POPUP WHEN CORRECT */}
+      {result?.correct && (
+        <div className="story-xp-popup-toast">
+          <div className="story-xp-popup-badge">✨ +{result.xp} XP ✨</div>
+          <p>Chính xác! Bạn nhận được <strong>+{result.xp} XP</strong> vào tổng điểm Daily Recall.</p>
+        </div>
+      )}
+
+      {/* Top Header Nav for Reader */}
+      <div className="daily-reader-nav">
+        <button className="secondary-button story-back-btn" onClick={backToDocList}>
+          ⬅ Quay lại danh sách Học liệu
+        </button>
+
+        <div className="daily-reader-title">
+          <h3>{doc.name}</h3>
+          <span>Trang {page} / {doc.pages}</span>
+        </div>
+
+        <div className="daily-reader-toolbar">
+          <button className="secondary-button" onClick={() => setZoom((v) => Math.max(70, v - 10))}><ZoomOut size={16} /></button>
+          <strong>{zoom}%</strong>
+          <button className="secondary-button" onClick={() => setZoom((v) => Math.min(140, v + 10))}><ZoomIn size={16} /></button>
+        </div>
+      </div>
+
+      {/* 2-COLUMN WORKSPACE: LEFT = SLIDE (60%), RIGHT = SUMMARY & QUIZ (40%) */}
+      <div className="daily-2col-layout">
+        {/* COLUMN 1: PDF SLIDE VIEWER (60%) */}
+        <main className="daily-slide-col">
+          <div className="daily-reader-box">
+            <div className="daily-page-meta">
+              <span>{doc.name}</span>
+              <span>Trang {page} / {doc.pages}</span>
+            </div>
+
+            {isRealPdf ? (
+              <iframe className="daily-pdf" src={`${doc.src}#page=${page}&zoom=${zoom}`} title={doc.name} />
+            ) : (
+              <article className="daily-slide" style={{ transform: `scale(${zoom / 100})` }}>
+                <small>AI IN ACTION — {days[selectedDay].title}</small>
+                <h1>{selectedDay === 0 ? "AI & LLM Foundation" : currentQ.title.replace("Daily Recall — ", "")}</h1>
+                <p>Bạn đang xem Slide học liệu của {days[selectedDay].title}. Vùng này hiển thị PDF slide chính thức của môn học.</p>
+                <b>VinCourse AI Odyssey</b>
+              </article>
             )}
-          </>
-        )}
-      </aside>
+
+            <div className="daily-page-nav">
+              <button className="secondary-button" onClick={() => setPage((v) => Math.max(1, v - 1))}>‹ Trang trước</button>
+              <span>Trang {page} / {doc.pages}</span>
+              <button className="secondary-button" onClick={() => setPage((v) => Math.min(doc.pages, v + 1))}>Trang sau ›</button>
+            </div>
+          </div>
+        </main>
+
+        {/* COLUMN 2: SUMMARY & QUIZ INTERACTIVE PANEL (40%) */}
+        <aside className="daily-interactive-col">
+          <div className="daily-side-tabs">
+            <button className={sideTab === "summary" ? "active" : ""} onClick={() => setSideTab("summary")}>
+              <FileText size={15} /> Tóm tắt bài giảng
+            </button>
+            <button className={sideTab === "quiz" ? "active" : ""} onClick={() => setSideTab("quiz")}>
+              <HelpCircle size={15} /> Trắc nghiệm ({activeQuestionIndex + 1}/{queueSize})
+            </button>
+          </div>
+
+          {sideTab === "summary" ? (
+            <div className="daily-summary">
+              <div className="daily-quiz-head"><span>{days[selectedDay].title}</span><b>{doc.name}</b></div>
+              <h2>Tóm tắt bài giảng</h2>
+              <p>AI Coach tóm tắt nhanh các ý chính trước khi làm câu hỏi recall.</p>
+              <div className="daily-summary-list">
+                {aiSummary.map((item, index) => (
+                  <article key={item}><strong>{index + 1}</strong><p>{item}</p></article>
+                ))}
+              </div>
+
+              {aiFlashcards.length ? (
+                <>
+                  <h3>Flashcard AI</h3>
+                  <div className="daily-summary-list">
+                    {aiFlashcards.map((card) => (
+                      <article key={card.front}><strong>Q</strong><p><b>{card.front}</b><br />{card.back}</p></article>
+                    ))}
+                  </div>
+                </>
+              ) : null}
+
+              {aiGeneratedQuestions.length ? (
+                <div className="daily-summary-callout">
+                  <strong>Câu hỏi AI gợi ý</strong>
+                  <p>{aiGeneratedQuestions.join(" · ")}</p>
+                </div>
+              ) : null}
+
+              <button className="primary-button daily-start-quiz-btn" onClick={() => setSideTab("quiz")}>
+                Làm trắc nghiệm ôn tập <ArrowRight size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="daily-quiz-box">
+              <div className="daily-quiz-head">
+                <span>Câu {activeQuestionIndex + 1}/{queueSize}</span>
+                <b>{currentQ.due_reason}</b>
+              </div>
+              <h2>{currentQ.title}</h2>
+              <p className="daily-q-prompt">{currentQ.prompt}</p>
+              <div className="daily-source">
+                {currentQ.evidence_ids.map((id) => <span key={id}>Nguồn [{id}]</span>)}
+              </div>
+
+              <div className="daily-options">
+                {currentQ.options.map((opt) => (
+                  <button
+                    key={opt.id}
+                    className={selectedOption === opt.id ? "selected" : ""}
+                    onClick={() => !result && setSelectedOption(opt.id)}
+                    disabled={Boolean(result)}
+                  >
+                    <span>{opt.id}</span>
+                    <span>{opt.text}</span>
+                  </button>
+                ))}
+              </div>
+
+              {!result ? (
+                <>
+                  <div className="daily-confidence">
+                    <p>Độ tự tin:</p>
+                    <div className="daily-confidence-btns">
+                      {confidenceLevels.map((item) => (
+                        <button
+                          key={item.level}
+                          className={confidence === item.level ? "active" : ""}
+                          onClick={() => setConfidence(item.level)}
+                        >
+                          {item.emoji} <small>{item.label}</small>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {error ? <p className="daily-error">{error}</p> : null}
+
+                  <div className="daily-quiz-actions">
+                    <button className="primary-button" disabled={loading || !selectedOption} onClick={() => void handleSubmit()}>
+                      {loading ? "Đang xử lý…" : <>Nộp bài 🚀</>}
+                    </button>
+                    <button className="secondary-button" disabled={loading} onClick={() => void handleSkip()}>
+                      <SkipForward size={16} /> Bỏ qua ⏭️
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className={result.correct ? "daily-result success" : "daily-result danger"}>
+                  <div className="story-result-title-row">
+                    <strong>{result.correct ? "🎉 CHÍNH XÁC!" : "❌ CẦN ÔN LẠI"}</strong>
+                    <span className="story-result-badge">{result.correct ? `+${result.xp} XP` : "Đã chuyển Error Dungeon"}</span>
+                  </div>
+                  <p>{result.feedback}</p>
+                  <button className="primary-button" onClick={handleNextQuestion}>
+                    {activeQuestionIndex + 1 < queueSize ? "Sang câu tiếp theo ➔" : "Xem tổng kết 🏆"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </aside>
+      </div>
     </section>
   );
 }
