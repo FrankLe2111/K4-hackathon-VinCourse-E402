@@ -4,86 +4,136 @@ Owner: Trung Quan
 
 ## Goal
 
-Mode tong hop cuoi zone. Nguoi hoc phai van dung nhieu concept trong mot scenario lon va di qua nhieu phase.
+Boss Battle la live room kieu Kahoot ket hop muc tieu ha boss tap the.
 
-Core rule: Boss Battle la thu thach hop tac ca lop. Moi team tra loi doc lap; neu it nhat `80%` team trong lop tra loi dung o cung mot round, ca lop mo duoc mot don tan cong len boss.
+Nguoi choi join bang nickname, khong can tai khoan. Moi round moi nguoi tra loi doc lap, nhan diem ca nhan va bonus toc do. Neu it nhat `80%` nguoi choi tra loi dung trong round, boss moi mat mau.
 
-## Demo Path
+## Demo Flow
 
 ```text
-Open Boss Battle
-  -> load boss scenario
-  -> teams answer independently
-  -> system calculates class correct rate
-  -> if correct rate >= 80%, class attacks boss
-  -> if boss HP reaches 0, boss defeated
-  -> wrong teams receive recovery suggestions
+Host mo Boss Battle
+  -> man hinh hien room code / join link
+  -> nguoi choi nhap nickname
+  -> round hien cau hoi va cac lua chon
+  -> tung nguoi nop dap an doc lap
+  -> backend cham dung/sai va tinh diem ca nhan
+  -> backend tinh correct_rate cua ca phong
+  -> neu correct_rate >= 80%, boss mat 25 HP
+  -> AI mentor phan tich loi chung va goi y round tiep theo
+  -> leaderboard cap nhat
+  -> lap lai den khi boss HP = 0 hoac het round demo
 ```
 
-## Allowed Folders
+## Scoring Rules
 
-Allowed folders:
+```text
+Dung: +100 diem
+Dung nhanh: +0 den +50 bonus
+Sai: +0 diem
+Khong nop: +0 diem
+```
 
-- `vincourse/apps/web/src/features/boss-battle/**`
-- `vincourse/apps/api/app/features/boss_battle/**`
+## Boss Damage Rules
 
-## Endpoints
+```text
+correct_rate = correct_players / active_players * 100
 
-Endpoint:
+Neu correct_rate >= 80:
+  boss mat 25 HP
+
+Neu correct_rate < 80:
+  boss khong mat mau
+  AI mentor tao recovery hint cho ca lop
+```
+
+## AI Usage
+
+AI that trong module nay nam o backend:
+
+```text
+FE -> FastAPI /api/modes/boss_battle/submit
+   -> app.ai.tutor.boss_round_mentor()
+   -> OpenAI
+   -> GameResult.payload.ai_mentor
+```
+
+AI chi sinh feedback/recovery hint. AI khong ghi truc tiep vao JSON/database.
+
+Neu thieu `OPENAI_API_KEY`, backend tu fallback sang mentor text deterministic de team van start duoc app.
+
+## Current Endpoints
 
 ```text
 GET  /api/modes/boss_battle/session
 POST /api/modes/boss_battle/submit
 ```
 
-## Suggested Session Payload
+## Submit Answer Contract
+
+`GameSubmitRequest.answer` la JSON string de khong can sua schema chung:
 
 ```json
 {
-  "boss_id": "broken-model",
-  "phase": 1,
-  "phases": [
-    "diagnose_root_cause",
-    "choose_pipeline_fix",
-    "explain_interaction",
-    "transfer_to_new_data",
-    "final_challenge"
-  ],
-  "scenario": "A model diverges after training because features have very different scales.",
-  "concept_ids": ["feature-scaling", "learning-rate", "mse-loss"],
-  "attack_threshold": 80,
-  "core_rule": "At least 80% of teams must answer correctly in the same round to unlock a boss attack.",
-  "boss_hp": 100,
-  "attack_damage": 25
+  "room_code": "24",
+  "nickname": "Minh",
+  "round_id": "diagnose",
+  "option_id": "scale_mismatch",
+  "elapsed_seconds": 10
 }
 ```
 
-## Cooperation Rules
+## Result Payload Contract
 
-1. Moi team nhan cung mot boss question trong round hien tai.
-2. Team nop dap an doc lap, khong can tat ca thanh vien phai trung mot dap an trong UI demo.
-3. Sau khi het gio, he thong tinh `class_correct_rate = correct_teams / active_teams * 100`.
-4. Neu `class_correct_rate >= 80%`, ca lop duoc tan cong boss.
-5. Neu duoi `80%`, boss khong mat mau va cac team sai nhan recovery hint.
-6. Moi don tan cong giam HP boss theo `attack_damage`.
-7. Khi HP boss ve `0`, ca lop thang Boss Battle va mo zone tiep theo.
+```json
+{
+  "round_id": "diagnose",
+  "player_score": 133,
+  "speed_bonus": 33,
+  "active_players": 10,
+  "correct_count": 8,
+  "correct_rate": 80,
+  "threshold": 80,
+  "boss_damaged": true,
+  "damage": 25,
+  "leaderboard": [],
+  "ai_mentor": "AI Mentor..."
+}
+```
 
-## GameResult Notes
+## Database Contract For Future JSON Server
 
-- Phase clear: `mastered`, partial XP.
-- Final clear: `mastered`, large XP, unlock next zone.
-- Class attack: only when at least `80%` of active teams are correct.
-- Weak explanation: `partial` or `needs_clarification`.
-- Wrong causal model: `misconception`, `recovery_created=true`.
+Boss Battle la module rieng ve gameplay live-room, nhung van noi voi app chung bang shared keys.
 
-## What Can Be Mocked
+Feature tables du kien:
 
-- Real unlock tree.
-- Full multi-zone progression.
+```text
+bossBattleRooms
+bossBattlePlayers
+bossBattleRounds
+bossBattleAnswers
+```
 
-## What Should Feel Real
+Shared keys bat buoc khi ghi DB sau nay:
 
-- Multi-phase boss progress.
-- Explanation grading.
-- Transfer evidence.
-- Big result state.
+```text
+course_id
+mode = boss_battle
+session_id
+user_id hoac guest_id
+concept_id
+evidence_ids
+```
+
+Nguyen tac:
+
+```text
+FE khong ghi db.json.
+AI khong ghi db.json.
+FE -> FastAPI -> storage layer -> JSON DB.
+```
+
+## Allowed Folders
+
+- `vincourse/apps/web/src/features/boss-battle/**`
+- `vincourse/apps/api/app/features/boss_battle/**`
+- `vincourse/docs/features/boss-battle.md`
