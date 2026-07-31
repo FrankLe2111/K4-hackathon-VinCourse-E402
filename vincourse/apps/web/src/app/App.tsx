@@ -148,7 +148,6 @@ export function App() {
           <p className="nav-label">Khắc phục</p>
           <nav className="rail-list" aria-label="Khắc phục">
             <button type="button" onClick={() => navigate("error-dungeon")}><ShieldAlert size={16} />Hầm ngục lỗi sai <b>{recoveryCount}</b></button>
-            <button type="button" onClick={() => navigate("ai-adversary")}><Swords size={16} />Đối thủ AI</button>
           </nav>
           <div className="rail-profile">
             <span className="avatar">LM</span>
