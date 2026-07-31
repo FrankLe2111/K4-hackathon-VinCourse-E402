@@ -38,6 +38,15 @@ const modeActions: Record<GameMode, string> = {
   understanding: "Đấu AI",
 };
 
+const DEFAULT_MODES: ModeInfo[] = [
+  { mode: "story", title: "Story Quest", owner: "team", description: "Hành trình học theo cốt truyện & tình huống thực tế.", ready: true },
+  { mode: "daily_recall", title: "Daily Recall", owner: "team", description: "Ôn tập ngắt quãng để ghi nhớ lâu dài.", ready: true },
+  { mode: "error_dungeon", title: "Error Dungeon", owner: "team", description: "Chinh phục & khắc phục triệt để các câu làm sai.", ready: true },
+  { mode: "lab_arena", title: "Lab Arena", owner: "team", description: "Thực hành lập trình Python & vận dụng code.", ready: true },
+  { mode: "boss_battle", title: "Boss Battle", owner: "team", description: "Đại chiến hạ gục Boss cùng cả lớp.", ready: true },
+  { mode: "live_battle", title: "Live Class Battle", owner: "team", description: "Thi đấu đồng đội trực tiếp thời gian thực.", ready: true },
+];
+
 function DashboardSkeleton() {
   return (
     <div className="mode-grid-skeleton">
@@ -67,12 +76,12 @@ export type Route =
 export type Role = "learner" | "admin";
 
 export function App() {
-  const [modes, setModes] = useState<ModeInfo[]>([]);
+  const [modes, setModes] = useState<ModeInfo[]>(DEFAULT_MODES);
   const [progress, setProgress] = useState<ProgressSummary | null>(null);
   const [route, setRoute] = useState<Route>("modes");
   const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
   const [featureKey, setFeatureKey] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function reload() {
