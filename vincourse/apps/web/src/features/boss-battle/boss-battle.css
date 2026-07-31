@@ -453,8 +453,28 @@
   transform: scale(.985);
 }
 
-.boss-answer-grid .correct-answer { filter: saturate(1.25); animation: boss-correct .7s ease both; }
-.boss-answer-grid .wrong-answer { animation: boss-wrong .45s ease both; }
+.boss-answer-grid .correct-answer {
+  background: #16a34a;
+  outline: 5px solid #fff;
+  outline-offset: -9px;
+  box-shadow: 0 0 0 6px rgba(34, 197, 94, .42), 0 26px 48px rgba(15, 23, 42, .2);
+  filter: saturate(1.28);
+  animation: boss-correct .7s ease both;
+}
+
+.boss-answer-grid .wrong-answer {
+  background: #dc2626;
+  outline: 5px solid #fff;
+  outline-offset: -9px;
+  box-shadow: 0 0 0 6px rgba(220, 38, 38, .34), 0 26px 48px rgba(15, 23, 42, .18);
+  animation: boss-wrong .45s ease both;
+}
+
+.boss-answer-grid .selected-wrong-answer {
+  opacity: 1;
+  filter: saturate(1.16);
+}
+
 .boss-answer-grid .dimmed { opacity: .28; filter: grayscale(.5); }
 .answer-mark {
   justify-self: end;

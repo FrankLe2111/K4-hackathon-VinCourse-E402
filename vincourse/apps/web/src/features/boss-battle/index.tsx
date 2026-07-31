@@ -189,7 +189,7 @@ function QuestionStage({ round, gameState, timeLeft, activeCount, answeredCount,
         {round.options.map((option, index) => {
           const isSelected = selectedOption === option.id;
           const isCorrect = resultPayload?.correct_option_id === option.id;
-          const revealClass = reveal ? (isCorrect ? "correct-answer" : isSelected ? "wrong-answer" : "dimmed") : "";
+          const revealClass = reveal ? (isCorrect ? "correct-answer" : isSelected ? "wrong-answer selected-wrong-answer" : "dimmed") : "";
           const focusClass = hasChosen && !isSelected && !reveal ? "choice-muted" : "";
           const row = distribution.find((item) => item.option_id === option.id);
           return (
