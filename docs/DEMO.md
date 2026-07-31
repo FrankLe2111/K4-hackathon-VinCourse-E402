@@ -25,13 +25,16 @@ tiêu đề sử dụng Poppins.
 
 1. Bắt đầu tại màn hình Trang chủ học viên.
 2. Mở `Chế độ chơi` để giới thiệu đủ bảy chế độ học tập.
-3. Mở `Thi đấu lớp học trực tiếp`, dùng mã `VINC-24`, qua phòng chờ rồi trả lời
-   cho Đội Gradient. Chọn đáp án, viết lý do tối thiểu 20 ký tự, chọn độ tự tin,
-   nộp bài và bấm mô phỏng giảng viên công bố kết quả.
-4. Thử một đáp án sai để cho thấy hệ thống tạo personal recovery; chơi lại và
-   chọn B để xem nhánh evidence đúng.
-5. Chuyển sang vai trò Giảng viên, mở `Live Battle` rồi đi theo flow
-   `Setup -> Lobby -> Monitor -> Lock -> Reveal -> Summary`.
+3. Có thể mở `Thi đấu lớp học trực tiếp` để giới thiệu vision UI. Trong
+   `codebase/server.py`, flow này là dữ liệu mock trong trình duyệt, không gọi
+   API Live Battle.
+4. Nếu cần demo bản Live Battle có backend, chạy riêng ứng dụng trong
+   `vincourse/` theo `vincourse/README.md`, rồi mở <http://127.0.0.1:5173>.
+   Bản này dùng mã `VINC-24`, cấp team theo trình duyệt và đồng bộ trạng thái
+   instructor/student bằng API polling.
+5. Trong ứng dụng `vincourse/`, chuyển sang Giảng viên và đi theo flow
+   `Setup -> Lobby -> Monitor -> Lock -> Reveal -> Summary`; học viên chỉ thấy
+   kết quả sau bước Reveal.
 6. Mở `Bản đồ khóa học`, sau đó bắt đầu nhiệm vụ `Ổn định Gradient`.
 7. Chọn đáp án A và gửi để kích hoạt tính năng phát hiện hiểu lầm.
 8. Bắt đầu Nhiệm vụ khắc phục và hoàn thành năm bước.
@@ -40,6 +43,11 @@ tiêu đề sử dụng Poppins.
 11. Tải bài giảng mẫu, tạo thế giới và duyệt nội dung mô phỏng.
 
 ## Phạm vi bản demo
+
+Phần dưới mô tả vision UI của prototype gốc. Chỉ lát cắt **Hiểu Thật** là phần
+được chấm và gọi backend trong `codebase/server.py`; các game mode khác là mock.
+Live Battle có backend riêng trong `vincourse/`, không dùng chung runtime với
+prototype gốc.
 
 - Trang chủ học viên, Bản đồ khóa học, Chế độ chơi, chơi nhiệm vụ, phản hồi,
   khắc phục, kết quả, ôn tập hằng ngày, bảng năng lực và minh chứng nguồn.

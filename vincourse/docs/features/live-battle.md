@@ -2,144 +2,74 @@
 
 Owner: Ngo Minh Phuoc
 
-## Goal
+## Phạm vi
 
-Che do thi dau theo lop/team, gan giong Kahoot nhung cham them reasoning va
-confidence calibration. Hackathon dung room state local, khong co WebSocket.
+Tính năng nằm trong ứng dụng `vincourse/` (React + FastAPI), không nằm trong
+prototype được chấm ở thư mục gốc `codebase/`.
 
-## Demo Path
+Đây là bản hackathon có trạng thái phòng dùng chung trên backend và frontend
+poll mỗi 1,5 giây. Chưa có WebSocket, xác thực giảng viên hoặc lưu database;
+restart API sẽ mất trạng thái phòng.
 
-Student:
+## Luồng đã hoạt động
 
 ```text
-Open Live Battle
-  -> join room VINC-24
-  -> waiting room / team assignment
-  -> select option + reasoning + confidence
-  -> submit locked team answer
-  -> receive mastered / partial / misconception result
-  -> wrong answer creates personal recovery
+Giảng viên: Setup -> Lobby -> Answering -> Locked -> Revealed -> Summary
+Học viên:   Join  -> Waiting -> Answering -> Submitted -> Result
 ```
 
-Instructor (local mock):
+- Mỗi trình duyệt có một `user_id` ổn định trong `localStorage`.
+- Backend cấp `team_id` và `team` cho trình duyệt; frontend không tự tạo team.
+- Submit phải khớp `course_id`, `room_code`, `session_id`, `question_id` và
+  `team_id` đã được backend cấp.
+- Một team chỉ được tính điểm và tăng `submitted_count` một lần cho mỗi câu.
+- Học viên chỉ thấy kết quả sau khi giảng viên chuyển phòng sang `revealed`.
+- Số đội đã nộp, phân bố đáp án và phase được đồng bộ qua API polling.
+
+## API
 
 ```text
-Setup -> Lobby -> Monitor -> Lock -> Reveal -> Summary
-```
-
-## Owned Files
-
-- `vincourse/apps/web/src/features/live-battle/index.tsx`
-- `vincourse/apps/web/src/features/live-battle/styles.css`
-- `vincourse/apps/api/app/features/live_battle/router.py`
-- `vincourse/apps/api/app/features/live_battle/test_router.py`
-- `vincourse/docs/features/live-battle.md`
-
-Khong sua app shell, shared type, shared API client, storage schema hoac feature
-khac.
-
-## Endpoints
-
-```text
-GET  /api/modes/live_battle/session
+GET  /api/modes/live_battle/session?user_id=<browser-id>&role=student
+GET  /api/modes/live_battle/session?user_id=<browser-id>&role=instructor
+POST /api/modes/live_battle/control
 POST /api/modes/live_battle/submit
 ```
 
-## Session Payload
+Submit cần các field riêng của Live Battle:
 
 ```json
 {
-  "mode": "live_battle",
-  "session_id": "live-battle-vinc-24",
-  "title": "Live Class Battle",
-  "prompt": "Mot mo hinh co feature nam trong khoang 0-1 va 1-100.000...",
-  "evidence_ids": ["T02-014"],
-  "payload": {
-    "room_code": "VINC-24",
-    "team": "Team Gradient",
-    "joined_count": 18,
-    "submitted_count": 9,
-    "phase": "answering",
-    "question_id": "live-feature-scaling-01",
-    "options": [
-      {"id": "A", "text": "Tang len 10.000 epoch"},
-      {"id": "B", "text": "Scale cac feature truoc khi train"},
-      {"id": "C", "text": "Tang learning rate"},
-      {"id": "D", "text": "Xoa feature co mien nho hon"}
-    ],
-    "distribution": {"A": 8, "B": 7, "C": 2, "D": 1},
-    "scoring": {
-      "correctness": 40,
-      "explanation": 40,
-      "calibration": 20
-    },
-    "demo": true
-  }
-}
-```
-
-## Submit Request
-
-Contract chung giu nguyen. Team answer duoc serialize vao field `answer`:
-
-```json
-{
-  "user_id": "demo-user",
+  "user_id": "live-<browser-uuid>",
   "course_id": "ml-foundations",
   "session_id": "live-battle-vinc-24",
   "question_id": "live-feature-scaling-01",
-  "answer": "{\"option_id\":\"B\",\"reasoning\":\"Scale feature giup gradient cap nhat can bang va on dinh hon.\",\"room_code\":\"VINC-24\"}",
+  "room_code": "VINC-24",
+  "team_id": "team-gradient",
+  "answer": "{\"option_id\":\"B\",\"reasoning\":\"...\"}",
   "confidence": 4
 }
 ```
 
-## Result Rules
+Control action theo đúng thứ tự: `create`, `start`, `lock`, `reveal`, `summary`.
+Sau tổng kết, `restart` đưa phòng về `setup` và xóa trạng thái room in-memory.
 
-- Option B + reasoning noi duoc scaling va gradient: `mastered`, `140 XP`.
-- Option B + reasoning yeu: `partial`, `70 XP`.
-- Option khac: `misconception`, `20 XP`, `recovery_created=true`.
-- Reasoning duoi 20 ky tu, option sai format, session/question sai: API tu choi.
+## Điểm và giới hạn
 
-## What Is Real
+- Đúng + reasoning tốt: `mastered`, `140 XP`.
+- Đúng + reasoning yếu: `partial`, `70 XP`.
+- Sai: `misconception`, `20 XP`, tạo Error Dungeon recovery.
+- Confidence `1-5` chỉ được ghi nhận, chưa tính điểm.
+- Reasoning vẫn được chấm bằng keyword, chưa phải AI grader.
+- Timer, thành viên trong team, hint, ranking và misconception stream vẫn là
+  dữ liệu minh họa.
 
-- React loading, error, join validation, answer form va result state.
-- FastAPI session payload va submit grading.
-- `GameResult` contract, progress recording va recovery queue.
-- Backend tests cho session, 3 result branch va invalid reasoning.
+## Kiểm tra
 
-## What Is Mocked
+```bash
+cd vincourse/apps/api
+.venv/bin/python -m pytest -q app/features/live_battle/test_router.py
 
-- Multi-user sync va WebSocket.
-- Countdown, joined/submitted count, class distribution va team ranking.
-- Instructor controls chi thay doi local React state.
-
-UI luon hien nhan `Phien live mo phong` de khong trinh bay mock nhu realtime that.
-
-## Shared Integration Request
-
-App shell hien tai chua import feature module nao; `FeatureHost` van render generic
-textarea cho tat ca mode. Base owner can them mot integration branch:
-
-```tsx
-import { LiveBattleFeature } from "../../features/live-battle";
-
-if (mode === "live_battle") {
-  return <LiveBattleFeature onCompleted={onCompleted} />;
-}
-```
-
-File shared can sua boi base owner:
-
-```text
-vincourse/apps/web/src/shared/components/FeatureHost.tsx
-```
-
-Feature owner khong tu sua file nay de tranh conflict voi integration work.
-
-## Verification
-
-```text
-npm run typecheck                         PASS
-npm run build                             PASS
-python -m pytest -q ...                   7 PASS
+cd ../web
+npm run typecheck
+npm run build
 ```

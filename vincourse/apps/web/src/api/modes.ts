@@ -32,6 +32,18 @@ export function getModeSession(mode: GameMode, round?: number) {
   return apiGet<GameSession>(`/api/modes/${modePath[mode]}/session${query}`);
 }
 
+export function getLiveBattleSession(userId: string, role: "student" | "instructor") {
+  const query = new URLSearchParams({ user_id: userId, role });
+  return apiGet<GameSession>(`/api/modes/live_battle/session?${query.toString()}`);
+}
+
+export function controlLiveBattle(roomCode: string, action: "create" | "start" | "lock" | "reveal" | "summary" | "restart") {
+  return apiPost<GameSession>("/api/modes/live_battle/control", {
+    room_code: roomCode,
+    action
+  });
+}
+
 export function submitMode(mode: GameMode, request: GameSubmitRequest) {
   return apiPost<GameResult>(`/api/modes/${modePath[mode]}/submit`, request);
 }

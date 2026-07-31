@@ -141,8 +141,13 @@ Field:
 | `question_id` | string | yes | current question/challenge |
 | `answer` | string | yes | selected answer, text answer, or serialized code answer |
 | `confidence` | number 1-5 | yes | learner self-confidence |
+| `room_code` | string | Live Battle only | room returned from `/session` |
+| `team_id` | string | Live Battle only | trusted team id returned from `/session` |
 
 Neu answer phuc tap, serialize thanh JSON string tam thoi trong hackathon. Sau nay co the mo rong contract neu team dong y.
+
+Rieng Live Battle, frontend phai gui ca `room_code` va `team_id`; backend doi
+chieu hai field nay voi `user_id`, session va question hien tai truoc khi cham.
 
 ## 6. GameResult
 
@@ -219,4 +224,3 @@ Neu can doi contract:
 3. Ghi mode nao bi anh huong.
 4. Base owner cap nhat Python schema va TypeScript type.
 5. Tat ca feature dung lai contract moi.
-

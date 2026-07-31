@@ -38,6 +38,8 @@ export type GameSubmitRequest = {
   question_id: string;
   answer: string;
   confidence: number;
+  room_code?: string;
+  team_id?: string;
 };
 
 export type GameResult = {
