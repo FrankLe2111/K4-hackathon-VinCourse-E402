@@ -22,9 +22,9 @@ const modeStatus: Record<GameMode, string> = {
   story: "Đề xuất",
   daily_recall: "5 ngày ôn",
   error_dungeon: "Cần sửa",
-  lab_arena: "Day 4 ready",
+  lab_arena: "Sẵn sàng Bài 4",
   boss_battle: "Sẵn sàng",
-  live_battle: "Kahoot style",
+  live_battle: "Đấu trực tiếp",
   understanding: "Nâng cao",
 };
 

@@ -7,12 +7,12 @@ router = APIRouter(tags=["base"])
 
 
 MODES = [
-    ModeInfo(mode=GameMode.story, title="Story Quest", owner="ThanhToan", description="Main story missions.", ready=True),
-    ModeInfo(mode=GameMode.daily_recall, title="Daily Recall", owner="Nguyen Duc Hung", description="Spaced recall session."),
-    ModeInfo(mode=GameMode.error_dungeon, title="Error Dungeon", owner="Nguyen Duc Hung", description="Repair past mistakes."),
-    ModeInfo(mode=GameMode.lab_arena, title="Lab Arena", owner="Huyen", description="Apply concepts in code."),
-    ModeInfo(mode=GameMode.boss_battle, title="Boss Battle", owner="Trung Quan", description="Multi-concept transfer challenge."),
-    ModeInfo(mode=GameMode.live_battle, title="Live Class Battle", owner="Ngo Minh Phuoc", description="Classroom team challenge."),
+    ModeInfo(mode=GameMode.story, title="Story Quest", owner="ThanhToan", description="Hành trình học theo cốt truyện & tình huống thực tế.", ready=True),
+    ModeInfo(mode=GameMode.daily_recall, title="Daily Recall", owner="Nguyen Duc Hung", description="Ôn tập ngắt quãng để ghi nhớ lâu dài."),
+    ModeInfo(mode=GameMode.error_dungeon, title="Error Dungeon", owner="Nguyen Duc Hung", description="Chinh phục & khắc phục triệt để các câu làm sai."),
+    ModeInfo(mode=GameMode.lab_arena, title="Lab Arena", owner="Huyen", description="Thực hành lập trình Python & vận dụng code."),
+    ModeInfo(mode=GameMode.boss_battle, title="Boss Battle", owner="Trung Quan", description="Đại chiến hạ gục Boss cùng cả lớp."),
+    ModeInfo(mode=GameMode.live_battle, title="Live Class Battle", owner="Ngo Minh Phuoc", description="Thi đấu đồng đội trực tiếp thời gian thực."),
 ]
 
 
