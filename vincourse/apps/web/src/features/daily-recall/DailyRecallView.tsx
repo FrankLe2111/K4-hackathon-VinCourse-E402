@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowRight, Award, BookOpen, CheckCircle2, FileText, HelpCircle, Highlighter, PenLine, PlayCircle, RefreshCw, ShieldAlert, SkipForward, ZoomIn, ZoomOut } from "lucide-react";
 import { submitMode } from "../../api/modes";
 import type { GameResult, GameSession } from "../../types/game";
+import day4Pdf from "../../assets/day4.pdf";
 import "./daily-recall.css";
 
 type Props = {
@@ -12,7 +13,7 @@ type Props = {
 const days = Array.from({ length: 5 }, (_, index) => ({
   title: `Day0${index + 1}`,
   docs: [
-    { name: `day0${index + 1}_lecture.pdf`, pages: 42 + index * 8 },
+    index === 3 ? { name: "day4.pdf", pages: 9, src: day4Pdf } : { name: `day0${index + 1}_lecture.pdf`, pages: 42 + index * 8 },
     ...(index % 2 === 0 ? [{ name: `day0${index + 1}_material.pdf`, pages: 24 + index * 4 }] : []),
   ],
 }));
@@ -29,7 +30,7 @@ const summaries = [
   ["AI khác automation vì có thể suy luận từ dữ liệu mới, không chỉ chạy luật cố định.", "LLM dự đoán token tiếp theo theo xác suất nên cần kiểm chứng nguồn.", "Dùng AI tốt nhất khi xác định rõ input, output, người dùng và rủi ro."],
   ["Feature scaling giúp gradient descent hội tụ ổn định hơn.", "Label là kết quả cần dự đoán; feature là tín hiệu có trước dự đoán.", "Data leakage làm điểm validation đẹp giả tạo."],
   ["Pattern không đồng nghĩa quan hệ nhân quả.", "Shortcut learning xảy ra khi mô hình học tín hiệu dễ nhưng sai bản chất.", "Chọn task dựa vào output mong muốn: phân loại, dự đoán số, gợi ý."],
-  ["Prompt tốt có vai trò, bối cảnh, tiêu chí và định dạng đầu ra.", "Hallucination giảm bằng grounding, source và kiểm chứng.", "Prompt injection cần giới hạn quyền và tách dữ liệu khỏi chỉ dẫn."],
+  ["Prompt tốt nên có Role, Task, Context và Format/Constraint rõ ràng.", "Context Engineering cần delimiter để tách instruction, context và user input nhằm giảm context bleed/prompt injection.", "Tool Calling Loop gồm model đề xuất tool, app thực thi, trả kết quả về model, rồi model tổng hợp câu trả lời."],
   ["Human-in-the-loop cần thiết ở quyết định rủi ro cao.", "Monitoring giúp phát hiện drift và lỗi sau triển khai.", "Evaluation phải đo đúng outcome học tập, không chỉ cảm giác hay."],
 ];
 
@@ -41,7 +42,7 @@ export function DailyRecallView({ session, onCompleted }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sessionTotalXp, setSessionTotalXp] = useState(0);
-  const [selectedDay, setSelectedDay] = useState(0);
+  const [selectedDay, setSelectedDay] = useState(3);
   const [selectedDoc, setSelectedDoc] = useState(0);
   const [page, setPage] = useState(1);
   const [zoom, setZoom] = useState(100);
@@ -59,6 +60,7 @@ export function DailyRecallView({ session, onCompleted }: Props) {
   const queueSize = allQuestions.length || 4;
   const isFinished = activeQuestionIndex >= queueSize;
   const doc = days[selectedDay].docs[selectedDoc] ?? days[selectedDay].docs[0];
+  const isRealPdf = "src" in doc;
   const currentQ = allQuestions[activeQuestionIndex] || {
     question_id: (payload.question_id as string) || "q-dr-001",
     title: session.title,
@@ -177,12 +179,16 @@ export function DailyRecallView({ session, onCompleted }: Props) {
 
         <section className="daily-reader">
           <div className="daily-page-meta"><span>Trang {page} / {doc.pages}</span><span>{doc.name}</span></div>
-          <article className="daily-slide" style={{ transform: `scale(${zoom / 100})` }}>
-            <small>AI IN ACTION — {days[selectedDay].title}</small>
-            <h1>{selectedDay === 0 ? "AI & LLM Foundation" : currentQ.title.replace("Daily Recall — ", "")}</h1>
-            <p>Bạn đang ôn lại phần kiến thức sẽ được hỏi trong Daily Recall. Sau này khu vực này hiển thị PDF thật bạn upload.</p>
-            <b>VinCourse</b>
-          </article>
+          {isRealPdf ? (
+            <iframe className="daily-pdf" src={`${doc.src}#page=${page}&zoom=${zoom}`} title={doc.name} />
+          ) : (
+            <article className="daily-slide" style={{ transform: `scale(${zoom / 100})` }}>
+              <small>AI IN ACTION — {days[selectedDay].title}</small>
+              <h1>{selectedDay === 0 ? "AI & LLM Foundation" : currentQ.title.replace("Daily Recall — ", "")}</h1>
+              <p>Bạn đang ôn lại phần kiến thức sẽ được hỏi trong Daily Recall. Sau này khu vực này hiển thị PDF thật bạn upload.</p>
+              <b>VinCourse</b>
+            </article>
+          )}
         </section>
 
         <div className="daily-page-nav">

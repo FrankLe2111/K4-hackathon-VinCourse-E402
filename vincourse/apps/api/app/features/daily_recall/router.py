@@ -8,63 +8,78 @@ router = APIRouter(tags=["daily-recall"])
 MOCK_DAILY_RECALL_QUEUE = [
     {
         "question_id": "q-dr-001",
-        "title": "Daily Recall — Ôn Tập Hàng Ngày (1/4)",
-        "prompt": "Vì sao cần thực hiện Feature Scaling (Chuẩn hóa dữ liệu) trước khi chạy Gradient Descent trong Machine Learning?",
-        "evidence_ids": ["T02-034"],
-        "due_reason": "Chưa ôn lại sau 7 ngày",
+        "title": "Day 4 — Prompt Fundamentals (1/5)",
+        "prompt": "Bộ khung RTCF của một prompt tốt thường nhấn mạnh điều gì?",
+        "evidence_ids": ["D04-P01"],
+        "due_reason": "Ôn tập Day4: Prompt Engineering",
         "options": [
-            {"id": "A", "text": "Giúp bề mặt hàm mất mát cân đối, từ đó Gradient Descent hội tụ nhanh và ổn định hơn."},
-            {"id": "B", "text": "Chỉ nhằm mục đích giảm dung lượng RAM sử dụng khi huấn luyện mô hình."},
-            {"id": "C", "text": "Nhằm thay thế số lượng Epochs cần chạy khi mô hình bị overfitting."},
-            {"id": "D", "text": "Tự động phát hiện và xóa các dòng dữ liệu bị thiếu (Missing Values)."}
+            {"id": "A", "text": "Nêu rõ role, task, context và format/constraint để model biết phải làm gì và trả lời ra sao."},
+            {"id": "B", "text": "Chỉ cần viết prompt càng dài càng tốt để model có nhiều chữ hơn."},
+            {"id": "C", "text": "Luôn bỏ context để model tự suy luận tự do."},
+            {"id": "D", "text": "Chỉ dùng emoji và ví dụ, không cần yêu cầu cụ thể."}
         ],
         "correct_answer": "A",
-        "misconception_id": "more_epochs_fix_scaling"
+        "misconception_id": "prompt_without_structure"
     },
     {
         "question_id": "q-dr-002",
-        "title": "Daily Recall — Ôn Tập Hàng Ngày (2/4)",
-        "prompt": "Mối quan hệ chính xác giữa LLM (Large Language Model) và Chatbot là gì?",
-        "evidence_ids": ["T04-046"],
-        "due_reason": "Tự tin thấp ở lần học trước",
+        "title": "Day 4 — System vs User Prompt (2/5)",
+        "prompt": "Trong ứng dụng AI, system prompt khác user prompt ở điểm nào quan trọng nhất?",
+        "evidence_ids": ["D04-P02"],
+        "due_reason": "Kiểm tra hiểu đúng về prompt hierarchy",
         "options": [
-            {"id": "A", "text": "LLM và Chatbot là hai tên gọi hoàn toàn giống nhau của cùng một sản phẩm."},
-            {"id": "B", "text": "LLM là mô hình nền tảng bên dưới (underlying model), còn Chatbot là lớp giao diện tương tác người dùng."},
-            {"id": "C", "text": "Chatbot sinh ra LLM khi người dùng đặt câu hỏi."},
-            {"id": "D", "text": "Chatbot chỉ hoạt động offline còn LLM luôn hoạt động online."}
+            {"id": "A", "text": "User prompt luôn có quyền cao hơn vì người dùng nhập sau."},
+            {"id": "B", "text": "System prompt đặt hành vi/quy tắc nền và có ưu tiên cao hơn user prompt."},
+            {"id": "C", "text": "System prompt chỉ dùng để trang trí giao diện."},
+            {"id": "D", "text": "Hai loại prompt không khác nhau trong ứng dụng AI."}
         ],
         "correct_answer": "B",
-        "misconception_id": "llm_equals_chatbot"
+        "misconception_id": "user_prompt_overrides_system"
     },
     {
         "question_id": "q-dr-003",
-        "title": "Daily Recall — Ôn Tập Hàng Ngày (3/4)",
-        "prompt": "Vì sao LLM lại có thể xảy ra hiện tượng Hallucination (Ảo giác / Sinh thông tin sai)?",
-        "evidence_ids": ["T04-047", "T04-048"],
-        "due_reason": "Câu từng làm sai tuần trước",
+        "title": "Day 4 — Context Engineering (3/5)",
+        "prompt": "Delimiter/XML tag trong prompt giúp giảm lỗi nào sau đây?",
+        "evidence_ids": ["D04-P03"],
+        "due_reason": "Ôn tập context bleed và prompt injection",
         "options": [
-            {"id": "A", "text": "Vì LLM cố tình nói dối người dùng khi bị quá tải server."},
-            {"id": "B", "text": "Vì cơ chế cốt lõi của LLM là dự đoán token tiếp theo theo xác suất, không bảo đảm tính đúng sự thật."},
-            {"id": "C", "text": "Vì dữ liệu huấn luyện của LLM không có bất kỳ thông tin nào đúng."},
-            {"id": "D", "text": "Vì LLM không thể viết được mã nguồn lập trình."}
+            {"id": "A", "text": "Giúp tách instruction, context và user input rõ ràng để tránh trôi/ngấm ngữ cảnh."},
+            {"id": "B", "text": "Làm model không cần dữ liệu đầu vào nữa."},
+            {"id": "C", "text": "Tự động biến mọi câu trả lời thành JSON hợp lệ."},
+            {"id": "D", "text": "Đảm bảo model không bao giờ hallucinate."}
         ],
-        "correct_answer": "B",
-        "misconception_id": "hallucination_intentional_lie"
+        "correct_answer": "A",
+        "misconception_id": "missing_context_boundaries"
     },
     {
         "question_id": "q-dr-004",
-        "title": "Daily Recall — Ôn Tập Hàng Ngày (4/4)",
-        "prompt": "Nguyên tắc lựa chọn giữa Augment (Hỗ trợ) và Automate (Tự động hóa hoàn toàn) cho công việc là gì?",
-        "evidence_ids": ["T02-032"],
-        "due_reason": "Lịch ôn tập định kỳ 14 ngày",
+        "title": "Day 4 — Tool Calling Loop (4/5)",
+        "prompt": "Thứ tự đúng của một tool calling loop cơ bản là gì?",
+        "evidence_ids": ["D04-P04"],
+        "due_reason": "Ôn tập kiến trúc tool calling",
         "options": [
-            {"id": "A", "text": "Công việc có rủi ro/hậu quả sai lầm (cost-of-error) càng cao thì càng nên Augment (giữ con người giám sát)."},
-            {"id": "B", "text": "Nên Automate 100% mọi công việc để tiết kiệm thời gian tối đa."},
-            {"id": "C", "text": "Công việc càng quan trọng thì càng nên bỏ con người ra khỏi luồng quyết định."},
-            {"id": "D", "text": "Augment và Automate không khác nhau về mức độ kiểm soát của con người."}
+            {"id": "A", "text": "Model gọi tool → app thực thi tool → trả tool result về model → model tổng hợp trả lời."},
+            {"id": "B", "text": "Tool tự gọi model → model bỏ qua tool result → app tự đoán đáp án."},
+            {"id": "C", "text": "Người dùng chạy database trực tiếp rồi copy vào prompt."},
+            {"id": "D", "text": "Model tự bịa kết quả tool để tiết kiệm latency."}
         ],
         "correct_answer": "A",
-        "misconception_id": "automate_high_risk_tasks"
+        "misconception_id": "fake_tool_result"
+    },
+    {
+        "question_id": "q-dr-005",
+        "title": "Day 4 — Tool Control (5/5)",
+        "prompt": "Với write tool như gửi email/thanh toán, control nào là bắt buộc nhất?",
+        "evidence_ids": ["D04-P05"],
+        "due_reason": "Ôn tập an toàn khi tool có side effect",
+        "options": [
+            {"id": "A", "text": "Cho model tự thực thi mọi hành động để tối ưu tốc độ."},
+            {"id": "B", "text": "Bắt buộc có kiểm soát/confirm trước hành động quan trọng hoặc có side effect."},
+            {"id": "C", "text": "Ẩn schema để model khó gọi tool hơn."},
+            {"id": "D", "text": "Chỉ log sau khi hành động đã xảy ra, không cần chặn trước."}
+        ],
+        "correct_answer": "B",
+        "misconception_id": "unsafe_write_tool"
     }
 ]
 
