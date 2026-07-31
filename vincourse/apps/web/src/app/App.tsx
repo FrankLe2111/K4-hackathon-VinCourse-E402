@@ -8,31 +8,6 @@ import type { GameMode, ModeInfo, ProgressSummary } from "../types/game";
 import { FeatureHost } from "../shared/components/FeatureHost";
 import odysseyOwl from "../assets/odyssey-owl.png";
 
-export type Role = "learner" | "admin";
-
-export type Route =
-  | "home"
-  | "map"
-  | "modes"
-  | "understanding"
-  | "quest"
-  | "feedback"
-  | "recovery"
-  | "result"
-  | "recall"
-  | "mastery"
-  | "error-dungeon"
-  | "boss"
-  | "live"
-  | "ai-adversary"
-  | "admin-dashboard"
-  | "admin-upload"
-  | "admin-generate"
-  | "admin-world"
-  | "admin-questions"
-  | "admin-analytics"
-  | "lab";
-
 const modeIcons = {
   story: BookOpen,
   daily_recall: BrainCircuit,
@@ -67,9 +42,18 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
+export type Route =
+  | "understanding" | "home" | "map" | "modes" | "quest" | "feedback"
+  | "recovery" | "result" | "recall" | "mastery" | "error-dungeon"
+  | "lab" | "boss" | "live" | "ai-adversary"
+  | "admin-dashboard" | "admin-upload" | "admin-generate" | "admin-world"
+  | "admin-questions" | "admin-analytics";
+export type Role = "learner" | "admin";
+
 export function App() {
   const [modes, setModes] = useState<ModeInfo[]>([]);
   const [progress, setProgress] = useState<ProgressSummary | null>(null);
+  const [route, setRoute] = useState<Route>("modes");
   const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
   const [featureKey, setFeatureKey] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -111,10 +95,40 @@ export function App() {
   const recoveryCount = progress?.recovery_queue_size ?? 0;
   const streakDays = Math.max(1, Math.min(7, Math.floor(totalXp / 120) + completedCount + 1));
   const level = Math.floor(totalXp / 500) + 1;
-  const canOpenMode = (mode: GameMode) => modes.some((item) => item.mode === mode);
-  const openMode = (mode: GameMode) => {
-    if (canOpenMode(mode)) setSelectedMode(mode);
+
+  function navigate(nextRoute: Route) {
+    setRoute(nextRoute);
+    const modeByRoute: Partial<Record<Route, GameMode>> = {
+      quest: "story",
+      recall: "daily_recall",
+      "error-dungeon": "error_dungeon",
+      lab: "lab_arena",
+      boss: "boss_battle",
+      live: "live_battle",
+      "ai-adversary": "understanding",
+      understanding: "understanding",
+    };
+    setSelectedMode(modeByRoute[nextRoute] ?? null);
+  }
+
+  const pageCopy: Record<"home" | "map" | "modes", { eyebrow: string; title: string; text: string }> = {
+    home: {
+      eyebrow: "Trang chủ",
+      title: "Sẵn sàng tiếp tục hành trình?",
+      text: "Theo dõi tiến độ, chọn hoạt động tiếp theo và quay lại các thử thách đang mở.",
+    },
+    map: {
+      eyebrow: "Bản đồ khóa học",
+      title: "AI Odyssey",
+      text: "Đi qua từng vùng học tập, mở khóa nhiệm vụ và củng cố các khái niệm trọng tâm.",
+    },
+    modes: {
+      eyebrow: "Chọn thử thách của bạn",
+      title: "Bảy cách xây dựng năng lực",
+      text: "Mỗi chế độ thu thập một loại minh chứng khác nhau: ghi nhớ, thực hành code, sửa lỗi sai và thi đấu cùng lớp.",
+    },
   };
+  const currentPage = route === "home" || route === "map" ? route : "modes";
 
   if (!selectedMode) {
     return (
@@ -126,35 +140,15 @@ export function App() {
           </div>
           <p className="nav-label">Học tập</p>
           <nav className="rail-list" aria-label="Điều hướng chính">
-            <button type="button" onClick={() => setSelectedMode(null)}><Home size={16} />Trang chủ</button>
-            <button type="button" onClick={() => openMode("story")} disabled={!canOpenMode("story")}><Map size={16} />Bản đồ khóa học</button>
-            <button type="button" className="active" onClick={() => setSelectedMode(null)}><Sparkles size={16} />Chế độ chơi <b>{modes.length || 7}</b></button>
-            <button type="button" onClick={() => openMode("daily_recall")} disabled={!canOpenMode("daily_recall")}><BrainCircuit size={16} />Ôn tập hằng ngày <b>5</b></button>
-          </nav>
-          <nav className="mode-list rail-mode-list" aria-label="Chọn chế độ chơi">
-            {loading ? <div className="nav-skeleton">Đang mở bản đồ…</div> : modes.map((mode) => {
-              const Icon = modeIcons[mode.mode];
-              const done = progress?.completed_modes.includes(mode.mode);
-              return (
-                <button
-                  key={mode.mode}
-                  className={mode.mode === selectedMode ? "active" : ""}
-                  onClick={() => setSelectedMode(mode.mode)}
-                >
-                  <span className="mode-icon"><Icon size={18} /></span>
-                  <span className="mode-copy">
-                    <strong>{mode.title}</strong>
-                    <small>{mode.owner}</small>
-                  </span>
-                  <span className="mode-done">{done ? "✓" : ""}</span>
-                </button>
-              );
-            })}
+            <button type="button" className={route === "home" ? "active" : ""} onClick={() => navigate("home")}><Home size={16} />Trang chủ</button>
+            <button type="button" className={route === "map" ? "active" : ""} onClick={() => navigate("map")}><Map size={16} />Bản đồ khóa học</button>
+            <button type="button" className={route === "modes" ? "active" : ""} onClick={() => navigate("modes")}><Sparkles size={16} />Chế độ chơi <b>{modes.length || 7}</b></button>
+            <button type="button" onClick={() => navigate("recall")}><BrainCircuit size={16} />Ôn tập hằng ngày <b>5</b></button>
           </nav>
           <p className="nav-label">Khắc phục</p>
           <nav className="rail-list" aria-label="Khắc phục">
-            <button type="button" onClick={() => openMode("error_dungeon")} disabled={!canOpenMode("error_dungeon")}><ShieldAlert size={16} />Hầm ngục lỗi sai <b>{recoveryCount}</b></button>
-            <button type="button" onClick={() => openMode("understanding")} disabled={!canOpenMode("understanding")}><Swords size={16} />Đối thủ AI</button>
+            <button type="button" onClick={() => navigate("error-dungeon")}><ShieldAlert size={16} />Hầm ngục lỗi sai <b>{recoveryCount}</b></button>
+            <button type="button" onClick={() => navigate("ai-adversary")}><Swords size={16} />Đối thủ AI</button>
           </nav>
           <div className="rail-profile">
             <span className="avatar">LM</span>
@@ -181,9 +175,9 @@ export function App() {
 
           <div className="mode-select-hero">
             <div>
-              <p>Chọn thử thách của bạn</p>
-              <h1>Bảy cách xây dựng năng lực</h1>
-              <span>Mỗi chế độ thu thập một loại minh chứng khác nhau: ghi nhớ, thực hành code, sửa lỗi sai và thi đấu cùng lớp.</span>
+              <p>{pageCopy[currentPage].eyebrow}</p>
+              <h1>{pageCopy[currentPage].title}</h1>
+              <span>{pageCopy[currentPage].text}</span>
             </div>
             <img src={odysseyOwl} alt="Mascot cú VinCourse" />
           </div>
@@ -231,7 +225,7 @@ export function App() {
             </div>
           </div>
           <div className="topbar-actions">
-            <button className="ghost-button" onClick={() => setSelectedMode(null)}>
+            <button className="ghost-button" onClick={() => navigate("modes")}>
               <ArrowLeft size={16} /><span>Chọn mode</span>
             </button>
             <button className="ghost-button danger-button" onClick={() => void handleReset()} title="Xóa toàn bộ tiến độ">

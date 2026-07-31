@@ -22,9 +22,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .mode-rail .brand div span { color: #64748b; letter-spacing: 0; text-transform: none; font-size: 14px; }
 .rail-list { display: grid; gap: 8px; }
 .rail-list button { min-height: 50px; display: grid; grid-template-columns: 24px 1fr auto; gap: 10px; align-items: center; border: 0; border-radius: 12px; padding: 0 13px; color: #5b6474; background: transparent; font-weight: 700; text-align: left; cursor: pointer; }
-.rail-list button:hover:not(:disabled) { color: #047857; background: #effdf8; }
+.rail-list button:hover { color: #047857; background: #effdf8; }
 .rail-list button.active { color: #047857; background: #d9fbef; }
-.rail-list button:disabled { opacity: .55; cursor: not-allowed; }
 .rail-list b { min-width: 24px; border-radius: 999px; padding: 3px 7px; color: #047857; background: #bdf7e3; font-size: 12px; text-align: center; }
 .rail-profile { margin-top: auto; display: grid; grid-template-columns: 42px 1fr; gap: 10px; align-items: center; border-top: 1px solid #e5eaf2; padding-top: 18px; }
 .rail-profile strong, .rail-profile small { display: block; }
@@ -79,14 +78,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .mode-copy strong { font-size: 13px; }
 .mode-copy small { margin-top: 3px; color: #8794b9; font-size: 10px; }
 .mode-done { color: #91f1db; font-weight: 900; }
-.rail-mode-list { max-height: 38vh; overflow-y: auto; padding-right: 2px; }
-.rail-mode-list button { color: #334155; border-color: #e7edf5; background: #fff; box-shadow: 0 5px 14px rgba(15,23,42,.04); }
-.rail-mode-list button:hover { color: #047857; background: #effdf8; }
-.rail-mode-list button.active { color: #047857; border-color: #a7f3d0; background: #dcfce7; box-shadow: inset 3px 0 #10b981; }
-.rail-mode-list .mode-icon { color: #047857; background: #ecfdf5; }
-.rail-mode-list button.active .mode-icon { color: #fff; background: #10b981; }
-.rail-mode-list .mode-copy small { color: #64748b; }
-.rail-mode-list .mode-done { color: #059669; }
 .nav-skeleton { padding: 20px 10px; color: #93a0c3; font-size: 13px; }
 .learner-card { display: grid; grid-template-columns: 36px 1fr auto; gap: 10px; align-items: center; margin-top: 24px; padding: 12px; border: 1px solid rgba(255,255,255,.1); border-radius: 14px; background: rgba(255,255,255,.06); }
 .avatar { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: #625be1; }
