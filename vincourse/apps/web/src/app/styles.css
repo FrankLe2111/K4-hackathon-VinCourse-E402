@@ -16,7 +16,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .game-shell { display: block; }
 .mode-select-page { min-height: 100vh; display: grid; grid-template-columns: 284px minmax(0, 1fr); color: #172033; background: #f6f8fb; }
 .mode-rail { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 18px; padding: 28px 20px; border-right: 1px solid #dfe5ef; background: rgba(255,255,255,.9); }
-.brand-v { display: flex; align-items: center; justify-content: center; line-height: 1; color: #fff; background: linear-gradient(145deg, #10d18f, #08b978); font-size: 22px; font-weight: 1000; box-shadow: 0 12px 26px rgba(16,209,143,.28); text-align: center; }
+.brand-v { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; color: #fff; background: linear-gradient(145deg, #10d18f, #08b978); border-radius: 14px; box-shadow: 0 12px 26px rgba(16,209,143,.28); }
+.brand-v svg { display: block; margin: auto; }
 .mode-rail .brand { padding: 0 0 28px; }
 .mode-rail .brand strong { color: #0f172a; font-size: 25px; }
 .mode-rail .brand div span { color: #64748b; letter-spacing: 0; text-transform: none; font-size: 14px; }

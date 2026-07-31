@@ -135,7 +135,11 @@ export function App() {
       <main className="mode-select-page">
         <aside className="mode-rail">
           <div className="brand">
-            <span className="brand-mark brand-v">V</span>
+            <span className="brand-mark brand-v" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="4 4 12 20 20 4" />
+              </svg>
+            </span>
             <div><strong>VinCourse</strong><span>Học viên khám phá</span></div>
           </div>
           <p className="nav-label">Học tập</p>
