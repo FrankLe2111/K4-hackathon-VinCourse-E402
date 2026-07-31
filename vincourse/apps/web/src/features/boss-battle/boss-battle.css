@@ -403,7 +403,7 @@
   font-weight: 1000;
   line-height: 1.3;
   box-shadow: 0 16px 28px rgba(15, 23, 42, .1);
-  transition: transform .16s, filter .16s, opacity .16s;
+  transition: transform .18s, filter .18s, opacity .18s, box-shadow .18s;
 }
 
 .boss-answer-grid button:hover:not(:disabled) {
@@ -438,7 +438,21 @@
 .boss-answer-grid .blue { background: #2563eb; }
 .boss-answer-grid .gold { background: #d97706; }
 .boss-answer-grid .green { background: #059669; }
-.boss-answer-grid .selected { outline: 4px solid #172033; }
+.boss-answer-grid .selected {
+  position: relative;
+  z-index: 2;
+  outline: 5px solid #fff;
+  outline-offset: -9px;
+  box-shadow: 0 0 0 6px rgba(250, 204, 21, .92), 0 26px 48px rgba(15, 23, 42, .26);
+  transform: translateY(-4px) scale(1.025);
+}
+
+.boss-answer-grid .choice-muted {
+  opacity: .24;
+  filter: grayscale(.45) brightness(.72);
+  transform: scale(.985);
+}
+
 .boss-answer-grid .correct-answer { filter: saturate(1.25); animation: boss-correct .7s ease both; }
 .boss-answer-grid .wrong-answer { animation: boss-wrong .45s ease both; }
 .boss-answer-grid .dimmed { opacity: .28; filter: grayscale(.5); }
@@ -457,34 +471,6 @@
   text-align: center;
 }
 
-.boss-player-feedback {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  margin-top: 14px;
-  border-radius: 12px;
-  padding: 20px;
-  color: #fff;
-  text-align: center;
-  animation: boss-board-in .24s ease both;
-}
-
-.boss-player-feedback.correct {
-  background: #16a34a;
-}
-
-.boss-player-feedback.incorrect {
-  background: #dc2626;
-}
-
-.boss-player-feedback strong {
-  font-size: clamp(30px, 5vw, 56px);
-}
-
-.boss-player-feedback span {
-  font-weight: 1000;
-}
-
 .boss-overlay {
   position: fixed;
   inset: 0;
@@ -493,6 +479,67 @@
   place-items: center;
   padding: 22px;
   background: #46178f;
+}
+
+.boss-result-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 50% 72%, rgba(255,255,255,.13), transparent 28%),
+    linear-gradient(145deg, rgba(33, 9, 89, .92), rgba(70, 23, 143, .96));
+  animation: boss-result-life 3.15s ease both;
+  pointer-events: none;
+}
+
+.boss-result-overlay.correct {
+  background:
+    radial-gradient(circle at 50% 72%, rgba(255,255,255,.16), transparent 28%),
+    linear-gradient(145deg, rgba(22, 101, 52, .94), rgba(34, 197, 94, .9));
+}
+
+.boss-result-overlay.incorrect {
+  background:
+    radial-gradient(circle at 50% 72%, rgba(255,255,255,.13), transparent 28%),
+    linear-gradient(145deg, rgba(127, 29, 29, .94), rgba(220, 38, 38, .9));
+}
+
+.boss-result-panel {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+  animation: boss-result-pop .42s cubic-bezier(.2, 1.3, .28, 1) both;
+}
+
+.boss-result-panel svg {
+  border-radius: 999px;
+  padding: 10px;
+  background: rgba(255,255,255,.2);
+  filter: drop-shadow(0 16px 30px rgba(0,0,0,.28));
+}
+
+.boss-result-panel strong {
+  font-size: clamp(54px, 9vw, 118px);
+  line-height: .92;
+}
+
+.boss-result-panel span {
+  min-width: min(420px, 82vw);
+  border-radius: 10px;
+  padding: 14px 18px;
+  background: rgba(0,0,0,.22);
+  font-size: clamp(24px, 4vw, 44px);
+  font-weight: 1000;
+}
+
+.boss-result-panel small {
+  font-size: 16px;
+  font-weight: 1000;
 }
 
 .boss-leaderboard-modal {
@@ -524,6 +571,18 @@
   color: #64748b;
   background: #f8fafc;
   animation: boss-rank-slide .36s ease both;
+}
+
+.boss-leaderboard div.moved-up {
+  animation-name: boss-rank-up;
+}
+
+.boss-leaderboard div.moved-down {
+  animation-name: boss-rank-down;
+}
+
+.boss-leaderboard div.you {
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, .36);
 }
 
 .boss-leaderboard div.correct {
@@ -744,6 +803,29 @@
   from { transform: scale(.82); opacity: .2; }
   50% { transform: scale(1.14); opacity: 1; }
   to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes boss-result-life {
+  0% { opacity: 0; }
+  10%, 62% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes boss-result-pop {
+  from { opacity: 0; transform: translateY(22px) scale(.86); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes boss-rank-up {
+  from { opacity: 0; transform: translateY(34px) scale(.98); }
+  58% { transform: translateY(-8px) scale(1.015); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes boss-rank-down {
+  from { opacity: 0; transform: translateY(-24px) scale(.98); }
+  58% { transform: translateY(7px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes boss-hit {

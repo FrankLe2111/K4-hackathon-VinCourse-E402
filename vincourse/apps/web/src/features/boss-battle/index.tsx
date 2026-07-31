@@ -176,6 +176,7 @@ function QuestionStage({ round, gameState, timeLeft, activeCount, answeredCount,
   onPick: (optionId: string) => void;
 }) {
   const reveal = gameState === "reveal";
+  const hasChosen = Boolean(selectedOption);
   const stateLabel = gameState === "question" ? "Chọn đáp án" : gameState === "locked" ? "Đã khóa" : "Kết quả";
   return (
     <article className="boss-question-stage">
@@ -189,11 +190,12 @@ function QuestionStage({ round, gameState, timeLeft, activeCount, answeredCount,
           const isSelected = selectedOption === option.id;
           const isCorrect = resultPayload?.correct_option_id === option.id;
           const revealClass = reveal ? (isCorrect ? "correct-answer" : isSelected ? "wrong-answer" : "dimmed") : "";
+          const focusClass = hasChosen && !isSelected && !reveal ? "choice-muted" : "";
           const row = distribution.find((item) => item.option_id === option.id);
           return (
             <button
               key={option.id}
-              className={`${ANSWER_COLORS[index] ?? "green"} ${isSelected ? "selected" : ""} ${revealClass}`}
+              className={`${ANSWER_COLORS[index] ?? "green"} ${isSelected ? "selected" : ""} ${focusClass} ${revealClass}`}
               onClick={() => onPick(option.id)}
               disabled={gameState !== "question"}
             >
@@ -207,14 +209,22 @@ function QuestionStage({ round, gameState, timeLeft, activeCount, answeredCount,
         })}
       </div>
       {gameState === "locked" ? <div className="boss-locked">Đáp án đã khóa. Đang chờ cả lớp...</div> : null}
-      {reveal ? (
-        <div className={`boss-player-feedback ${playerCorrect ? "correct" : "incorrect"}`}>
-          {playerCorrect ? <CheckCircle2 size={54} /> : <ShieldAlert size={54} />}
-          <strong>{playerCorrect ? "Chính xác" : selectedOption === "__timeout" ? "Hết giờ" : "Sai rồi"}</strong>
-          <span>{playerCorrect ? `+${resultPayload?.player_score ?? 0} điểm` : "Không có điểm ở câu này"}</span>
-        </div>
-      ) : null}
     </article>
+  );
+}
+
+function ResultOverlay({ selectedOption, playerCorrect, resultPayload }: { selectedOption: string; playerCorrect: boolean; resultPayload?: ResultPayload }) {
+  const timedOut = selectedOption === "__timeout";
+  const score = Number(resultPayload?.player_score ?? 0);
+  return (
+    <div className={`boss-result-overlay ${playerCorrect ? "correct" : "incorrect"}`}>
+      <div className="boss-result-panel">
+        {playerCorrect ? <CheckCircle2 size={82} /> : <ShieldAlert size={82} />}
+        <strong>{playerCorrect ? "Chính xác" : timedOut ? "Hết giờ" : "Sai rồi"}</strong>
+        <span>{playerCorrect ? `+${score} điểm` : "Không có điểm ở câu này"}</span>
+        <small>{resultPayload?.correct_count}/{resultPayload?.active_players} người trả lời đúng</small>
+      </div>
+    </div>
   );
 }
 
@@ -225,17 +235,24 @@ function LeaderboardOverlay({ leaderboard, playerId }: { leaderboard: Leaderboar
         <span className="boss-live-pill">Bảng xếp hạng</span>
         <h2>Ai đang dẫn đầu?</h2>
         <div className="boss-leaderboard">
-          {leaderboard.map((row, index) => (
-            <div key={`${row.player_id}-${index}`} className={`${row.correct ? "correct" : ""} ${row.player_id === playerId ? "you" : ""}`}>
-              <strong>#{row.rank ?? index + 1}</strong>
-              <span>{row.nickname}</span>
-              <b className="score-pop">+{row.score_delta}</b>
-              <em className={Number(row.rank_delta ?? 0) >= 0 ? "up" : "down"}>
-                {Number(row.rank_delta ?? 0) >= 0 ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
-                {Math.abs(Number(row.rank_delta ?? 0))}
-              </em>
-            </div>
-          ))}
+          {leaderboard.map((row, index) => {
+            const delta = Number(row.rank_delta ?? 0);
+            return (
+              <div
+                key={`${row.player_id}-${index}`}
+                className={`${row.correct ? "correct" : ""} ${row.player_id === playerId ? "you" : ""} ${delta > 0 ? "moved-up" : delta < 0 ? "moved-down" : "held-rank"}`}
+                style={{ animationDelay: `${index * 90}ms` }}
+              >
+                <strong>#{row.rank ?? index + 1}</strong>
+                <span>{row.nickname}</span>
+                <b className="score-pop">+{row.score_delta}</b>
+                <em className={delta >= 0 ? "up" : "down"}>
+                  {delta >= 0 ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+                  {Math.abs(delta)}
+                </em>
+              </div>
+            );
+          })}
         </div>
       </article>
     </div>
@@ -511,6 +528,9 @@ export function BossBattleView({ session, onCompleted }: Props) {
             playerCorrect={playerCorrect}
             onPick={(optionId) => void lockAnswer(optionId)}
           />
+          {gameState === "reveal" ? (
+            <ResultOverlay selectedOption={selectedOption} playerCorrect={playerCorrect} resultPayload={resultPayload} />
+          ) : null}
         </main>
       ) : null}
 
