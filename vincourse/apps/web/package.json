@@ -11,13 +11,15 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
+    "lucide-react": "latest",
+    "prismjs": "^1.30.0",
     "react": "latest",
     "react-dom": "latest",
-    "lucide-react": "latest"
+    "typescript": "latest",
+    "vite": "latest"
   },
   "devDependencies": {
+    "@types/prismjs": "^1.26.6",
     "@types/react": "latest",
     "@types/react-dom": "latest"
   }

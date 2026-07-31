@@ -1,0 +1,58 @@
+.react-lab-editor .lab-editor-highlight,
+.react-lab-editor .lab-editor-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 22px;
+  box-sizing: border-box;
+  border: 0;
+  font: 13px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace;
+  tab-size: 4;
+  white-space: pre;
+  overflow: auto;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.react-lab-editor .lab-editor-highlight {
+  pointer-events: none;
+  color: #d4d4d4;
+  background: #1e1e1e;
+}
+
+.react-lab-editor .lab-editor-highlight code { font: inherit; }
+
+.react-lab-editor .lab-editor-surface {
+  display: block;
+  padding: 0;
+  background: #1e1e1e;
+}
+
+.react-lab-editor .lab-editor-input {
+  z-index: 1;
+  resize: none;
+  outline: 0;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: transparent;
+  caret-color: #f8fafc;
+}
+
+.react-lab-editor .lab-editor-input::selection {
+  background: rgba(99, 179, 237, .3);
+  -webkit-text-fill-color: transparent;
+}
+
+.lab-editor-highlight .token.keyword { color: #569cd6; }
+.lab-editor-highlight .token.function { color: #dcdcaa; }
+.lab-editor-highlight .token.string { color: #ce9178; }
+.lab-editor-highlight .token.comment { color: #6a9955; font-style: italic; }
+.lab-editor-highlight .token.number { color: #b5cea8; }
+.lab-editor-highlight .token.builtin,
+.lab-editor-highlight .token.class-name { color: #4ec9b0; }
+.lab-editor-highlight .token.decorator,
+.lab-editor-highlight .token.annotation { color: #dcdcaa; }
+.lab-editor-highlight .token.operator { color: #d4d4d4; }
+.lab-editor-highlight .token.punctuation { color: #d4d4d4; }

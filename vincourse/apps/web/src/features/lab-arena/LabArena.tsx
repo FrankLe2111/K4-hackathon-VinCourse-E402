@@ -1,7 +1,9 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { BookOpen, Check, ChevronDown, ChevronUp, Code2, FlaskConical, Play, RotateCcw, Sparkles } from "lucide-react";
 import type { GameResult, GameSession } from "../../types/game";
+import { PythonCodeEditor } from "./PythonCodeEditor";
 import "./lab-arena.css";
+import "./python-editor.css";
 import "./lab-arena-fixes.css";
 import "./round-progress.css";
 import "./rules.css";
@@ -31,45 +33,8 @@ type Props = {
   totalRounds: number;
 };
 
-function highlightPython(code: string): string {
-  if (!code) return "";
-  let html = code
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  const comments: string[] = [];
-  html = html.replace(/#.*$/gm, (match) => {
-    comments.push(`<span class="py-comment">${match}</span>`);
-    return `___COMMENT_${comments.length - 1}___`;
-  });
-
-  const strings: string[] = [];
-  html = html.replace(/("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g, (match) => {
-    strings.push(`<span class="py-string">${match}</span>`);
-    return `___STRING_${strings.length - 1}___`;
-  });
-
-  const keywords = /\b(def|return|from|import|for|in|if|else|elif|while|pass|class|try|except|raise|with|as|and|or|not|is|True|False|None|lambda|break|continue|yield|global|nonlocal|async|await)\b/g;
-  html = html.replace(keywords, '<span class="py-keyword">$1</span>');
-
-  const builtins = /\b(List|Dict|Set|Tuple|Optional|Union|Any|str|int|float|bool|dict|set|list|tuple|len|range|print|sum|max|min|sorted|abs|all|any|enumerate|zip|map|filter|super|input|type|repr|globals)\b/g;
-  html = html.replace(builtins, '<span class="py-builtin">$1</span>');
-
-  html = html.replace(/(<span class="py-keyword">def<\/span>\s+)([a-zA-Z_]\w*)/g, '$1<span class="py-func">$2</span>');
-  html = html.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="py-number">$1</span>');
-  html = html.replace(/(@[a-zA-Z_]\w*)/g, '<span class="py-decorator">$1</span>');
-
-  strings.forEach((strHtml, i) => { html = html.replace(`___STRING_${i}___`, strHtml); });
-  comments.forEach((commentHtml, i) => { html = html.replace(`___COMMENT_${i}___`, commentHtml); });
-
-  return html;
-}
-
 export function LabArena(props: Props) {
   const { session, code, result, loading, error, onCodeChange, onSubmit, onRestart, onNext, round, totalRounds } = props;
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const preRef = useRef<HTMLPreElement>(null);
   const [problemOpen, setProblemOpen] = useState(true);
 
   if (!session) return <section className="react-lab-loading">{error || "Đang tạo phiên Lab Arena…"}</section>;
@@ -84,9 +49,6 @@ export function LabArena(props: Props) {
     (result?.payload as Record<string, unknown> | undefined)?.ai_coach_hint as string | undefined
     || (result?.next_action?.startsWith("AI Hint:") ? result.next_action : undefined);
 
-  const lines = code.split("\n");
-  const lineNumbers = lines.map((_, i) => i + 1);
-
   function renderHintHtml(text: string): string {
     return text
       .replace(/&/g, "&amp;")
@@ -98,13 +60,6 @@ export function LabArena(props: Props) {
       .replace(/✅/g, "<span class='py-hint-good'>✅</span>")
       .replace(/\n/g, "<br/>");
   }
-
-  const handleScroll = () => {
-    if (textareaRef.current && preRef.current) {
-      preRef.current.scrollTop = textareaRef.current.scrollTop;
-      preRef.current.scrollLeft = textareaRef.current.scrollLeft;
-    }
-  };
 
   return (
     <section className="react-lab react-lab-vertical">
@@ -165,24 +120,7 @@ export function LabArena(props: Props) {
           <span>Python 3.12 · Syntax Highlight</span>
         </div>
 
-        <div className="py-editor-container">
-          <div className="py-line-numbers">
-            {lineNumbers.map((num) => <span key={num}>{num}</span>)}
-          </div>
-          <div className="py-editor-wrapper">
-            <pre ref={preRef} className="py-syntax-display" aria-hidden="true">
-              <code dangerouslySetInnerHTML={{ __html: highlightPython(code) + "\n" }} />
-            </pre>
-            <textarea
-              ref={textareaRef}
-              className="py-syntax-textarea"
-              value={code}
-              onChange={(e) => onCodeChange(e.target.value)}
-              onScroll={handleScroll}
-              spellCheck={false}
-            />
-          </div>
-        </div>
+        <PythonCodeEditor value={code} onChange={onCodeChange} />
 
         <div className="lab-v-run-bar">
           {passed
