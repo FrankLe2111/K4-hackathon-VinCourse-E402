@@ -1,7 +1,8 @@
 .live-shell {
   display: grid;
   gap: 18px;
-  max-width: 1080px;
+  max-width: 1220px;
+  width: 100%;
   margin: 0 auto;
 }
 
