@@ -1,7 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { getModeSession, submitMode } from "../../api/modes";
 import type { GameResult, GameSession } from "../../types/game";
+import castleIcon from "../../assets/castle.png";
+import circleIcon from "../../assets/circle.png";
+import cityscapeIcon from "../../assets/cityscape.png";
+import doorIcon from "../../assets/door.png";
+import metalworkingIcon from "../../assets/metalworking.png";
+import mountainIcon from "../../assets/mountain.png";
 import odysseyOwl from "../../assets/odyssey-owl.png";
+import parkIcon from "../../assets/park.png";
+import ruralIcon from "../../assets/rural.png";
+import shippingIcon from "../../assets/shipping.png";
+import stadiumIcon from "../../assets/stadium.png";
 import "./story-quest.css";
 
 type StoryOption = { id: string; text: string };
@@ -68,6 +78,7 @@ const zoneMeta = [
   ["⚖", "Giữ human review, privacy và escalation an toàn."],
   ["◆", "Ghép scope, evaluation và oversight."],
 ] as const;
+const zoneIcons = [doorIcon, cityscapeIcon, parkIcon, ruralIcon, shippingIcon, metalworkingIcon, mountainIcon, circleIcon, stadiumIcon, castleIcon];
 
 function loadSave(): Save {
   try {
@@ -371,6 +382,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
           const passed = zoneCorrect >= Math.ceil(item.questions.length * 0.8);
           const recovery = save.recoveries.find((candidate) => item.questions.some((itemQuestion) => itemQuestion.id === candidate.question_id));
           const meta = zoneMeta[index] ?? ["◆", "Checkpoint AI Odyssey."];
+          const icon = zoneIcons[index];
           return (
             <button
               key={item.id}
@@ -378,7 +390,7 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
               disabled={index > save.unlocked}
               onClick={() => selectZone(index)}
             >
-              <div className="story-zone-marker"><span>{meta[0]}</span><small>{String(index).padStart(2, "0")}</small></div>
+              <div className="story-zone-marker">{icon ? <img src={icon} alt="" /> : <span>{meta[0]}</span>}<small>{String(index).padStart(2, "0")}</small></div>
               {recovery ? <b className="story-recovery-badge" onClick={(event) => {
                 event.stopPropagation();
                 openRecovery(recovery);

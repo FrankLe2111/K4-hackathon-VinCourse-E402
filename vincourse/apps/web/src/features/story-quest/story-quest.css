@@ -715,6 +715,13 @@
   font-size: 25px;
 }
 
+.story-zone-marker img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 10px rgba(7, 11, 53, 0.22));
+}
+
 .story-zone-marker small {
   position: absolute;
   right: -7px;
