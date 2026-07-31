@@ -139,6 +139,11 @@
   line-height: 1.7;
 }
 
+.lab-description ol,
+.lab-description ul {
+  padding-left: 22px;
+}
+
 .lab-description code,
 .lab-description pre {
   border-radius: 6px;
@@ -273,6 +278,22 @@
 }
 
 .lab-result.danger {
+  border-color: #ef4444;
+  background: #351717;
+}
+
+.lab-submission-card {
+  border-left: 4px solid #64748b;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.lab-submission-card.success {
+  border-color: #22c55e;
+  background: #102419;
+}
+
+.lab-submission-card.danger {
   border-color: #ef4444;
   background: #351717;
 }

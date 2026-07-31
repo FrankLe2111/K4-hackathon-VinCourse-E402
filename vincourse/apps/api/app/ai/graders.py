@@ -57,43 +57,54 @@ def _is_dangerous_code(code: str) -> bool:
     return any(term in normalized for term in blocked_terms)
 
 
-def _build_lab_arena_challenge() -> dict[str, str]:
-    starter_code = '''def standardize(X):
-    """Standardize each feature column in X.
+def _build_lab_arena_challenge() -> dict[str, object]:
+    starter_code = '''from typing import List
 
-    X is a list of rows, where each row is a list of numbers.
-    Return a new list with the same shape.
-    """
-    raise NotImplementedError("Write your code here")
+
+def schedule_tools(
+    n: int,
+    dependencies: List[List[int]]
+) -> List[List[int]]:
+    # Write your code here
+    pass
 '''
 
     test_code = '''
-X = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
-result = standardize(X)
-assert isinstance(result, list), "Result must be a list of rows"
-assert len(result) == 3, "Output shape must preserve row count"
-assert all(len(row) == 2 for row in result), "Output shape must preserve column count"
+assert schedule_tools(
+    6,
+    [[0, 2], [1, 2], [1, 3], [2, 4], [3, 4], [4, 5]],
+) == [[0, 1], [2, 3], [4], [5]]
 
-columns = list(zip(*result))
-means = [sum(col) / len(col) for col in columns]
-variances = [sum((x - mean) ** 2 for x in col) / len(col) for col, mean in zip(columns, means)]
-stds = [variance**0.5 for variance in variances]
-assert all(abs(mean) < 1e-6 for mean in means), f"Means must be near zero: {means}"
-assert all(abs(std - 1) < 1e-6 for std in stds), f"Standard deviations must be near one: {stds}"
+assert schedule_tools(3, [[0, 1], [1, 2], [2, 0]]) == []
+assert schedule_tools(4, []) == [[0, 1, 2, 3]]
+assert schedule_tools(5, [[0, 4], [1, 4], [2, 4], [3, 4]]) == [[0, 1, 2, 3], [4]]
+assert schedule_tools(1, []) == [[0]]
 '''
 
     return {
-        "lab_id": "standardize-features",
+        "lab_id": "schedule-tool-calls",
+        "title": "Schedule Tool Calls",
+        "difficulty": "Medium",
         "language": "python",
         "starter_code": starter_code,
         "visible_tests": [
-            "Preserve the input shape",
-            "Column means are near zero",
-            "Column standard deviations are near one",
+            "Example 1: parallel rounds with dependencies",
+            "Example 2: dependency cycle returns []",
+            "Example 3: no dependencies runs all tools together",
+            "Fan-in dependencies unlock final tool in round 2",
+            "Single tool runs in one round",
         ],
-        "concept_ids": ["feature-scaling", "gradient-descent"],
-        "prompt": "Implement standardize(X) so each feature column in X has mean 0 and standard deviation 1.",
+        "concept_ids": ["graph", "topological-sort", "tool-calling", "parallel-execution"],
+        "prompt": "Implement schedule_tools(n, dependencies) to create the minimum-round execution schedule for dependent AI agent tools.",
         "test_code": test_code,
+        "function_name": "schedule_tools",
+        "constraints": [
+            "1 <= n <= 100000",
+            "0 <= dependencies.length <= 200000",
+            "dependencies[i] = [a, b] means tool a must finish before tool b starts",
+            "Tools in the same round must be sorted increasingly",
+            "Return [] if a dependency cycle exists",
+        ],
     }
 
 
@@ -140,12 +151,12 @@ def grade_lab_arena(mode: GameMode, code: str, session_id: str) -> GameResult:
                 mode=mode,
                 correct=True,
                 status=GameStatus.mastered,
-                feedback="All visible tests passed. Your code correctly standardizes the input.",
-                evidence_ids=["T-LABSTANDARD-001"],
+                feedback="All visible tests passed. Your scheduler produces minimum-round parallel tool execution.",
+                evidence_ids=["D04-LAB-SCHEDULE"],
                 xp=120,
                 mastery_delta=15,
                 recovery_created=False,
-                next_action="Great work! Try the next Lab Arena challenge.",
+                next_action="Great work! You used graph dependencies like a real tool-calling scheduler.",
             )
         except subprocess.CalledProcessError as exc:
             feedback = exc.stderr.strip() or exc.stdout.strip() or "Your code did not pass the visible tests."
@@ -179,4 +190,3 @@ def grade_explanation(mode: GameMode, answer: str) -> GameResult:
     # Keep real OpenAI grading centralized here. Feature modules should call this function,
     # not the OpenAI SDK directly.
     return demo_grade(mode, answer)
-

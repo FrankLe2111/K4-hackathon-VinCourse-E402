@@ -9,16 +9,20 @@ type Props = {
   onCompleted: () => void;
 };
 
-const fallbackCode = `def standardize(X):
-    columns = list(zip(*X))
-    means = [sum(col) / len(col) for col in columns]
-    stds = [(sum((x - mean) ** 2 for x in col) / len(col)) ** 0.5 for col, mean in zip(columns, means)]
-    return [[(value - means[i]) / stds[i] for i, value in enumerate(row)] for row in X]
+const fallbackCode = `from typing import List
+
+
+def schedule_tools(
+    n: int,
+    dependencies: List[List[int]]
+) -> List[List[int]]:
+    # Write your code here
+    pass
 `;
 
 const days = Array.from({ length: 5 }, (_, index) => ({
   title: `Day0${index + 1}`,
-  labs: [`day0${index + 1}_standardize.py`, `day0${index + 1}_debug_task.py`],
+  labs: index === 3 ? ["schedule-tool-calls.py", "day04_debug_task.py"] : [`day0${index + 1}_standardize.py`, `day0${index + 1}_debug_task.py`],
 }));
 
 export function LabArenaView({ session, onCompleted }: Props) {
@@ -26,12 +30,15 @@ export function LabArenaView({ session, onCompleted }: Props) {
   const starterCode = String(payload.starter_code ?? fallbackCode);
   const visibleTests = (payload.visible_tests as string[] | undefined) ?? [];
   const concepts = (payload.concept_ids as string[] | undefined) ?? [];
+  const title = String(payload.title ?? "Schedule Tool Calls");
+  const difficulty = String(payload.difficulty ?? "Medium");
+  const constraints = (payload.constraints as string[] | undefined) ?? [];
   const [code, setCode] = useState(starterCode);
   const [confidence, setConfidence] = useState(3);
   const [result, setResult] = useState<GameResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [hintOpen, setHintOpen] = useState(false);
-  const [selectedDay, setSelectedDay] = useState(0);
+  const [selectedDay, setSelectedDay] = useState(3);
   const [selectedLab, setSelectedLab] = useState(0);
   const [tab, setTab] = useState<"description" | "editorial" | "solutions" | "submissions">("description");
   const [error, setError] = useState("");
@@ -91,22 +98,97 @@ export function LabArenaView({ session, onCompleted }: Props) {
           </nav>
           {tab === "description" ? (
             <article className="lab-description">
-              <h1>Standardize Features</h1>
-              <div className="lab-tags">{["Medium", ...concepts].map((item) => <span key={item}>{item}</span>)}</div>
+              <h1>{title}</h1>
+              <div className="lab-tags">{[difficulty, ...concepts].map((item) => <span key={item}>{item}</span>)}</div>
               <p>{session.prompt}</p>
-              <p>Cho ma trận <code>X</code> gồm nhiều dòng dữ liệu. Hãy trả về ma trận mới cùng shape, trong đó mỗi cột có mean gần 0 và standard deviation gần 1.</p>
-              <h3>Example</h3>
-              <pre>{`Input: [[1,2], [3,4], [5,6]]
-Output: [[-1.224,-1.224], [0,0], [1.224,1.224]]`}</pre>
+              <p>Cho một AI agent có <code>n</code> công cụ, đánh số từ <code>0</code> đến <code>n - 1</code>. Mỗi dependency <code>[a, b]</code> nghĩa là tool <code>a</code> phải chạy xong trước khi tool <code>b</code> được bắt đầu.</p>
+              <ul>
+                <li>Mỗi vòng chạy song song tất cả tool hiện đã mở khóa.</li>
+                <li>Tool hoàn thành ở vòng hiện tại chỉ mở khóa tool khác ở vòng tiếp theo.</li>
+                <li>Các tool trong cùng vòng phải sắp xếp tăng dần.</li>
+                <li>Nếu dependency tạo cycle, trả về <code>[]</code>.</li>
+              </ul>
+              <h3>Example 1</h3>
+              <pre>{`Input: n = 6, dependencies = [[0,2],[1,2],[1,3],[2,4],[3,4],[4,5]]
+Output: [[0,1],[2,3],[4],[5]]
+Explanation:
+Round 1: 0,1
+Round 2: 2,3
+Round 3: 4
+Round 4: 5`}</pre>
+              <h3>Example 2</h3>
+              <pre>{`Input: n = 3, dependencies = [[0,1],[1,2],[2,0]]
+Output: []
+Explanation: dependency cycle exists.`}</pre>
               <h3>Constraints</h3>
-              <ul><li>Không dùng file/network/system access.</li><li>Giữ nguyên số dòng và số cột.</li><li>Dùng Python thuần là đủ.</li></ul>
+              <ul>
+                {constraints.map((item) => <li key={item}>{item}</li>)}
+                <li>Không dùng file/network/system access.</li>
+              </ul>
               <button className="secondary-button" onClick={() => setHintOpen((current) => !current)}><Lightbulb size={16} /> Hint</button>
-              {hintOpen ? <p className="lab-hint">Tính mean/std theo từng cột, rồi chuẩn hóa từng value bằng <code>(x - mean) / std</code>.</p> : null}
+              {hintOpen ? <p className="lab-hint">Dùng Kahn&apos;s topological sort: tạo graph + indegree, mỗi lần lấy toàn bộ node indegree bằng 0 làm một round.</p> : null}
+            </article>
+          ) : tab === "editorial" ? (
+            <article className="lab-description">
+              <h1>Editorial</h1>
+              <p>Bài này là topological sort theo từng lớp. Thay vì lấy từng node, ta lấy toàn bộ tool đang có <code>indegree = 0</code> để tạo một vòng chạy song song.</p>
+              <ol>
+                <li>Tạo adjacency list và mảng indegree.</li>
+                <li>Khởi tạo <code>current</code> bằng tất cả tool chưa phụ thuộc tool nào.</li>
+                <li>Sắp xếp <code>current</code>, thêm vào schedule, rồi giảm indegree của các tool phụ thuộc.</li>
+                <li>Các tool vừa mở khóa được đưa vào <code>next_round</code>, không chạy ngay trong vòng hiện tại.</li>
+                <li>Nếu số tool đã xử lý nhỏ hơn <code>n</code>, graph có cycle.</li>
+              </ol>
+              <pre>{`Time: O(n + m + n log n)
+Space: O(n + m)
+m = dependencies.length`}</pre>
+            </article>
+          ) : tab === "solutions" ? (
+            <article className="lab-description">
+              <h1>Reference Solution</h1>
+              <pre>{`from typing import List
+
+
+def schedule_tools(n: int, dependencies: List[List[int]]) -> List[List[int]]:
+    graph = [[] for _ in range(n)]
+    indegree = [0] * n
+
+    for before, after in dependencies:
+        graph[before].append(after)
+        indegree[after] += 1
+
+    current = [tool for tool in range(n) if indegree[tool] == 0]
+    schedule = []
+    processed = 0
+
+    while current:
+        current.sort()
+        schedule.append(current)
+        next_round = []
+
+        for tool in current:
+            processed += 1
+            for unlocked in graph[tool]:
+                indegree[unlocked] -= 1
+                if indegree[unlocked] == 0:
+                    next_round.append(unlocked)
+
+        current = next_round
+
+    return schedule if processed == n else []`}</pre>
             </article>
           ) : (
             <article className="lab-description">
-              <h1>{tab}</h1>
-              <p>Mock content cho {days[selectedDay].title}. Sau khi upload tài liệu thật, khu vực này nối với editorial/solution/submission tương ứng.</p>
+              <h1>Submissions</h1>
+              {result ? (
+                <div className={`lab-submission-card ${result.correct ? "success" : "danger"}`}>
+                  <strong>{result.correct ? "Accepted" : "Wrong Answer"}</strong>
+                  <p>{result.feedback}</p>
+                  <small>{result.correct ? `+${result.xp} XP` : "Đã lưu vào recovery queue để làm lại."}</small>
+                </div>
+              ) : (
+                <p>Chưa có submission. Bấm <code>Run</code> hoặc <code>Submit</code> để chạy visible tests.</p>
+              )}
             </article>
           )}
         </main>
