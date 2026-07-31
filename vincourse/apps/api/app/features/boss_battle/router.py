@@ -32,62 +32,62 @@ PLAYERS = [
 ROUNDS = [
     {
         "round_id": "diagnose",
-        "title": "Round 1: Chan doan loi",
+        "title": "Vòng 1: Chẩn đoán lỗi",
         "concept_id": "feature-scaling",
-        "question": "Model hoi quy bi diverge sau vai epoch. Dau hieu nao la nguyen nhan goc hop ly nhat?",
+        "question": "Model hồi quy bị diverge sau vài epoch. Dấu hiệu nào là nguyên nhân gốc hợp lý nhất?",
         "options": [
-            {"id": "scale_mismatch", "label": "Feature co thang do qua khac nhau lam gradient update lech manh."},
-            {"id": "more_epochs", "label": "Model can train nhieu epoch hon de tu on dinh."},
-            {"id": "lower_test_size", "label": "Can giam test set de train set lon hon."},
-            {"id": "random_seed", "label": "Doi random seed la cach sua chinh."},
+            {"id": "scale_mismatch", "label": "Các feature có thang đo quá khác nhau làm gradient update lệch mạnh."},
+            {"id": "more_epochs", "label": "Model cần train nhiều epoch hơn để tự ổn định."},
+            {"id": "lower_test_size", "label": "Cần giảm test set để train set lớn hơn."},
+            {"id": "random_seed", "label": "Đổi random seed là cách sửa chính."},
         ],
         "correct_option_id": "scale_mismatch",
-        "common_wrong": "nham diverge voi viec thieu epoch",
+        "common_wrong": "nhầm diverge với việc thiếu epoch",
         "simulated_correct": [True, True, True, True, True, True, True, False, False],
     },
     {
         "round_id": "fix_pipeline",
-        "title": "Round 2: Chon cach sua",
+        "title": "Vòng 2: Chọn cách sửa",
         "concept_id": "standardization",
-        "question": "Ban nen sua pipeline nhu the nao truoc khi train lai model?",
+        "question": "Bạn nên sửa pipeline như thế nào trước khi train lại model?",
         "options": [
-            {"id": "standardize_train", "label": "Fit scaler tren train set, transform train/validation/test cung scaler."},
-            {"id": "scale_all", "label": "Fit scaler tren toan bo data truoc khi split de tranh lech phan phoi."},
-            {"id": "remove_loss", "label": "Bo loss function vi loss dang gay nhieu."},
-            {"id": "increase_lr", "label": "Tang learning rate de vuot qua diem ket."},
+            {"id": "standardize_train", "label": "Fit scaler trên train set, rồi transform train/validation/test bằng cùng scaler."},
+            {"id": "scale_all", "label": "Fit scaler trên toàn bộ data trước khi split để tránh lệch phân phối."},
+            {"id": "remove_loss", "label": "Bỏ loss function vì loss đang gây nhiễu."},
+            {"id": "increase_lr", "label": "Tăng learning rate để vượt qua điểm kẹt."},
         ],
         "correct_option_id": "standardize_train",
-        "common_wrong": "data leakage khi fit scaler tren toan bo dataset",
+        "common_wrong": "data leakage khi fit scaler trên toàn bộ dataset",
         "simulated_correct": [True, True, True, True, True, True, False, False, False],
     },
     {
         "round_id": "explain_damage",
-        "title": "Round 3: Giai thich co che",
+        "title": "Vòng 3: Giải thích cơ chế",
         "concept_id": "gradient-descent",
-        "question": "Vi sao scaling giup gradient descent on dinh hon?",
+        "question": "Vì sao scaling giúp gradient descent ổn định hơn?",
         "options": [
-            {"id": "balanced_steps", "label": "Cac feature dong gop can bang hon nen buoc cap nhat bot bi mot chieu ap dao."},
-            {"id": "more_data", "label": "Scaling tao them du lieu nen model hoc tot hon."},
-            {"id": "hide_noise", "label": "Scaling xoa nhieu va lam mat cac diem ngoai lai."},
-            {"id": "change_target", "label": "Scaling thay doi target de loss nho hon."},
+            {"id": "balanced_steps", "label": "Các feature đóng góp cân bằng hơn nên bước cập nhật bớt bị một chiều áp đảo."},
+            {"id": "more_data", "label": "Scaling tạo thêm dữ liệu nên model học tốt hơn."},
+            {"id": "hide_noise", "label": "Scaling xóa nhiễu và làm mất các điểm ngoại lai."},
+            {"id": "change_target", "label": "Scaling thay đổi target để loss nhỏ hơn."},
         ],
         "correct_option_id": "balanced_steps",
-        "common_wrong": "tuong scaling tao them thong tin moi",
+        "common_wrong": "tưởng scaling tạo thêm thông tin mới",
         "simulated_correct": [True, True, True, True, True, True, True, True, False],
     },
     {
         "round_id": "final_strike",
-        "title": "Round 4: Don ket lieu",
+        "title": "Vòng 4: Đòn kết liễu",
         "concept_id": "transfer",
-        "question": "Trong bai toan moi, cot income lon hang nghin lan cot age. Nguyen tac nao nen ap dung?",
+        "question": "Trong bài toán mới, cột income lớn hàng nghìn lần cột age. Nguyên tắc nào nên áp dụng?",
         "options": [
-            {"id": "reuse_scaling_rule", "label": "Dung cung nguyen tac scaling va kiem tra validation loss sau khi sua pipeline."},
-            {"id": "drop_income", "label": "Xoa income vi thang do lon luon lam model sai."},
-            {"id": "train_longer", "label": "Chi can train lau hon de model quen voi thang do."},
-            {"id": "ignore_validation", "label": "Bo validation de tranh thay loss xau."},
+            {"id": "reuse_scaling_rule", "label": "Dùng cùng nguyên tắc scaling và kiểm tra validation loss sau khi sửa pipeline."},
+            {"id": "drop_income", "label": "Xóa income vì thang đo lớn luôn làm model sai."},
+            {"id": "train_longer", "label": "Chỉ cần train lâu hơn để model quen với thang đo."},
+            {"id": "ignore_validation", "label": "Bỏ validation để tránh thấy loss xấu."},
         ],
         "correct_option_id": "reuse_scaling_rule",
-        "common_wrong": "hoc thuoc vi du cu thay vi chuyen giao nguyen tac",
+        "common_wrong": "học thuộc ví dụ cũ thay vì chuyển giao nguyên tắc",
         "simulated_correct": [True, True, True, True, True, True, True, False, False],
     },
 ]
@@ -102,8 +102,8 @@ def _boss_session() -> GameSession:
     return GameSession(
         mode=GameMode.boss_battle,
         session_id=session_id,
-        title="Boss Battle: The Broken Model",
-        prompt="Nguoi choi join bang nickname, tra loi doc lap nhu Kahoot. Neu it nhat 80% nguoi choi dung trong round, boss mat mau.",
+        title="Đại chiến Trùm: Mô hình Hỏng",
+        prompt="Người chơi vào phòng bằng nickname, trả lời độc lập như Kahoot. Nếu ít nhất 80% người chơi đúng trong một vòng, boss mất máu.",
         evidence_ids=["BOSS-LIVE-ROOM-001"],
         payload={
             "room": {
@@ -114,7 +114,7 @@ def _boss_session() -> GameSession:
             },
             "boss": {
                 "boss_id": "broken-model",
-                "boss_name": "The Broken Model",
+                "boss_name": "Mô hình Hỏng",
                 "max_hp": 100,
                 "hp": 100,
                 "attack_damage": ATTACK_DAMAGE,
@@ -123,7 +123,7 @@ def _boss_session() -> GameSession:
                 "threshold": THRESHOLD,
                 "round_time_seconds": ROUND_TIME_SECONDS,
                 "correct_points": CORRECT_POINTS,
-                "damage_rule": "Neu correct_rate >= 80%, boss mat 34 HP. Neu thap hon, boss khong mat mau.",
+                "damage_rule": "Nếu correct_rate >= 80%, boss mất 34 HP. Nếu thấp hơn, boss không mất máu.",
             },
             "players": PLAYERS,
             "rounds": ROUNDS,
@@ -188,15 +188,15 @@ def _boss_round_mentor(round_data: dict[str, Any]) -> str:
     correct_rate = round_data.get("correct_rate", 0)
     threshold = round_data.get("threshold", THRESHOLD)
     round_title = round_data.get("round_title", "Boss round")
-    common_wrong = round_data.get("common_wrong", "chua co dap an sai noi bat")
+    common_wrong = round_data.get("common_wrong", "chưa có đáp án sai nổi bật")
     concept = round_data.get("concept", "concept")
     boss_damaged = bool(round_data.get("boss_damaged"))
     fallback = (
-        f"AI Mentor: Lop dat {correct_rate}% o {round_title}, du nguong {threshold}% nen boss mat mau. "
-        f"Hay yeu cau nguoi choi giai thich lai {concept} bang vi du rieng."
+        f"AI Mentor: Lớp đạt {correct_rate}% ở {round_title}, đủ ngưỡng {threshold}% nên boss mất máu. "
+        f"Hãy yêu cầu người chơi giải thích lại {concept} bằng ví dụ riêng."
         if boss_damaged
-        else f"AI Mentor: Lop moi dat {correct_rate}% o {round_title}. Diem nghe la {common_wrong}; "
-        f"hay sua misconception nay truoc round tiep theo."
+        else f"AI Mentor: Lớp mới đạt {correct_rate}% ở {round_title}. Điểm nghẽn là {common_wrong}; "
+        f"hãy sửa misconception này trước vòng tiếp theo."
     )
     if not settings.openai_api_key:
         return fallback
@@ -280,9 +280,9 @@ def submit(request: GameSubmitRequest) -> GameResult:
     )
 
     feedback = (
-        f"Ban tra loi dung va nhan {player_score} diem. Lop dat {correct_rate}%, boss mat {damage} HP."
+        f"Bạn trả lời đúng và nhận {player_score} điểm. Lớp đạt {correct_rate}%, boss mất {damage} HP."
         if player_correct
-        else f"Ban chua dung o round nay. Lop dat {correct_rate}%, hay xem AI mentor de sua hieu lam."
+        else f"Bạn chưa đúng ở vòng này. Lớp đạt {correct_rate}%, hãy xem AI mentor để sửa hiểu lầm."
     )
     result = GameResult(
         mode=GameMode.boss_battle,
@@ -294,7 +294,7 @@ def submit(request: GameSubmitRequest) -> GameResult:
         xp=player_score,
         mastery_delta=8 if player_correct else 0,
         recovery_created=not player_correct or not boss_damaged,
-        next_action="Chuyen sang round tiep theo." if boss_damaged else "AI mentor dang goi y diem can sua truoc khi danh tiep.",
+        next_action="Chuyển sang vòng tiếp theo." if boss_damaged else "AI mentor đang gợi ý điểm cần sửa trước khi đánh tiếp.",
         payload={
             "round_id": round_data["round_id"],
             "round_title": round_data["title"],

@@ -156,6 +156,14 @@ start battle
 chon dap an
 ```
 
+Sau khi start battle, UI chuyen sang game surface full-screen:
+
+```text
+Khong hien hero/dashboard cua trang web.
+Khong hien thong tin phu nhu mo ta tinh nang hay phase list.
+Chi giu HUD toi thieu: vong hien tai, diem, boss HP, timer, so nguoi da tra loi.
+```
+
 Sau khi nguoi choi chon dap an hoac het gio, UI tu dong chay tiep:
 
 ```text
