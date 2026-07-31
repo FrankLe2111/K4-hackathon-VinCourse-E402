@@ -30,7 +30,14 @@ const summaries = [
   ["AI khác automation vì có thể suy luận từ dữ liệu mới, không chỉ chạy luật cố định.", "LLM dự đoán token tiếp theo theo xác suất nên cần kiểm chứng nguồn.", "Dùng AI tốt nhất khi xác định rõ input, output, người dùng và rủi ro."],
   ["Feature scaling giúp gradient descent hội tụ ổn định hơn.", "Label là kết quả cần dự đoán; feature là tín hiệu có trước dự đoán.", "Data leakage làm điểm validation đẹp giả tạo."],
   ["Pattern không đồng nghĩa quan hệ nhân quả.", "Shortcut learning xảy ra khi mô hình học tín hiệu dễ nhưng sai bản chất.", "Chọn task dựa vào output mong muốn: phân loại, dự đoán số, gợi ý."],
-  ["Prompt tốt nên có Role, Task, Context và Format/Constraint rõ ràng.", "Context Engineering cần delimiter để tách instruction, context và user input nhằm giảm context bleed/prompt injection.", "Tool Calling Loop gồm model đề xuất tool, app thực thi, trả kết quả về model, rồi model tổng hợp câu trả lời."],
+  [
+    "Prompt là interface giữa human intent và model behavior; specificity beats cleverness.",
+    "RTCF gồm Role, Task, Context, Format; bắt đầu với Task + Format trước.",
+    "Negative prompt hiệu quả nhất khi có positive alternative: nói model nên làm gì thay vì chỉ nói đừng.",
+    "Zero-shot nên thử trước; few-shot dùng khi cần format/consistency; CoT chỉ nên dùng cho reasoning nhiều bước.",
+    "System prompt production-grade cần persona, rules, capabilities, constraints và output format.",
+    "System prompt phải được test với happy path, edge case, out-of-scope, injection, tool decision và format consistency.",
+  ],
   ["Human-in-the-loop cần thiết ở quyết định rủi ro cao.", "Monitoring giúp phát hiện drift và lỗi sau triển khai.", "Evaluation phải đo đúng outcome học tập, không chỉ cảm giác hay."],
 ];
 

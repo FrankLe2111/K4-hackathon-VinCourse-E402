@@ -9,77 +9,77 @@ MOCK_DAILY_RECALL_QUEUE = [
     {
         "question_id": "q-dr-001",
         "title": "Day 4 — Prompt Fundamentals (1/5)",
-        "prompt": "Bộ khung RTCF của một prompt tốt thường nhấn mạnh điều gì?",
-        "evidence_ids": ["D04-P01"],
-        "due_reason": "Ôn tập Day4: Prompt Engineering",
+        "prompt": "Theo slide “4 Thành Phần Của Prompt Tốt”, 4 thành phần RTCF là gì?",
+        "evidence_ids": ["Day4 slide 5"],
+        "due_reason": "Ôn tập RTCF",
         "options": [
-            {"id": "A", "text": "Nêu rõ role, task, context và format/constraint để model biết phải làm gì và trả lời ra sao."},
-            {"id": "B", "text": "Chỉ cần viết prompt càng dài càng tốt để model có nhiều chữ hơn."},
-            {"id": "C", "text": "Luôn bỏ context để model tự suy luận tự do."},
-            {"id": "D", "text": "Chỉ dùng emoji và ví dụ, không cần yêu cầu cụ thể."}
+            {"id": "A", "text": "Role, Task, Context, Format."},
+            {"id": "B", "text": "Reasoning, Temperature, Code, Feedback."},
+            {"id": "C", "text": "Retrieval, Tool, Cache, Function."},
+            {"id": "D", "text": "Read, Transform, Classify, Fine-tune."}
         ],
         "correct_answer": "A",
         "misconception_id": "prompt_without_structure"
     },
     {
         "question_id": "q-dr-002",
-        "title": "Day 4 — System vs User Prompt (2/5)",
-        "prompt": "Trong ứng dụng AI, system prompt khác user prompt ở điểm nào quan trọng nhất?",
-        "evidence_ids": ["D04-P02"],
-        "due_reason": "Kiểm tra hiểu đúng về prompt hierarchy",
+        "title": "Day 4 — Prompt Priority (2/5)",
+        "prompt": "Slide Day4 khuyên nên bắt đầu prompt tốt bằng thành phần nào trước?",
+        "evidence_ids": ["Day4 slide 5"],
+        "due_reason": "Ôn tập cách viết prompt thực dụng",
         "options": [
-            {"id": "A", "text": "User prompt luôn có quyền cao hơn vì người dùng nhập sau."},
-            {"id": "B", "text": "System prompt đặt hành vi/quy tắc nền và có ưu tiên cao hơn user prompt."},
-            {"id": "C", "text": "System prompt chỉ dùng để trang trí giao diện."},
-            {"id": "D", "text": "Hai loại prompt không khác nhau trong ứng dụng AI."}
+            {"id": "A", "text": "Task + Format; chỉ thêm Role/Context khi chúng cải thiện chất lượng hoặc nhất quán."},
+            {"id": "B", "text": "Role + Context; luôn bỏ Task và Format để model tự linh hoạt."},
+            {"id": "C", "text": "Temperature + top_p; prompt không quan trọng nếu sampling đúng."},
+            {"id": "D", "text": "Ví dụ thật dài; càng nhiều ví dụ càng tốt."}
         ],
-        "correct_answer": "B",
-        "misconception_id": "user_prompt_overrides_system"
+        "correct_answer": "A",
+        "misconception_id": "role_context_overuse"
     },
     {
         "question_id": "q-dr-003",
-        "title": "Day 4 — Context Engineering (3/5)",
-        "prompt": "Delimiter/XML tag trong prompt giúp giảm lỗi nào sau đây?",
-        "evidence_ids": ["D04-P03"],
-        "due_reason": "Ôn tập context bleed và prompt injection",
+        "title": "Day 4 — Specificity Beats Cleverness (3/5)",
+        "prompt": "Theo slide “Prompt = Interface…”, vì sao prompt “Viết email cho tôi” là prompt kém?",
+        "evidence_ids": ["Day4 slide 4"],
+        "due_reason": "Ôn tập prompt cụ thể",
         "options": [
-            {"id": "A", "text": "Giúp tách instruction, context và user input rõ ràng để tránh trôi/ngấm ngữ cảnh."},
-            {"id": "B", "text": "Làm model không cần dữ liệu đầu vào nữa."},
-            {"id": "C", "text": "Tự động biến mọi câu trả lời thành JSON hợp lệ."},
-            {"id": "D", "text": "Đảm bảo model không bao giờ hallucinate."}
+            {"id": "A", "text": "Vì không rõ gửi ai, về việc gì, tone nào, dài bao nhiêu."},
+            {"id": "B", "text": "Vì prompt ngắn luôn làm model từ chối trả lời."},
+            {"id": "C", "text": "Vì email không phải use case AI hợp lệ."},
+            {"id": "D", "text": "Vì thiếu Chain-of-Thought nên không thể viết email."}
         ],
         "correct_answer": "A",
-        "misconception_id": "missing_context_boundaries"
+        "misconception_id": "vague_prompt_is_enough"
     },
     {
         "question_id": "q-dr-004",
-        "title": "Day 4 — Tool Calling Loop (4/5)",
-        "prompt": "Thứ tự đúng của một tool calling loop cơ bản là gì?",
-        "evidence_ids": ["D04-P04"],
-        "due_reason": "Ôn tập kiến trúc tool calling",
+        "title": "Day 4 — Advanced Prompting (4/5)",
+        "prompt": "Theo slide “Zero-shot, One-shot, Few-shot, CoT”, thứ tự thử thực dụng là gì?",
+        "evidence_ids": ["Day4 slide 13"],
+        "due_reason": "Ôn tập khi nào dùng kỹ thuật nâng cao",
         "options": [
-            {"id": "A", "text": "Model gọi tool → app thực thi tool → trả tool result về model → model tổng hợp trả lời."},
-            {"id": "B", "text": "Tool tự gọi model → model bỏ qua tool result → app tự đoán đáp án."},
-            {"id": "C", "text": "Người dùng chạy database trực tiếp rồi copy vào prompt."},
-            {"id": "D", "text": "Model tự bịa kết quả tool để tiết kiệm latency."}
+            {"id": "A", "text": "Zero-shot → few-shot → decomposition / CoT."},
+            {"id": "B", "text": "CoT → Tree-of-Thought → few-shot → zero-shot."},
+            {"id": "C", "text": "Luôn dùng CoT trước vì mọi task đều cần reasoning dài."},
+            {"id": "D", "text": "Luôn dùng nhiều hơn 5 ví dụ để tăng độ chính xác."}
         ],
         "correct_answer": "A",
-        "misconception_id": "fake_tool_result"
+        "misconception_id": "advanced_prompting_first"
     },
     {
         "question_id": "q-dr-005",
-        "title": "Day 4 — Tool Control (5/5)",
-        "prompt": "Với write tool như gửi email/thanh toán, control nào là bắt buộc nhất?",
-        "evidence_ids": ["D04-P05"],
-        "due_reason": "Ôn tập an toàn khi tool có side effect",
+        "title": "Day 4 — System Prompt Testing (5/5)",
+        "prompt": "Checklist test system prompt trong slide Day4 bao gồm điều nào?",
+        "evidence_ids": ["Day4 slide 26"],
+        "due_reason": "Ôn tập production-grade system prompt",
         "options": [
-            {"id": "A", "text": "Cho model tự thực thi mọi hành động để tối ưu tốc độ."},
-            {"id": "B", "text": "Bắt buộc có kiểm soát/confirm trước hành động quan trọng hoặc có side effect."},
-            {"id": "C", "text": "Ẩn schema để model khó gọi tool hơn."},
-            {"id": "D", "text": "Chỉ log sau khi hành động đã xảy ra, không cần chặn trước."}
+            {"id": "A", "text": "Happy path, edge case, out-of-scope, adversarial injection, tool decision, format consistency."},
+            {"id": "B", "text": "Chỉ kiểm tra một câu happy path là đủ nếu model trả lời hay."},
+            {"id": "C", "text": "Chỉ đo tốc độ phản hồi, không cần kiểm tra refusal hay tool failure."},
+            {"id": "D", "text": "Không cần test system prompt vì system prompt luôn được model tuân thủ tuyệt đối."}
         ],
-        "correct_answer": "B",
-        "misconception_id": "unsafe_write_tool"
+        "correct_answer": "A",
+        "misconception_id": "untested_system_prompt"
     }
 ]
 
