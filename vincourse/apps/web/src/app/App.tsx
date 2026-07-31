@@ -29,13 +29,13 @@ const modeStatus: Record<GameMode, string> = {
 };
 
 const modeActions: Record<GameMode, string> = {
-  story: "Mở bản đồ →",
-  daily_recall: "Bắt đầu ôn →",
-  error_dungeon: "Sửa lỗi sai →",
-  lab_arena: "Vào lab →",
-  boss_battle: "Thách đấu →",
-  live_battle: "Vào phòng →",
-  understanding: "Đấu AI →",
+  story: "Mở bản đồ",
+  daily_recall: "Bắt đầu ôn",
+  error_dungeon: "Sửa lỗi sai",
+  lab_arena: "Vào lab",
+  boss_battle: "Thách đấu",
+  live_battle: "Vào phòng",
+  understanding: "Đấu AI",
 };
 
 function formatNumber(value: number) {
