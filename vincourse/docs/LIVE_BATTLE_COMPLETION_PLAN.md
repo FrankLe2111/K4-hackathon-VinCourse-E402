@@ -4,6 +4,11 @@ Tai lieu nay chuyen plan tong hop thanh execution plan chi tiet de hoan thien fe
 
 Ngay lap plan: `2026-07-31`
 
+> Trang thai `2026-07-31`: day la tai lieu ke hoach lich su. Cac hang muc
+> `team_id`/room validation va dong bo phase bang REST polling da duoc trien khai.
+> Trang thai hien tai va gioi han chinh xac nam tai
+> `vincourse/docs/features/live-battle.md`.
+
 Owner feature:
 
 - Ngo Minh Phuoc

@@ -2,98 +2,74 @@
 
 Owner: Ngo Minh Phuoc
 
-## Muc tieu
+## Phạm vi
 
-Che do thi dau lop/team theo phong cach Kahoot. Hoc vien chon dap an, them lap
-luan neu cau hoi yeu cau, chon muc tu tin va nhan feedback.
+Tính năng nằm trong ứng dụng `vincourse/` (React + FastAPI), không nằm trong
+prototype được chấm ở thư mục gốc `codebase/`.
 
-Day la MVP local cho hackathon, chua co realtime/WebSocket.
+Đây là bản hackathon có trạng thái phòng dùng chung trên backend và frontend
+poll mỗi 1,5 giây. Chưa có WebSocket, xác thực giảng viên hoặc lưu database;
+restart API sẽ mất trạng thái phòng.
 
-## Luong demo
-
-Hoc vien:
-
-```text
-Mo Live Battle
-  -> vao phong VINC-24
-  -> xem team
-  -> chon dap an
-  -> nhap reasoning neu cau hoi yeu cau
-  -> submit
-  -> xem mastered / partial / misconception
-```
-
-Giang vien (mock local):
+## Luồng đã hoạt động
 
 ```text
-Setup -> Lobby -> Monitor -> Lock -> Reveal -> Summary
+Giảng viên: Setup -> Lobby -> Answering -> Locked -> Revealed -> Summary
+Học viên:   Join  -> Waiting -> Answering -> Submitted -> Result
 ```
+
+- Mỗi trình duyệt có một `user_id` ổn định trong `localStorage`.
+- Backend cấp `team_id` và `team` cho trình duyệt; frontend không tự tạo team.
+- Submit phải khớp `course_id`, `room_code`, `session_id`, `question_id` và
+  `team_id` đã được backend cấp.
+- Một team chỉ được tính điểm và tăng `submitted_count` một lần cho mỗi câu.
+- Học viên chỉ thấy kết quả sau khi giảng viên chuyển phòng sang `revealed`.
+- Số đội đã nộp, phân bố đáp án và phase được đồng bộ qua API polling.
 
 ## API
 
 ```text
-GET  /api/modes/live_battle/session
+GET  /api/modes/live_battle/session?user_id=<browser-id>&role=student
+GET  /api/modes/live_battle/session?user_id=<browser-id>&role=instructor
+POST /api/modes/live_battle/control
 POST /api/modes/live_battle/submit
 ```
 
-Session payload co cac field chinh:
+Submit cần các field riêng của Live Battle:
 
 ```json
 {
-  "room_code": "VINC-24",
-  "team": "Team Gradient",
+  "user_id": "live-<browser-uuid>",
+  "course_id": "ml-foundations",
+  "session_id": "live-battle-vinc-24",
   "question_id": "live-feature-scaling-01",
-  "requires_reasoning": true,
-  "min_reasoning_length": 20,
-  "scoring": {
-    "correctness": 50,
-    "explanation": 50
-  }
+  "room_code": "VINC-24",
+  "team_id": "team-gradient",
+  "answer": "{\"option_id\":\"B\",\"reasoning\":\"...\"}",
+  "confidence": 4
 }
 ```
 
-Quy tac reasoning:
+Control action theo đúng thứ tự: `create`, `start`, `lock`, `reveal`, `summary`.
+Sau tổng kết, `restart` đưa phòng về `setup` và xóa trạng thái room in-memory.
 
-- `requires_reasoning=true`: reasoning phai dat do dai toi thieu.
-- `requires_reasoning=false`: chi can chon dap an.
-- Confidence `1-5` chi duoc ghi nhan, chua dung de tinh diem.
+## Điểm và giới hạn
 
-## Ket qua va XP
+- Đúng + reasoning tốt: `mastered`, `140 XP`.
+- Đúng + reasoning yếu: `partial`, `70 XP`.
+- Sai: `misconception`, `20 XP`, tạo Error Dungeon recovery.
+- Confidence `1-5` chỉ được ghi nhận, chưa tính điểm.
+- Reasoning vẫn được chấm bằng keyword, chưa phải AI grader.
+- Timer, thành viên trong team, hint, ranking và misconception stream vẫn là
+  dữ liệu minh họa.
 
-- Dung + reasoning tot: `mastered`, `140 XP`.
-- Dung + reasoning yeu: `partial`, `70 XP`.
-- Sai: `misconception`, `20 XP`, tao Error Dungeon recovery.
-- Submit thanh cong duoc tinh la hoan thanh mode, ke ca dap an sai.
-- Choi lai van co feedback nhung `XP=0`, `mastery_delta=0`.
-- Choi lai khong tang `submitted_count` va khong thay doi recovery.
-- Reset progress xoa ca trang thai replay, nen co the nhan XP lai.
+## Kiểm tra
 
-## Phan that va phan mock
-
-Da hoat dong:
-
-- React loading/error/result va validation.
-- FastAPI grading, XP, progress va recovery.
-- Reasoning bat buoc theo cau hoi.
-- Chong cong XP khi replay.
-- Tich hop trong `FeatureHost`.
-
-Dang mock:
-
-- Countdown, team members, ranking va instructor controls.
-- Room state luu in-memory, restart server se mat.
-- Khong dong bo instructor/student.
-- Frontend dung `demo-user`, vi vay chi nen demo mot trinh duyet hoc vien.
-- Reasoning duoc cham bang keyword, chua phai AI grader.
-
-## Kiem tra
-
-```text
+```bash
 cd vincourse/apps/api
 .venv/bin/python -m pytest -q app/features/live_battle/test_router.py
-# 9 passed
 
-cd vincourse/apps/web
+cd ../web
 npm run typecheck
 npm run build
 ```

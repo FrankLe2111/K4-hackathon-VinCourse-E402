@@ -1,36 +1,41 @@
 # Live Class Battle Handoff
 
-## Da hoan thanh
+## Vị trí chính xác
 
-- Student flow: `Join -> Waiting -> Play -> Submitted -> Result/Recovery`.
-- Instructor flow: `Setup -> Lobby -> Monitor -> Lock -> Reveal -> Summary`.
-- Class code demo `VINC-24`, validation input va khoa bai sau khi submit.
-- Mock scoring `40/40/20`, team contribution va hai nhanh ket qua dung/sai.
-- Label ro `Simulated live demo`; khong WebSocket, backend hay AI realtime.
-- Responsive desktop/mobile va ban dich VI cho cac nhan chinh.
+Live Class Battle có hai phiên bản với mục đích khác nhau:
 
-## File da sua
+- `frontend/`: vision UI tĩnh của prototype gốc; chỉ là mock.
+- `vincourse/`: bản React + FastAPI đang được phát triển và kiểm thử.
 
-- `frontend/app.js`: state, render function, action va text cua Live Battle.
-- `frontend/styles.css`: chi them cac class co prefix `live-*` va responsive.
-- `frontend/game-rules.md`: dong bo core loop, scoring va mock scope.
-- `docs/DEMO.md`: them script bam student/instructor.
-- `docs/LIVE_CLASS_BATTLE_PLAN.md`: scope va tieu chi da thong nhat truoc khi lam.
+Các file triển khai hiện tại:
 
-## Luu y tranh conflict
+- `vincourse/apps/web/src/features/live-battle/index.tsx`
+- `vincourse/apps/web/src/features/live-battle/styles.css`
+- `vincourse/apps/web/src/api/modes.ts`
+- `vincourse/apps/api/app/features/live_battle/router.py`
+- `vincourse/apps/api/app/features/live_battle/test_router.py`
+- `vincourse/docs/features/live-battle.md`
 
-- `frontend/app.js` la file dung chung. Vung de conflict nhat la state dau file,
-  block tu `liveChallenge` den `instructorLive`, bang `actions`, handler
-  `data-live-confidence` va input `live-code`/`live-reasoning`.
-- `frontend/styles.css` chi can giu block `.live-*`; khong sua rule cua mode khac.
-- `docs/DEMO.md` va `frontend/game-rules.md` chi thay section Live Battle.
-- Khong sua `codebase/`, API contract, navigation chung hay logic cua feature khac.
+## Trạng thái
 
-## Kiem tra da chay
+- Backend cấp team ổn định cho từng trình duyệt và kiểm tra room/team khi submit.
+- Instructor và student dùng chung phase trên backend; frontend poll mỗi 1,5 giây.
+- Kết quả học viên được giữ đến khi instructor `reveal`.
+- Room state vẫn in-memory; chưa có WebSocket, database và instructor auth.
+- Timer, ranking, team members, hint và misconception stream vẫn là mock.
 
-- `node --check frontend/app.js`
-- `python3 -m unittest codebase/test_server.py` (`7/7` pass)
-- `git diff --check`
-- Render route `/#live` tren Chrome desktop `1440x1100` va mobile `390x844`
-- Browser smoke test: class code sai, student dung/sai, recovery va instructor
-  `Setup -> Summary` deu pass
+## Chạy và kiểm tra
+
+Làm theo `vincourse/README.md` để chạy API ở port `8000` và web ở port `5173`.
+
+```bash
+cd vincourse/apps/api
+.venv/bin/python -m pytest -q app/features/live_battle/test_router.py
+
+cd ../web
+npm run typecheck
+npm run build
+```
+
+Prototype được chấm chính thức vẫn là `codebase/server.py` và lát cắt
+`#understanding`, theo `README.md` ở thư mục gốc.

@@ -11,7 +11,7 @@ import {
   Users
 } from "lucide-react";
 
-import { getModeSession, submitMode } from "../../api/modes";
+import { controlLiveBattle, getLiveBattleSession, submitMode } from "../../api/modes";
 import type { GameResult, GameSession } from "../../types/game";
 import "./styles.css";
 
@@ -22,8 +22,16 @@ type LiveOption = {
   text: string;
 };
 
+type LiveTeam = {
+  id: string;
+  name: string;
+  joined: boolean;
+  submitted: boolean;
+};
+
 type LivePayload = {
   room_code: string;
+  team_id: string;
   team: string;
   joined_count: number;
   submitted_count: number;
@@ -37,6 +45,8 @@ type LivePayload = {
     correctness: number;
     explanation?: number;
   };
+  teams: LiveTeam[];
+  submission_result: GameResult | null;
   demo: boolean;
 };
 
@@ -50,15 +60,25 @@ type Props = {
 
 const STUDENT_STAGES = ["Tham gia", "Phòng chờ", "Trả lời", "Kết quả"];
 const INSTRUCTOR_STAGES = ["Thiết lập", "Phòng chờ", "Theo dõi", "Khóa", "Công bố", "Tổng kết"];
+const LIVE_CLIENT_KEY = "vincourse-live-battle-client";
+
+function getLiveClientId() {
+  const existing = window.localStorage.getItem(LIVE_CLIENT_KEY);
+  if (existing) return existing;
+  const id = `live-${window.crypto.randomUUID()}`;
+  window.localStorage.setItem(LIVE_CLIENT_KEY, id);
+  return id;
+}
 
 function parsePayload(session: GameSession): LivePayload {
   const payload = session.payload as Partial<LivePayload>;
   return {
     room_code: String(payload.room_code ?? "VINC-24"),
+    team_id: String(payload.team_id ?? ""),
     team: String(payload.team ?? "Team Gradient"),
-    joined_count: Number(payload.joined_count ?? 18),
-    submitted_count: Number(payload.submitted_count ?? 9),
-    phase: String(payload.phase ?? "answering"),
+    joined_count: Number(payload.joined_count ?? 0),
+    submitted_count: Number(payload.submitted_count ?? 0),
+    phase: String(payload.phase ?? "setup"),
     question_id: String(payload.question_id ?? "live-feature-scaling-01"),
     requires_reasoning: payload.requires_reasoning !== false,
     min_reasoning_length: Number(payload.min_reasoning_length ?? 20),
@@ -69,6 +89,8 @@ function parsePayload(session: GameSession): LivePayload {
         ? { correctness: 100 }
         : { correctness: 50, explanation: 50 }
     ),
+    teams: Array.isArray(payload.teams) ? payload.teams : [],
+    submission_result: (payload.submission_result as GameResult | null) ?? null,
     demo: payload.demo !== false
   };
 }
@@ -91,7 +113,7 @@ function DemoNotice() {
     <div className="live-demo-notice">
       <Radio size={15} />
       <strong>Phiên live mô phỏng</strong>
-      <span>Dữ liệu lớp được giữ local, chưa dùng WebSocket.</span>
+      <span>Trạng thái lớp đồng bộ qua server mỗi 1,5 giây; chưa dùng WebSocket.</span>
     </div>
   );
 }
@@ -149,6 +171,7 @@ function ResultPanel({ result, onReplay }: { result: GameResult; onReplay: () =>
 
 export function LiveBattleFeature({ onCompleted }: Props) {
   const [session, setSession] = useState<GameSession | null>(null);
+  const [clientId] = useState(getLiveClientId);
   const [role, setRole] = useState<Role>("student");
   const [studentStage, setStudentStage] = useState<StudentStage>("join");
   const [instructorStage, setInstructorStage] = useState<InstructorStage>("setup");
@@ -163,23 +186,59 @@ export function LiveBattleFeature({ onCompleted }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  async function loadSession() {
-    setLoading(true);
-    setError("");
+  async function loadSession(showLoading = false) {
+    if (showLoading) setLoading(true);
     try {
-      const nextSession = await getModeSession("live_battle");
+      const nextSession = await getLiveBattleSession(clientId, role);
       setSession(nextSession);
       setRoomCode(String(nextSession.payload.room_code ?? "VINC-24"));
+      setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không tải được phiên Live Battle.");
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }
 
   useEffect(() => {
-    void loadSession();
-  }, []);
+    void loadSession(true);
+    const poll = window.setInterval(() => void loadSession(), 1500);
+    return () => window.clearInterval(poll);
+  }, [clientId, role]);
+
+  useEffect(() => {
+    if (!session) return;
+    const nextPayload = parsePayload(session);
+    const phase = nextPayload.phase;
+
+    if (role === "instructor") {
+      const stages: Record<string, InstructorStage> = {
+        setup: "setup",
+        lobby: "lobby",
+        answering: "monitor",
+        locked: "locked",
+        revealed: "reveal",
+        summary: "summary"
+      };
+      if (stages[phase]) setInstructorStage(stages[phase]);
+      return;
+    }
+
+    if (studentStage === "waiting" && phase === "answering") {
+      setStudentStage("answering");
+    }
+    if (studentStage === "answering" && phase === "locked") {
+      setStudentStage("submitted");
+    }
+    if (
+      ["submitted", "answering"].includes(studentStage)
+      && ["revealed", "summary"].includes(phase)
+      && nextPayload.submission_result
+    ) {
+      setResult(nextPayload.submission_result);
+      setStudentStage("result");
+    }
+  }, [role, session, studentStage]);
 
   if (loading) {
     return <section className="live-battle live-loading">Đang kết nối phòng thi đấu...</section>;
@@ -191,7 +250,7 @@ export function LiveBattleFeature({ onCompleted }: Props) {
         <ShieldAlert />
         <h2>Không tải được Live Battle</h2>
         <p>{error}</p>
-        <button className="live-button live-button-primary" onClick={() => void loadSession()}>Thử lại</button>
+        <button className="live-button live-button-primary" onClick={() => void loadSession(true)}>Thử lại</button>
       </section>
     );
   }
@@ -206,7 +265,7 @@ export function LiveBattleFeature({ onCompleted }: Props) {
   const canSubmit = Boolean(answer && reasoningValid && confidence);
 
   function resetStudent() {
-    setStudentStage("join");
+    setStudentStage(["revealed", "summary"].includes(payload.phase) ? "answering" : "join");
     setAnswer("");
     setReasoning("");
     setConfidence(3);
@@ -221,6 +280,7 @@ export function LiveBattleFeature({ onCompleted }: Props) {
     }
     setJoinError("");
     setStudentStage("waiting");
+    if (payload.phase === "answering") setStudentStage("answering");
   }
 
   async function submitAnswer() {
@@ -236,13 +296,14 @@ export function LiveBattleFeature({ onCompleted }: Props) {
         question_id: payload.question_id,
         answer: JSON.stringify({
           option_id: answer,
-          reasoning: reasoning.trim(),
-          room_code: payload.room_code
+          reasoning: reasoning.trim()
         }),
-        confidence
+        confidence,
+        room_code: payload.room_code,
+        team_id: payload.team_id
       });
       setResult(nextResult);
-      setStudentStage("result");
+      setStudentStage(payload.phase === "revealed" ? "result" : "submitted");
       onCompleted?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không gửi được câu trả lời.");
@@ -259,7 +320,7 @@ export function LiveBattleFeature({ onCompleted }: Props) {
           <section className="live-card live-room-card">
             <span className="live-pill live-pill-success">Đang diễn ra</span>
             <h3>ML Foundations · Team Battle</h3>
-            <p>{payload.joined_count} học viên đang chờ cùng giải cứu Broken Model.</p>
+            <p>{payload.joined_count}/4 đội đã vào phòng để cùng giải cứu Broken Model.</p>
             <label htmlFor="live-room-code">Mã lớp</label>
             <input
               id="live-room-code"
@@ -292,15 +353,12 @@ export function LiveBattleFeature({ onCompleted }: Props) {
             <div>
               <span className="live-pill live-pill-success">Đã xếp đội</span>
               <h3>{payload.team}</h3>
-              <p>Bạn sẽ cùng ba thành viên khác bước vào pha chẩn đoán.</p>
-              <button className="live-button live-button-primary" onClick={() => setStudentStage("answering")}>
-                Bắt đầu thử thách <ArrowRight size={16} />
-              </button>
+              <p>{payload.phase === "answering" ? "Câu hỏi đã mở." : "Đang chờ giảng viên bắt đầu câu hỏi."}</p>
             </div>
           </section>
           <aside className="live-card live-team-list">
             <p className="live-kicker">Phòng {payload.room_code}</p>
-            <h3>{payload.joined_count} người · 4 đội</h3>
+            <h3>{payload.joined_count}/4 đội đã tham gia</h3>
             {["Bạn", "Huy Nguyen", "Mai Anh", "Thanh Khoa"].map((name, index) => (
               <div key={name}><span>{index === 0 ? "LM" : ["HN", "MA", "TK"][index - 1]}</span><strong>{name}</strong><small>Sẵn sàng</small></div>
             ))}
@@ -352,31 +410,41 @@ export function LiveBattleFeature({ onCompleted }: Props) {
           </section>
           <aside className="live-card live-rail">
             <p className="live-kicker">Trạng thái lớp</p>
-            <h3>{payload.submitted_count}/{payload.joined_count} đã trả lời</h3>
-            <div className="live-progress"><span style={{ width: `${payload.submitted_count / payload.joined_count * 100}%` }} /></div>
+            <h3>{payload.submitted_count}/{payload.joined_count} đội đã trả lời</h3>
+            <div className="live-progress"><span style={{ width: `${payload.joined_count ? payload.submitted_count / payload.joined_count * 100 : 0}%` }} /></div>
             <ScoreRules payload={payload} />
           </aside>
         </div>
       );
     }
 
-    if (studentStage === "submitted" && !result) {
+    if (studentStage === "submitted") {
       return (
         <section className="live-card live-submitted">
           <div className="live-result-icon"><LockKeyhole /></div>
-          <p className="live-kicker">Đã khóa câu trả lời</p>
-          <h3>{selectedOption?.text}</h3>
-          <p>Hệ thống đang tổng hợp lập luận của {payload.team}.</p>
-          <div className="live-progress"><span style={{ width: "78%" }} /></div>
+          <p className="live-kicker">{result ? "Đã khóa câu trả lời" : "Đã hết thời gian"}</p>
+          <h3>{selectedOption?.text ?? "Đội chưa gửi câu trả lời"}</h3>
+          <p>{payload.phase === "locked" ? "Giảng viên đã khóa đáp án, đang chờ công bố." : `Đang chờ các đội khác và giảng viên công bố kết quả của ${payload.team}.`}</p>
+          <div className="live-progress"><span style={{ width: `${payload.joined_count ? payload.submitted_count / payload.joined_count * 100 : 0}%` }} /></div>
         </section>
       );
     }
 
-    return result ? <ResultPanel result={result} onReplay={resetStudent} /> : null;
+    return studentStage === "result" && result ? <ResultPanel result={result} onReplay={resetStudent} /> : null;
   }
 
   function renderInstructor() {
     const distributionTotal = Object.values(payload.distribution).reduce((total, value) => total + value, 0) || 1;
+
+    async function changePhase(action: "create" | "start" | "lock" | "reveal" | "summary" | "restart") {
+      setError("");
+      try {
+        const nextSession = await controlLiveBattle(payload.room_code, action);
+        setSession(nextSession);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Không đổi được trạng thái phòng.");
+      }
+    }
 
     if (instructorStage === "setup") {
       return (
@@ -390,12 +458,13 @@ export function LiveBattleFeature({ onCompleted }: Props) {
               <label>Thời gian<select><option>90 giây</option><option>60 giây</option></select></label>
             </div>
             <ScoreRules payload={payload} />
-            <button className="live-button live-button-primary" onClick={() => setInstructorStage("lobby")}>Tạo phòng</button>
+            {error && <p className="live-inline-error">{error}</p>}
+            <button className="live-button live-button-primary" onClick={() => void changePhase("create")}>Tạo phòng</button>
           </section>
           <section className="live-card live-local-note">
             <Radio />
-            <h3>Điều khiển local</h3>
-            <p>Join count, timer, biểu đồ và misconception là dữ liệu mô phỏng trong hackathon.</p>
+            <h3>Điều khiển phiên demo</h3>
+            <p>Phòng, số đội nộp và biểu đồ được đồng bộ qua API; timer và xếp hạng vẫn là dữ liệu minh họa.</p>
           </section>
         </div>
       );
@@ -406,12 +475,13 @@ export function LiveBattleFeature({ onCompleted }: Props) {
         <div className="live-two-column">
           <section className="live-card live-code-card">
             <span>Mã lớp</span><strong>{payload.room_code}</strong>
-            <small>{payload.joined_count} học viên · 4 đội đã sẵn sàng</small>
-            <button className="live-button live-button-primary" onClick={() => setInstructorStage("monitor")}>Bắt đầu câu hỏi</button>
+            <small>{payload.joined_count}/4 đội đã vào phòng</small>
+            {error && <p className="live-inline-error">{error}</p>}
+            <button className="live-button live-button-primary" onClick={() => void changePhase("start")}>Bắt đầu câu hỏi</button>
           </section>
           <section className="live-card live-team-list">
-            {["Team Gradient", "Data Sparks", "Vector Crew", "Loss Hunters"].map((team, index) => (
-              <div key={team}><span>{index + 1}</span><strong>{team}</strong><small>Sẵn sàng</small></div>
+            {payload.teams.map((team, index) => (
+              <div key={team.id}><span>{index + 1}</span><strong>{team.name}</strong><small>{team.joined ? "Sẵn sàng" : "Chưa vào"}</small></div>
             ))}
           </section>
         </div>
@@ -426,8 +496,8 @@ export function LiveBattleFeature({ onCompleted }: Props) {
             <p className="live-kicker">Tổng kết lớp</p>
             <h3>Cả lớp đã đánh bại Broken Model</h3>
             <p>43% ban đầu tin rằng tăng epoch sẽ sửa huấn luyện bất ổn. Hãy giao recovery về Feature Scaling.</p>
-            <div className="live-result-metrics"><span>18 học viên</span><span>4 đội</span><span>1 misconception</span></div>
-            <button className="live-button live-button-secondary" onClick={() => setInstructorStage("setup")}><RotateCcw size={16} /> Tạo trận khác</button>
+            <div className="live-result-metrics"><span>{payload.joined_count} đội</span><span>{payload.submitted_count} phản hồi</span><span>1 misconception</span></div>
+            <button className="live-button live-button-secondary" onClick={() => void changePhase("restart")}><RotateCcw size={16} /> Tạo trận khác</button>
           </div>
         </section>
       );
@@ -440,7 +510,7 @@ export function LiveBattleFeature({ onCompleted }: Props) {
         <section className="live-card live-monitor">
           <div className="live-challenge-meta">
             <span className={`live-pill ${locked ? "live-pill-warning" : "live-pill-danger"}`}>{locked ? "Đã khóa đáp án" : "Phát hiện misconception"}</span>
-            <span>{locked ? payload.joined_count : payload.submitted_count}/{payload.joined_count} phản hồi</span>
+            <span>{payload.submitted_count}/{payload.joined_count} phản hồi</span>
           </div>
           <h3>{activeSession.prompt}</h3>
           <div className="live-bars">
@@ -459,9 +529,9 @@ export function LiveBattleFeature({ onCompleted }: Props) {
           {revealed && <div className="live-reveal"><strong>Đáp án B · Scale the features</strong><p>Đưa feature về miền tương đương giúp cập nhật gradient cân bằng hơn.</p></div>}
           <div className="live-action-row">
             <button className="live-button live-button-secondary" disabled={hintVisible || revealed} onClick={() => setHintVisible(true)}>Công bố gợi ý</button>
-            <button className="live-button live-button-secondary" disabled={locked} onClick={() => setInstructorStage("locked")}><LockKeyhole size={15} /> Khóa đáp án</button>
-            <button className="live-button live-button-primary" disabled={!locked || revealed} onClick={() => setInstructorStage("reveal")}>Hiện giải thích</button>
-            {revealed && <button className="live-button live-button-primary" onClick={() => setInstructorStage("summary")}>Tổng kết lớp</button>}
+            <button className="live-button live-button-secondary" disabled={locked} onClick={() => void changePhase("lock")}><LockKeyhole size={15} /> Khóa đáp án</button>
+            <button className="live-button live-button-primary" disabled={!locked || revealed} onClick={() => void changePhase("reveal")}>Hiện giải thích</button>
+            {revealed && <button className="live-button live-button-primary" onClick={() => void changePhase("summary")}>Tổng kết lớp</button>}
           </div>
         </section>
         <aside className="live-card live-rail">

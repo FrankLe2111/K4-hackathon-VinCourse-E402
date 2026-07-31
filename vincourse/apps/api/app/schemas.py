@@ -36,6 +36,8 @@ class GameSubmitRequest(BaseModel):
     question_id: str
     answer: str
     confidence: int = Field(ge=1, le=5, default=3)
+    room_code: str | None = None
+    team_id: str | None = None
 
 
 class GameSession(BaseModel):
