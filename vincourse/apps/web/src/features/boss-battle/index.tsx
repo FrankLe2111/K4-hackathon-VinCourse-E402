@@ -57,6 +57,7 @@ type BossPayload = {
 const STORAGE_KEY = "vincourse-boss-player";
 const COUNTDOWN = ["3", "2", "1", "CHIẾN"];
 const ANSWER_COLORS = ["red", "blue", "gold", "green"];
+const BOSS_ART_URL = "https://opengameart.org/sites/default/files/gaia_freebossmonster_by_antifarea_0.png";
 
 function getStoredName() {
   return localStorage.getItem(STORAGE_KEY) ?? "";
@@ -290,12 +291,47 @@ function LeaderboardOverlay({ leaderboard, playerId }: { leaderboard: Leaderboar
 }
 
 function DamageStage({ resultPayload, correctRate, isFinished }: { resultPayload?: ResultPayload; correctRate: number; isFinished: boolean }) {
+  const bossDamaged = Boolean(resultPayload?.boss_damaged);
   return (
-    <article className={`boss-damage-stage ${resultPayload?.boss_damaged ? "hit" : "blocked"}`}>
-      <div className="boss-monster"><Swords size={54} /></div>
-      <div>
+    <article className={`boss-damage-stage ${bossDamaged ? "hit" : "blocked"}`}>
+      <div className="boss-battle-scene" aria-label={bossDamaged ? "Cả lớp bắn chưởng vào boss" : "Boss chặn đòn vì chưa đủ 80 phần trăm đúng"}>
+        <div className="boss-casters">
+          <div className="caster-team">
+            <Users size={38} />
+            <strong>Cả lớp</strong>
+            <span>{resultPayload?.correct_count}/{resultPayload?.active_players} đúng</span>
+          </div>
+          <div className="caster-aura" />
+        </div>
+        {bossDamaged ? (
+          <>
+            <div className="energy-beam">
+              <i />
+              <i />
+              <i />
+            </div>
+            <div className="impact-burst">
+              <span />
+              <span />
+              <span />
+            </div>
+          </>
+        ) : (
+          <div className="boss-shield">
+            <ShieldAlert size={44} />
+            <span>Chưa đủ lực</span>
+          </div>
+        )}
+        <div className="boss-target">
+          <img src={BOSS_ART_URL} alt="Boss monster Gaia" />
+          {bossDamaged ? <b>-{resultPayload?.damage} máu</b> : null}
+        </div>
+        <small className="boss-art-credit">Boss art: Antifarea / OpenGameArt</small>
+      </div>
+      <div className="boss-damage-copy">
         <span className="boss-live-pill">{resultPayload?.correct_count}/{resultPayload?.active_players} đúng · {correctRate}%</span>
-        <h2>{resultPayload?.boss_damaged ? `CẢ LỚP TẤN CÔNG -${resultPayload.damage} máu` : "CHƯA ĐỦ 80%"}</h2>
+        <h2>{bossDamaged ? "ĐÒN TẬP THỂ TRÚNG ĐÍCH" : "CHƯA ĐỦ 80%"}</h2>
+        <p>{bossDamaged ? `Boss nhận ${resultPayload?.damage} sát thương.` : "Boss dựng khiên chặn đòn. Cả lớp cần đồng đều hơn ở câu tiếp theo."}</p>
         <p>{isFinished ? "Đang tổng hợp đánh giá AI cuối trận..." : "Chuẩn bị câu tiếp theo..."}</p>
       </div>
     </article>
