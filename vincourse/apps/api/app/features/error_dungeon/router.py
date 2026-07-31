@@ -115,6 +115,42 @@ MISCONCEPTION_BANK = {
     },
 }
 
+def get_misconception_info(item: dict) -> dict:
+    mid = item.get("misconception_id", "more_epochs_fix_scaling")
+    if mid in MISCONCEPTION_BANK:
+        return MISCONCEPTION_BANK[mid]
+    
+    # Build dynamic misconception entry for any unbanked item from Story Quest or Daily Recall
+    concept_title = mid.replace("-", " ").replace("_", " ").title()
+    feedback_text = item.get("feedback", "Lựa chọn chưa chính xác hoặc đã chọn Bỏ qua.")
+    
+    return {
+        "misconception_id": mid,
+        "title": f"Error Dungeon — Khắc Phục: {concept_title}",
+        "prompt": "Nhiệm vụ Cứu Hoãn: Đối chiếu lỗi sai cũ, học bài giảng chuẩn và vận dụng giải quyết tình huống mới.",
+        "evidence_ids": ["T01-001"],
+        "original_question": f"Khái niệm: {concept_title}. Thử thách ôn tập từ {item.get('mode', 'Story Quest').title()}.",
+        "old_wrong_answer": feedback_text,
+        "original_correct_answer": f"Đọc kỹ nguyên lý cốt lõi của {concept_title} và áp dụng đúng quy trình suy luận.",
+        "source_summary": f"Tài liệu khóa học xác nhận: Cần nắm vững bản chất kỹ thuật của {concept_title} để tránh đưa ra dự đoán hoặc lựa chọn thiếu căn cứ.",
+        "transfer_question": f"Tình huống thực tế: Vận dụng nguyên lý {concept_title} vào hệ thống AI mới. Đâu là giải pháp chuẩn xác nhất?",
+        "transfer_options": [
+            {
+                "id": "A",
+                "text": f"Áp dụng đúng quy trình phân tích và kiểm chứng bản chất của {concept_title}.",
+            },
+            {
+                "id": "B",
+                "text": f"Bỏ qua bước kiểm chứng và chọn ngẫu nhiên giải pháp.",
+            },
+            {
+                "id": "C",
+                "text": f"Tự động hóa hoàn toàn mà không cần con người xem xét.",
+            },
+        ],
+        "correct_transfer_option": "A",
+    }
+
 
 @router.get("/session", response_model=GameSession)
 def get_session(user_id: str = "demo-user", index: int = Query(default=0, ge=0)) -> GameSession:
@@ -125,7 +161,7 @@ def get_session(user_id: str = "demo-user", index: int = Query(default=0, ge=0))
             mode=GameMode.error_dungeon,
             session_id=f"ed-{uuid.uuid4().hex[:8]}",
             title="Error Dungeon — Hầm Ngục Trống 🛡️",
-            prompt="🎉 Chúc mừng! Bạn hiện không có lỗi sai nào trong hàng đợi cứu hoãn. Hãy sang Daily Recall làm bài để luyện tập kiến thức mới.",
+            prompt="🎉 Chúc mừng! Bạn hiện không có lỗi sai nào trong hàng đợi cứu hoãn. Hãy sang Daily Recall hoặc Story Quest làm bài.",
             evidence_ids=[],
             payload={"empty": True, "misconception_id": ""},
         )
@@ -133,20 +169,19 @@ def get_session(user_id: str = "demo-user", index: int = Query(default=0, ge=0))
     # Format all active recovery items in queue
     all_unresolved = []
     for item in recovery_items:
-        mid = item.get("misconception_id", "more_epochs_fix_scaling")
-        info = MISCONCEPTION_BANK.get(mid, DEFAULT_MISCONCEPTION)
+        info = get_misconception_info(item)
         repair = error_repair_plan(info)
         all_unresolved.append({
-            "misconception_id": mid,
-            "title": info.get("title", DEFAULT_MISCONCEPTION["title"]),
-            "prompt": info.get("prompt", DEFAULT_MISCONCEPTION["prompt"]),
-            "evidence_ids": info.get("evidence_ids", DEFAULT_MISCONCEPTION["evidence_ids"]),
-            "original_question": info.get("original_question", DEFAULT_MISCONCEPTION["original_question"]),
-            "old_wrong_answer": info.get("old_wrong_answer", DEFAULT_MISCONCEPTION["old_wrong_answer"]),
-            "original_correct_answer": info.get("original_correct_answer", DEFAULT_MISCONCEPTION["original_correct_answer"]),
-            "source_summary": info.get("source_summary", DEFAULT_MISCONCEPTION["source_summary"]),
-            "transfer_question": info.get("transfer_question", DEFAULT_MISCONCEPTION["transfer_question"]),
-            "transfer_options": info.get("transfer_options", DEFAULT_MISCONCEPTION["transfer_options"]),
+            "misconception_id": info["misconception_id"],
+            "title": info["title"],
+            "prompt": info["prompt"],
+            "evidence_ids": info["evidence_ids"],
+            "original_question": info["original_question"],
+            "old_wrong_answer": info["old_wrong_answer"],
+            "original_correct_answer": info["original_correct_answer"],
+            "source_summary": info["source_summary"],
+            "transfer_question": info["transfer_question"],
+            "transfer_options": info["transfer_options"],
             "ai_mentor_line": repair["mentor_line"],
             "ai_repair_steps": repair["repair_steps"],
             "ai_transfer_drill": repair["transfer_drill"],
@@ -183,7 +218,8 @@ def get_session(user_id: str = "demo-user", index: int = Query(default=0, ge=0))
 @router.post("/submit", response_model=GameResult)
 def submit(request: GameSubmitRequest) -> GameResult:
     target_id = request.question_id
-    data = MISCONCEPTION_BANK.get(target_id, DEFAULT_MISCONCEPTION)
+    item_stub = {"misconception_id": target_id}
+    data = get_misconception_info(item_stub)
 
     user_answer = request.answer.strip()
     is_correct = user_answer.upper() == data.get("correct_transfer_option", "A") or len(user_answer) > 20
