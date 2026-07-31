@@ -308,7 +308,7 @@ export function ErrorDungeonView({ session: initialSession, onCompleted }: Props
               transition: "all 0.15s ease",
             }}
           >
-            {loading ? "Đang xử lý..." : <>⚔️ Tiêu diệt Lỗi sai trên câu hỏi mới <ArrowRight size={18} /></>}
+            {loading ? "Đang xử lý..." : <>⚔️ Tiêu diệt Lỗi sai trên câu hỏi mới</>}
           </button>
         )}
 

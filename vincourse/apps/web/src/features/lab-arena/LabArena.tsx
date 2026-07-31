@@ -187,7 +187,7 @@ export function LabArena(props: Props) {
         <div className="lab-v-run-bar">
           {passed
             ? <button className="react-lab-run" onClick={onNext}>
-                {round < totalRounds ? <>Câu tiếp theo →</> : <><Check size={16} /> Hoàn thành thử thách · +120 XP</>}
+                {round < totalRounds ? <>Câu tiếp theo</> : <><Check size={16} /> Hoàn thành thử thách · +120 XP</>}
               </button>
             : <button className="react-lab-run" onClick={onSubmit} disabled={loading}>
                 <Play size={16} /> {loading ? "Đang chạy…" : "Chạy test"}

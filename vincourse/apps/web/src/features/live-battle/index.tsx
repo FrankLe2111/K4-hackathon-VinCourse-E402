@@ -333,7 +333,7 @@ export function LiveBattleFeature({ onCompleted }: Props) {
             <small>Mã demo: {payload.room_code}</small>
             {joinError && <p className="live-inline-error">{joinError}</p>}
             <button className="live-button live-button-primary" onClick={joinRoom}>
-              Tham gia trận đấu <ArrowRight size={16} />
+              Tham gia trận đấu
             </button>
           </section>
           <section className="live-card">
@@ -405,7 +405,7 @@ export function LiveBattleFeature({ onCompleted }: Props) {
             </div>
             {error && <p className="live-inline-error">{error}</p>}
             <button className="live-button live-button-primary" disabled={!canSubmit || submitting} onClick={() => void submitAnswer()}>
-              {submitting ? "Đang gửi..." : `Gửi cho ${payload.team}`} <ArrowRight size={16} />
+              {submitting ? "Đang gửi..." : `Gửi cho ${payload.team}`}
             </button>
           </section>
           <aside className="live-card live-rail">

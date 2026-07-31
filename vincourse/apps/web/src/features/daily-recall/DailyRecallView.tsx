@@ -321,7 +321,7 @@ export function DailyRecallView({ session, onCompleted }: Props) {
               ) : null}
 
               <button className="primary-button daily-start-quiz-btn" onClick={() => setSideTab("quiz")}>
-                Làm trắc nghiệm ôn tập <ArrowRight size={16} />
+                Làm trắc nghiệm ôn tập
               </button>
             </div>
           ) : (
