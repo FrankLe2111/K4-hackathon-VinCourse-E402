@@ -180,10 +180,10 @@ function Lobby({ nickname, joined, roomCode, players, onNameChange, onJoin, onSt
   );
 }
 
-function Countdown({ label, step }: { label: string; step: number }) {
+function Countdown({ questionNumber, totalQuestions, step }: { questionNumber: number; totalQuestions: number; step: number }) {
   return (
     <article className="boss-countdown">
-      <small>{label}</small>
+      <small>Câu {questionNumber}/{totalQuestions}</small>
       <strong>{COUNTDOWN[step]}</strong>
       <span>Chuẩn bị chọn đáp án thật nhanh</span>
     </article>
@@ -325,7 +325,7 @@ function FinalReview({ bossHp, leaderboard, history }: { bossHp: number; leaderb
           const correctLabel = item.round.options.find((option) => option.id === item.correctOptionId)?.label ?? "Chưa có đáp án";
           return (
             <article key={`${payload.round_id}-${index}`} className={item.result.correct ? "correct" : "incorrect"}>
-              <strong>{payload.round_title ?? `Vòng ${index + 1}`}</strong>
+              <strong>Câu {index + 1}</strong>
               <h4>{item.round.question}</h4>
               <dl>
                 <div>
@@ -569,12 +569,12 @@ export function BossBattleView({ session, onCompleted }: Props) {
       {gameState === "lobby" ? <StatusRow totalScore={totalScore} activeCount={activeCount} threshold={threshold} bossHp={bossHp} maxHp={maxHp} /> : null}
 
       {gameState === "lobby" ? <Lobby nickname={nickname} joined={joined} roomCode={roomCode} players={projectedPlayers} onNameChange={setNickname} onJoin={joinRoom} onStart={startBattle} /> : null}
-      {gameState === "countdown" ? <Countdown label={currentRound.title} step={countdownStep} /> : null}
+      {gameState === "countdown" ? <Countdown questionNumber={roundIndex + 1} totalQuestions={rounds.length} step={countdownStep} /> : null}
 
       {gameState === "question" || gameState === "locked" || gameState === "reveal" ? (
         <main className="boss-focused-play">
           <div className="boss-game-hud">
-            <span>Vòng {roundIndex + 1}/{rounds.length}</span>
+            <span>Câu {roundIndex + 1}/{rounds.length}</span>
             <strong>{totalScore} điểm</strong>
             <b>Máu Boss {bossHp}/{maxHp}</b>
           </div>
@@ -602,7 +602,7 @@ export function BossBattleView({ session, onCompleted }: Props) {
       {gameState === "victory" ? <FinalReview bossHp={bossHp} leaderboard={displayLeaderboard} history={history} /> : null}
 
       {error ? <p className="boss-error">{error}</p> : null}
-      {gameState === "lobby" ? <span className="boss-damage-note">Mỗi vòng đạt {threshold}% đúng gây {damage} máu. Chỉ cần 3 vòng thành công để hạ boss 100 máu.</span> : null}
+      {gameState === "lobby" ? <span className="boss-damage-note">Mỗi câu đạt {threshold}% đúng gây {damage} máu. Chỉ cần 3 câu thành công để hạ boss 100 máu.</span> : null}
     </section>
   );
 }

@@ -32,7 +32,7 @@ PLAYERS = [
 ROUNDS = [
     {
         "round_id": "diagnose",
-        "title": "Vòng 1: Chẩn đoán lỗi",
+        "title": "Câu 1",
         "concept_id": "feature-scaling",
         "question": "Model hồi quy bị diverge sau vài epoch. Dấu hiệu nào là nguyên nhân gốc hợp lý nhất?",
         "options": [
@@ -47,7 +47,7 @@ ROUNDS = [
     },
     {
         "round_id": "fix_pipeline",
-        "title": "Vòng 2: Chọn cách sửa",
+        "title": "Câu 2",
         "concept_id": "standardization",
         "question": "Bạn nên sửa pipeline như thế nào trước khi train lại model?",
         "options": [
@@ -62,7 +62,7 @@ ROUNDS = [
     },
     {
         "round_id": "explain_damage",
-        "title": "Vòng 3: Giải thích cơ chế",
+        "title": "Câu 3",
         "concept_id": "gradient-descent",
         "question": "Vì sao scaling giúp gradient descent ổn định hơn?",
         "options": [
@@ -77,7 +77,7 @@ ROUNDS = [
     },
     {
         "round_id": "final_strike",
-        "title": "Vòng 4: Đòn kết liễu",
+        "title": "Câu 4",
         "concept_id": "transfer",
         "question": "Trong bài toán mới, cột income lớn hàng nghìn lần cột age. Nguyên tắc nào nên áp dụng?",
         "options": [
@@ -103,7 +103,7 @@ def _boss_session() -> GameSession:
         mode=GameMode.boss_battle,
         session_id=session_id,
         title="Đại chiến Trùm: Mô hình Hỏng",
-        prompt="Người chơi vào phòng bằng nickname, trả lời độc lập như Kahoot. Nếu ít nhất 80% người chơi đúng trong một vòng, boss mất máu.",
+        prompt="Người chơi vào phòng bằng nickname, trả lời độc lập như Kahoot. Nếu ít nhất 80% người chơi đúng trong một câu, boss mất máu.",
         evidence_ids=["BOSS-LIVE-ROOM-001"],
         payload={
             "room": {
@@ -196,7 +196,7 @@ def _boss_round_mentor(round_data: dict[str, Any]) -> str:
         f"Hãy yêu cầu người chơi giải thích lại {concept} bằng ví dụ riêng."
         if boss_damaged
         else f"AI Mentor: Lớp mới đạt {correct_rate}% ở {round_title}. Điểm nghẽn là {common_wrong}; "
-        f"hãy sửa misconception này trước vòng tiếp theo."
+        f"hãy sửa misconception này trước câu tiếp theo."
     )
     if not settings.openai_api_key:
         return fallback
@@ -282,7 +282,7 @@ def submit(request: GameSubmitRequest) -> GameResult:
     feedback = (
         f"Bạn trả lời đúng và nhận {player_score} điểm. Lớp đạt {correct_rate}%, boss mất {damage} HP."
         if player_correct
-        else f"Bạn chưa đúng ở vòng này. Lớp đạt {correct_rate}%, hãy xem AI mentor để sửa hiểu lầm."
+        else f"Bạn chưa đúng ở câu này. Lớp đạt {correct_rate}%, hãy xem AI mentor để sửa hiểu lầm."
     )
     result = GameResult(
         mode=GameMode.boss_battle,
@@ -294,7 +294,7 @@ def submit(request: GameSubmitRequest) -> GameResult:
         xp=player_score,
         mastery_delta=8 if player_correct else 0,
         recovery_created=not player_correct or not boss_damaged,
-        next_action="Chuyển sang vòng tiếp theo." if boss_damaged else "AI mentor đang gợi ý điểm cần sửa trước khi đánh tiếp.",
+        next_action="Chuyển sang câu tiếp theo." if boss_damaged else "AI mentor đang gợi ý điểm cần sửa trước khi đánh tiếp.",
         payload={
             "round_id": round_data["round_id"],
             "round_title": round_data["title"],
