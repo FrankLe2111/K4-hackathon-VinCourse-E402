@@ -38,6 +38,22 @@ const modeActions: Record<GameMode, string> = {
   understanding: "Đấu AI",
 };
 
+function DashboardSkeleton() {
+  return (
+    <div className="mode-grid-skeleton">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div key={i} className="skeleton-card">
+          <div className="skeleton-header shimmer-box" />
+          <div className="skeleton-icon shimmer-box" />
+          <div className="skeleton-title shimmer-box" />
+          <div className="skeleton-text shimmer-box" />
+          <div className="skeleton-btn shimmer-box" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
 }
@@ -186,7 +202,7 @@ export function App() {
           {error && <div className="alert app-alert">{error}<button onClick={() => void reload()}>Thử lại</button></div>}
 
           <div className="mode-grid" aria-label="Chọn chế độ học">
-            {loading ? <div className="nav-skeleton">Đang mở bản đồ…</div> : modes.map((mode) => {
+            {loading ? <DashboardSkeleton /> : modes.map((mode) => {
               const Icon = modeIcons[mode.mode];
               const done = progress?.completed_modes.includes(mode.mode);
               return (

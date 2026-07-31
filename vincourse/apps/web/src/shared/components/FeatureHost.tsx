@@ -7,11 +7,31 @@ import { ErrorDungeonView } from "../../features/error-dungeon";
 import { LabArena } from "../../features/lab-arena";
 import { LiveBattleFeature } from "../../features/live-battle";
 import { StoryQuest } from "../../features/story-quest";
+import odysseyOwl from "../../assets/odyssey-owl.png";
 
 type Props = {
   mode: GameMode;
   onCompleted: () => void;
 };
+
+function ModeLoadingScreen() {
+  return (
+    <div className="vc-loading-container">
+      <div className="vc-loading-card">
+        <div className="vc-loading-owl-wrapper">
+          <div className="vc-loading-glow-circle" />
+          <div className="vc-loading-spinner-ring" />
+          <img src={odysseyOwl} alt="Mascot cú VinCourse" className="vc-loading-owl" />
+        </div>
+        <h3>Đang khởi tạo thử thách...</h3>
+        <p>AI Coach đang kết nối tri thức và chuẩn bị dữ liệu phòng học cho bạn.</p>
+        <div className="vc-loading-bar-track">
+          <div className="vc-loading-bar-fill" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function FeatureHost({ mode, onCompleted }: Props) {
   if (mode === "story") return <StoryQuest onCompleted={onCompleted} />;
@@ -46,6 +66,10 @@ function GenericFeatureHost({ mode, onCompleted }: Props) {
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Cannot load mode session."));
   }, [mode, isLabArena]);
+
+  if (!session && !error) {
+    return <ModeLoadingScreen />;
+  }
 
   async function restartLab(resetChallenge = false, targetRound = labRound) {
     const nextRound = resetChallenge ? 1 : targetRound;
