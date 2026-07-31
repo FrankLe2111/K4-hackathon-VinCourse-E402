@@ -2,144 +2,98 @@
 
 Owner: Ngo Minh Phuoc
 
-## Goal
+## Muc tieu
 
-Che do thi dau theo lop/team, gan giong Kahoot nhung cham them reasoning va
-confidence calibration. Hackathon dung room state local, khong co WebSocket.
+Che do thi dau lop/team theo phong cach Kahoot. Hoc vien chon dap an, them lap
+luan neu cau hoi yeu cau, chon muc tu tin va nhan feedback.
 
-## Demo Path
+Day la MVP local cho hackathon, chua co realtime/WebSocket.
 
-Student:
+## Luong demo
+
+Hoc vien:
 
 ```text
-Open Live Battle
-  -> join room VINC-24
-  -> waiting room / team assignment
-  -> select option + reasoning + confidence
-  -> submit locked team answer
-  -> receive mastered / partial / misconception result
-  -> wrong answer creates personal recovery
+Mo Live Battle
+  -> vao phong VINC-24
+  -> xem team
+  -> chon dap an
+  -> nhap reasoning neu cau hoi yeu cau
+  -> submit
+  -> xem mastered / partial / misconception
 ```
 
-Instructor (local mock):
+Giang vien (mock local):
 
 ```text
 Setup -> Lobby -> Monitor -> Lock -> Reveal -> Summary
 ```
 
-## Owned Files
-
-- `vincourse/apps/web/src/features/live-battle/index.tsx`
-- `vincourse/apps/web/src/features/live-battle/styles.css`
-- `vincourse/apps/api/app/features/live_battle/router.py`
-- `vincourse/apps/api/app/features/live_battle/test_router.py`
-- `vincourse/docs/features/live-battle.md`
-
-Khong sua app shell, shared type, shared API client, storage schema hoac feature
-khac.
-
-## Endpoints
+## API
 
 ```text
 GET  /api/modes/live_battle/session
 POST /api/modes/live_battle/submit
 ```
 
-## Session Payload
+Session payload co cac field chinh:
 
 ```json
 {
-  "mode": "live_battle",
-  "session_id": "live-battle-vinc-24",
-  "title": "Live Class Battle",
-  "prompt": "Mot mo hinh co feature nam trong khoang 0-1 va 1-100.000...",
-  "evidence_ids": ["T02-014"],
-  "payload": {
-    "room_code": "VINC-24",
-    "team": "Team Gradient",
-    "joined_count": 18,
-    "submitted_count": 9,
-    "phase": "answering",
-    "question_id": "live-feature-scaling-01",
-    "options": [
-      {"id": "A", "text": "Tang len 10.000 epoch"},
-      {"id": "B", "text": "Scale cac feature truoc khi train"},
-      {"id": "C", "text": "Tang learning rate"},
-      {"id": "D", "text": "Xoa feature co mien nho hon"}
-    ],
-    "distribution": {"A": 8, "B": 7, "C": 2, "D": 1},
-    "scoring": {
-      "correctness": 40,
-      "explanation": 40,
-      "calibration": 20
-    },
-    "demo": true
+  "room_code": "VINC-24",
+  "team": "Team Gradient",
+  "question_id": "live-feature-scaling-01",
+  "requires_reasoning": true,
+  "min_reasoning_length": 20,
+  "scoring": {
+    "correctness": 50,
+    "explanation": 50
   }
 }
 ```
 
-## Submit Request
+Quy tac reasoning:
 
-Contract chung giu nguyen. Team answer duoc serialize vao field `answer`:
+- `requires_reasoning=true`: reasoning phai dat do dai toi thieu.
+- `requires_reasoning=false`: chi can chon dap an.
+- Confidence `1-5` chi duoc ghi nhan, chua dung de tinh diem.
 
-```json
-{
-  "user_id": "demo-user",
-  "course_id": "ml-foundations",
-  "session_id": "live-battle-vinc-24",
-  "question_id": "live-feature-scaling-01",
-  "answer": "{\"option_id\":\"B\",\"reasoning\":\"Scale feature giup gradient cap nhat can bang va on dinh hon.\",\"room_code\":\"VINC-24\"}",
-  "confidence": 4
-}
-```
+## Ket qua va XP
 
-## Result Rules
+- Dung + reasoning tot: `mastered`, `140 XP`.
+- Dung + reasoning yeu: `partial`, `70 XP`.
+- Sai: `misconception`, `20 XP`, tao Error Dungeon recovery.
+- Submit thanh cong duoc tinh la hoan thanh mode, ke ca dap an sai.
+- Choi lai van co feedback nhung `XP=0`, `mastery_delta=0`.
+- Choi lai khong tang `submitted_count` va khong thay doi recovery.
+- Reset progress xoa ca trang thai replay, nen co the nhan XP lai.
 
-- Option B + reasoning noi duoc scaling va gradient: `mastered`, `140 XP`.
-- Option B + reasoning yeu: `partial`, `70 XP`.
-- Option khac: `misconception`, `20 XP`, `recovery_created=true`.
-- Reasoning duoi 20 ky tu, option sai format, session/question sai: API tu choi.
+## Phan that va phan mock
 
-## What Is Real
+Da hoat dong:
 
-- React loading, error, join validation, answer form va result state.
-- FastAPI session payload va submit grading.
-- `GameResult` contract, progress recording va recovery queue.
-- Backend tests cho session, 3 result branch va invalid reasoning.
+- React loading/error/result va validation.
+- FastAPI grading, XP, progress va recovery.
+- Reasoning bat buoc theo cau hoi.
+- Chong cong XP khi replay.
+- Tich hop trong `FeatureHost`.
 
-## What Is Mocked
+Dang mock:
 
-- Multi-user sync va WebSocket.
-- Countdown, joined/submitted count, class distribution va team ranking.
-- Instructor controls chi thay doi local React state.
+- Countdown, team members, ranking va instructor controls.
+- Room state luu in-memory, restart server se mat.
+- Khong dong bo instructor/student.
+- Frontend dung `demo-user`, vi vay chi nen demo mot trinh duyet hoc vien.
+- Reasoning duoc cham bang keyword, chua phai AI grader.
 
-UI luon hien nhan `Phien live mo phong` de khong trinh bay mock nhu realtime that.
-
-## Shared Integration Request
-
-App shell hien tai chua import feature module nao; `FeatureHost` van render generic
-textarea cho tat ca mode. Base owner can them mot integration branch:
-
-```tsx
-import { LiveBattleFeature } from "../../features/live-battle";
-
-if (mode === "live_battle") {
-  return <LiveBattleFeature onCompleted={onCompleted} />;
-}
-```
-
-File shared can sua boi base owner:
+## Kiem tra
 
 ```text
-vincourse/apps/web/src/shared/components/FeatureHost.tsx
-```
+cd vincourse/apps/api
+.venv/bin/python -m pytest -q app/features/live_battle/test_router.py
+# 9 passed
 
-Feature owner khong tu sua file nay de tranh conflict voi integration work.
-
-## Verification
-
-```text
-npm run typecheck                         PASS
-npm run build                             PASS
-python -m pytest -q ...                   7 PASS
+cd vincourse/apps/web
+npm run typecheck
+npm run build
 ```

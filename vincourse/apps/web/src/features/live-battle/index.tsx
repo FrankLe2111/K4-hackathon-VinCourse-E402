@@ -29,12 +29,13 @@ type LivePayload = {
   submitted_count: number;
   phase: string;
   question_id: string;
+  requires_reasoning: boolean;
+  min_reasoning_length: number;
   options: LiveOption[];
   distribution: Record<string, number>;
   scoring: {
     correctness: number;
-    explanation: number;
-    calibration: number;
+    explanation?: number;
   };
   demo: boolean;
 };
@@ -59,9 +60,15 @@ function parsePayload(session: GameSession): LivePayload {
     submitted_count: Number(payload.submitted_count ?? 9),
     phase: String(payload.phase ?? "answering"),
     question_id: String(payload.question_id ?? "live-feature-scaling-01"),
+    requires_reasoning: payload.requires_reasoning !== false,
+    min_reasoning_length: Number(payload.min_reasoning_length ?? 20),
     options: Array.isArray(payload.options) ? payload.options : [],
     distribution: payload.distribution ?? {},
-    scoring: payload.scoring ?? { correctness: 40, explanation: 40, calibration: 20 },
+    scoring: payload.scoring ?? (
+      payload.requires_reasoning === false
+        ? { correctness: 100 }
+        : { correctness: 50, explanation: 50 }
+    ),
     demo: payload.demo !== false
   };
 }
@@ -90,11 +97,12 @@ function DemoNotice() {
 }
 
 function ScoreRules({ payload }: { payload: LivePayload }) {
-  const rules = [
-    [payload.scoring.correctness, "Độ chính xác", "Chọn đúng chẩn đoán"],
-    [payload.scoring.explanation, "Lập luận", "Giải thích rõ cơ chế"],
-    [payload.scoring.calibration, "Hiệu chỉnh", "Tự tin phù hợp kết quả"]
+  const rules: Array<[number, string, string]> = [
+    [payload.scoring.correctness, "Độ chính xác", "Chọn đúng chẩn đoán"]
   ];
+  if (payload.requires_reasoning && payload.scoring.explanation !== undefined) {
+    rules.push([payload.scoring.explanation, "Lập luận", "Giải thích rõ cơ chế"]);
+  }
   return (
     <div className="live-score-rules">
       {rules.map(([score, title, detail]) => (
@@ -104,6 +112,11 @@ function ScoreRules({ payload }: { payload: LivePayload }) {
           <small>{detail}</small>
         </div>
       ))}
+      <div>
+        <strong>—</strong>
+        <span>Mức tự tin</span>
+        <small>Chỉ ghi nhận, chưa tính điểm</small>
+      </div>
     </div>
   );
 }
@@ -111,11 +124,14 @@ function ScoreRules({ payload }: { payload: LivePayload }) {
 function ResultPanel({ result, onReplay }: { result: GameResult; onReplay: () => void }) {
   const isSuccess = result.status === "mastered";
   const isPartial = result.status === "partial";
+  const isReplay = result.payload.replay === true;
   return (
     <section className={`live-result-card live-result-${result.status}`}>
       <div className="live-result-icon">{isSuccess ? <Check /> : isPartial ? <Sparkles /> : <ShieldAlert />}</div>
       <div>
-        <p className="live-kicker">{isSuccess ? "Đội đã ghi điểm" : isPartial ? "Đúng nhưng cần nói rõ hơn" : "Đã tạo nhiệm vụ khắc phục"}</p>
+        <p className="live-kicker">
+          {isReplay ? "Kết quả chơi lại" : isSuccess ? "Đội đã ghi điểm" : isPartial ? "Đúng nhưng cần nói rõ hơn" : "Đã tạo nhiệm vụ khắc phục"}
+        </p>
         <h3>{result.feedback}</h3>
         <div className="live-result-metrics">
           <span>+{result.xp} XP</span>
@@ -183,7 +199,11 @@ export function LiveBattleFeature({ onCompleted }: Props) {
   const activeSession = session;
   const payload = parsePayload(activeSession);
   const selectedOption = payload.options.find((option) => option.id === answer);
-  const canSubmit = Boolean(answer && reasoning.trim().length >= 20 && confidence);
+  const reasoningValid = (
+    !payload.requires_reasoning
+    || reasoning.trim().length >= payload.min_reasoning_length
+  );
+  const canSubmit = Boolean(answer && reasoningValid && confidence);
 
   function resetStudent() {
     setStudentStage("join");
@@ -305,14 +325,20 @@ export function LiveBattleFeature({ onCompleted }: Props) {
                 </button>
               ))}
             </div>
-            <label htmlFor="live-reasoning">Giải thích lập luận cho đội</label>
-            <textarea
-              id="live-reasoning"
-              value={reasoning}
-              onChange={(event) => setReasoning(event.target.value)}
-              placeholder="Vì sao đây là hành động nên thử đầu tiên?"
-            />
-            <small>Tối thiểu 20 ký tự. Lập luận sai vẫn được ghi nhận để tạo recovery.</small>
+            {payload.requires_reasoning && (
+              <>
+                <label htmlFor="live-reasoning">Giải thích lập luận cho đội</label>
+                <textarea
+                  id="live-reasoning"
+                  value={reasoning}
+                  onChange={(event) => setReasoning(event.target.value)}
+                  placeholder="Vì sao đây là hành động nên thử đầu tiên?"
+                />
+                <small>
+                  Tối thiểu {payload.min_reasoning_length} ký tự. Lập luận sai vẫn được ghi nhận để tạo recovery.
+                </small>
+              </>
+            )}
             <div className="live-confidence">
               <strong>Mức tự tin</strong>
               {[1, 2, 3, 4, 5].map((value) => (

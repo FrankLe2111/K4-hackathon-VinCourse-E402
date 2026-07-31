@@ -25,7 +25,7 @@ def reset_progress(user_id: str = "demo-user") -> ProgressSummary:
 def record_result(user_id: str, request: dict, result: GameResult) -> GameResult:
     progress = PROGRESS.setdefault(user_id, {"xp": 0, "completed_modes": set()})
     progress["xp"] += result.xp
-    if result.correct:
+    if result.correct or result.payload.get("mode_completed") is True:
         progress["completed_modes"].add(result.mode)
     ATTEMPTS.append({"user_id": user_id, "request": request, "result": result.model_dump()})
     
