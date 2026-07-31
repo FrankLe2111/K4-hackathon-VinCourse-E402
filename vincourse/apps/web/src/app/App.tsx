@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  ArrowLeft, BookOpen, BrainCircuit, Code2, Flame, Home, Map, Play,
+  ArrowLeft, BookOpen, BrainCircuit, Code2, Flame, GraduationCap, Home, Map, Play,
   RefreshCcw, RotateCcw, ShieldAlert, Sparkles, Swords, Trophy, User,
 } from "lucide-react";
 import { listModes, getProgress, resetProgress } from "../api/modes";
@@ -136,9 +136,7 @@ export function App() {
         <aside className="mode-rail">
           <div className="brand">
             <span className="brand-mark brand-v" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="4 4 12 20 20 4" />
-              </svg>
+              <GraduationCap size={24} />
             </span>
             <div><strong>VinCourse</strong><span>Học viên khám phá</span></div>
           </div>
