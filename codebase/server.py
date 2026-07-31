@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """Tiny local server for the CourseQuest · Hiểu Thật prototype."""
 
@@ -8,9 +9,13 @@ import json
 import os
 import random
 import re
+import subprocess
+import sys
+import tempfile
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 from http import HTTPStatus
@@ -24,10 +29,13 @@ STATIC = ROOT / "static"
 FRONTEND = ROOT.parent / "frontend"
 TRACE_FILE = ROOT.parent / "eval/traces.jsonl"
 QUESTION_BANK = ROOT.parent / "ai_odyssey_question_bank_vi.md"
+LAB_DATA_DIR = ROOT.parent / "data/vlearn-pack/lab-arena"
 MODEL = os.getenv("OPENAI_MODEL", "gpt-5.6-luna")
 DEMO_MODE = os.getenv("COURSEQUEST_DEMO_MODE") == "1"
 ALLOWED_STATUSES = {"mastered", "partial", "misconception", "needs_clarification", "out_of_scope"}
 TRACE_LOCK = threading.Lock()
+LAB_SESSION_LOCK = threading.Lock()
+LAB_SESSIONS: dict[str, dict[str, Any]] = {}
 
 with (ROOT / "content.json").open(encoding="utf-8") as source:
     CONCEPTS = {item["id"]: item for item in json.load(source)}
@@ -111,6 +119,205 @@ def load_story_bank() -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
 
 
 STORY_ZONES, STORY_QUESTIONS = load_story_bank()
+
+def load_lab_questions() -> list[dict[str, Any]]:
+    """Mỗi file JSON trong lab-arena là một câu của Đấu trường thực hành."""
+    questions = []
+    for path in sorted(LAB_DATA_DIR.glob("*.json")):
+        with path.open(encoding="utf-8") as source:
+            questions.append(json.load(source))
+    questions.sort(key=lambda item: (item.get("order", 999), item["id"]))
+    return questions
+
+
+LAB_QUESTIONS = load_lab_questions()
+LAB_BY_ID = {item["id"]: item for item in LAB_QUESTIONS}
+LAB_PUBLIC_FIELDS = {
+    "id", "order", "topic", "difficulty", "xp", "course", "lesson", "title",
+    "prompt", "language", "function_name", "starter_code", "rules", "evidence",
+}
+
+
+def _lab_case_label(function_name: str, arguments: list[Any], expected: Any) -> str:
+    rendered_args = ", ".join(json.dumps(item, ensure_ascii=False) for item in arguments)
+    if len(rendered_args) > 120:
+        rendered_args = rendered_args[:117] + "…"
+    call = f"{function_name}({rendered_args})"
+    rendered_expected = json.dumps(expected, ensure_ascii=False)
+    return f"{call} == {rendered_expected}" if len(rendered_expected) <= 40 else call
+
+
+def _lab_mock_cases(question: dict[str, Any], start: int,
+                    existing: list[list[Any]]) -> list[dict[str, Any]]:
+    """Case sinh theo phiên để chặn hard-code đáp án; chỉ câu nào khai báo pool mới có."""
+    pool = question.get("mock_case_pool") or []
+    wanted = min(question.get("mock_case_count", 0), len(pool))
+    cases = []
+    for item in random.sample(pool, len(pool)):
+        if len(cases) >= wanted:
+            break
+        text = item["text"]
+        target = random.choice(item["targets"])
+        if [text, target] in existing:  # không lặp lại case đã có trong đề bài
+            continue
+        index = start + len(cases)
+        expected = text.casefold().count(target.casefold())
+        cases.append({
+            "id": f"mock-runtime-{index}",
+            "arguments": [text, target],
+            "expected": expected,
+            "expected_type": type(expected).__name__,
+            "label": _lab_case_label(question["function_name"], [text, target], expected),
+            "evidence_id": "T03-034",
+            "note": "Case sinh ngẫu nhiên cho phiên để chặn hard-code",
+            "provenance": "mock_runtime",
+        })
+    return cases
+
+
+def lab_question_session(question: dict[str, Any]) -> dict[str, Any]:
+    session = {key: value for key, value in question.items() if key in LAB_PUBLIC_FIELDS}
+    tests = [
+        {
+            "id": f"case-{index}",
+            "arguments": item["arguments"],
+            "expected": item["expected"],
+            "expected_type": type(item["expected"]).__name__,
+            "label": item.get("label") or _lab_case_label(
+                question["function_name"], item["arguments"], item["expected"]),
+            "evidence_id": item.get("evidence_id", ""),
+            "note": item.get("note", ""),
+            "provenance": "course_evidence",
+        }
+        for index, item in enumerate(question.get("tests", []), start=1)
+    ]
+    tests += _lab_mock_cases(question, start=len(tests) + 1,
+                             existing=[item["arguments"] for item in tests])
+    session_id = uuid.uuid4().hex[:12]
+    session.update({"session_id": session_id, "tests": tests})
+    with LAB_SESSION_LOCK:
+        if len(LAB_SESSIONS) >= 200:
+            LAB_SESSIONS.pop(next(iter(LAB_SESSIONS)))
+        LAB_SESSIONS[session_id] = session
+    return session
+
+
+def public_lab(question_id: str | None = None) -> dict[str, Any]:
+    question = LAB_BY_ID.get(question_id or "") or LAB_QUESTIONS[0]
+    index = LAB_QUESTIONS.index(question)
+    return {
+        "total": len(LAB_QUESTIONS),
+        "index": index,
+        "total_xp": sum(item.get("xp", 0) for item in LAB_QUESTIONS),
+        "questions": [
+            {
+                "id": item["id"],
+                "title": item["title"],
+                "topic": item.get("topic", ""),
+                "difficulty": item.get("difficulty", ""),
+                "xp": item.get("xp", 0),
+                "function_name": item["function_name"],
+                "test_count": len(item.get("tests", [])) + min(
+                    item.get("mock_case_count", 0), len(item.get("mock_case_pool") or [])),
+            }
+            for item in LAB_QUESTIONS
+        ],
+        "question": lab_question_session(question),
+    }
+
+
+def run_lab(payload: Any) -> dict[str, Any]:
+    if not isinstance(payload, dict) or payload.get("challenge_id") not in LAB_BY_ID:
+        raise AppError("Câu hỏi Đấu trường thực hành không hợp lệ.")
+    session_id = payload.get("session_id")
+    with LAB_SESSION_LOCK:
+        challenge = LAB_SESSIONS.get(session_id)
+    if not challenge:
+        raise AppError("Phiên Lab Arena đã hết hạn. Hãy bấm Làm lại để tạo phiên mới.")
+    code = payload.get("code")
+    if not isinstance(code, str) or not code.strip() or len(code) > 8000:
+        raise AppError("Code rỗng hoặc quá dài.")
+    blocked = (
+        "import ", "__import__", "open(", "exec(", "eval(", "compile(", "input(",
+        "globals(", "locals(", "getattr(", "setattr(", "delattr(", "__", "os.", "sys.",
+        "subprocess", "socket", "pathlib", "requests", "urllib",
+    )
+    normalized = code.casefold()
+    if any(term in normalized for term in blocked):
+        raise AppError("Code chứa thao tác không được phép trong Lab Arena.")
+    function_name = challenge["function_name"]
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", function_name):
+        raise AppError("Dataset chứa tên hàm không hợp lệ.", HTTPStatus.INTERNAL_SERVER_ERROR)
+    if not re.search(rf"(?m)^\s*def\s+{re.escape(function_name)}\s*\(", code):
+        raise AppError(f"Hãy định nghĩa đúng hàm {function_name} như đề bài.")
+
+    cases = [
+        {"id": item["id"], "arguments": item["arguments"], "expected": item["expected"],
+         "expected_type": item["expected_type"]}
+        for item in challenge["tests"]
+    ]
+    harness = f"""
+import json
+cases = json.loads({json.dumps(json.dumps(cases, ensure_ascii=False))})
+function = globals()[{json.dumps(function_name)}]
+results = []
+for case in cases:
+    try:
+        actual = function(*case["arguments"])
+        passed = actual == case["expected"] and type(actual).__name__ == case["expected_type"]
+        results.append({{"id": case["id"], "passed": passed, "actual": repr(actual)[:120],
+                         "error": "" if passed else "Kết quả thực tế không khớp expected."}})
+    except Exception as error:
+        results.append({{"id": case["id"], "passed": False, "actual": "",
+                         "error": f"{{type(error).__name__}}: {{str(error)[:120]}}"}})
+print("__VINCOURSE_RESULT__" + json.dumps(results, ensure_ascii=False))
+"""
+    with tempfile.TemporaryDirectory(prefix="vincourse-lab-") as temp_dir:
+        submission = Path(temp_dir) / "submission.py"
+        submission.write_text(code + "\n" + harness, encoding="utf-8")
+        try:
+            process = subprocess.run(
+                [sys.executable, "-I", str(submission)],
+                capture_output=True, text=True, timeout=3, check=False,
+                env={"PYTHONIOENCODING": "utf-8"},
+            )
+        except subprocess.TimeoutExpired as error:
+            raise AppError("Code chạy quá 3 giây và đã bị dừng.") from error
+
+    marker = "__VINCOURSE_RESULT__"
+    result_line = next((line for line in reversed(process.stdout.splitlines()) if line.startswith(marker)), "")
+    if not result_line:
+        message = process.stderr.strip().splitlines()[-1] if process.stderr.strip() else "Không nhận được kết quả test."
+        raise AppError(f"Không chạy được code: {message[:180]}")
+    results = json.loads(result_line[len(marker):])
+    test_metadata = {item["id"]: item for item in challenge["tests"]}
+    for result in results:
+        metadata = test_metadata[result["id"]]
+        result.update({
+            "label": metadata["label"],
+            "arguments": metadata["arguments"],
+            "expected": metadata["expected"],
+            "evidence_id": metadata["evidence_id"],
+            "provenance": metadata["provenance"],
+            "note": metadata.get("note", ""),
+        })
+    passed_count = sum(1 for item in results if item["passed"])
+    all_passed = passed_count == len(results)
+    index = next(position for position, item in enumerate(LAB_QUESTIONS) if item["id"] == challenge["id"])
+    return {
+        "challenge_id": challenge["id"],
+        "passed": all_passed,
+        "passed_count": passed_count,
+        "total": len(results),
+        "tests": results,
+        "xp": challenge.get("xp", 120) if all_passed else 0,
+        "session_id": session_id,
+        "index": index,
+        "next_id": LAB_QUESTIONS[index + 1]["id"] if index + 1 < len(LAB_QUESTIONS) else "",
+        "evidence_ids": sorted({item["evidence_id"] for item in challenge["tests"] if item["evidence_id"]})
+        if all_passed else [],
+        "execution": "python-isolated-subprocess",
+    }
 
 SYSTEM_PROMPT = """You are CourseQuest's strict learning-evidence classifier.
 The supplied COURSE EVIDENCE is the only source of truth. Never use outside knowledge.
@@ -450,6 +657,10 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/api/story":
             self.send_json(public_story())
             return
+        if self.path == "/api/lab" or self.path.startswith("/api/lab?"):
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            self.send_json(public_lab(query.get("id", [""])[0]))
+            return
         if self.path == "/api/health":
             self.send_json({"ok": True, "mode": "demo" if DEMO_MODE else "openai",
                             "configured": DEMO_MODE or bool(os.getenv("OPENAI_API_KEY")), "model": MODEL})
@@ -485,15 +696,21 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self) -> None:
-        if self.path not in {"/api/check", "/api/story/check"}:
+        if self.path not in {"/api/check", "/api/story/check", "/api/lab/run"}:
             self.send_error(HTTPStatus.NOT_FOUND)
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            if not 0 < length <= 5000:
+            if not 0 < length <= (12000 if self.path == "/api/lab/run" else 5000):
                 raise AppError("Request rỗng hoặc quá lớn.", HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
             payload = json.loads(self.rfile.read(length))
-            self.send_json(check_story(payload) if self.path == "/api/story/check" else classify(payload))
+            if self.path == "/api/story/check":
+                result = check_story(payload)
+            elif self.path == "/api/lab/run":
+                result = run_lab(payload)
+            else:
+                result = classify(payload)
+            self.send_json(result)
         except json.JSONDecodeError:
             self.send_json({"error": "JSON không hợp lệ."}, HTTPStatus.BAD_REQUEST)
         except AppError as error:

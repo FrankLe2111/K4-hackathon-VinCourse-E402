@@ -1,0 +1,77 @@
+{
+  "id": "tool-character-count",
+  "order": 1,
+  "topic": "Tool calling",
+  "difficulty": "Cơ bản",
+  "xp": 120,
+  "course": "AI Odyssey",
+  "lesson": "Ngày 3 · Giới hạn của LLM, tool calling và RAG",
+  "title": "Biến phép đếm thành một tool đáng tin cậy",
+  "prompt": "LLM có thể đúng ở một ví dụ nhưng sai ở dữ liệu khác. Hoàn thiện count_character(text, target) để phép đếm luôn xác định và không phân biệt chữ hoa, chữ thường.",
+  "language": "python",
+  "function_name": "count_character",
+  "starter_code": "def count_character(text, target):\n    \"\"\"Đếm target trong text, không phân biệt hoa/thường.\"\"\"\n    # Hoàn thiện hàm bằng Python thuần\n    if not isinstance(text, str) or not isinstance(target, str) or target == \"\":\n        return 0\n    return text.lower().count(target.lower())",
+  "evidence": [
+    {
+      "id": "T03-034",
+      "title": "Input và output của tool đếm ký tự",
+      "text": "Input là từ cần đếm và chữ cái cần đếm; output là số lượng.",
+      "source_file": "transcript/transcript-03-clean.md"
+    },
+    {
+      "id": "T03-078",
+      "title": "Tách phần cần chắc chắn khỏi LLM",
+      "text": "Phần cần có sự chắc chắn nên được biểu diễn bằng công thức, tool call hoặc function code.",
+      "source_file": "transcript/transcript-03-clean.md"
+    },
+    {
+      "id": "T03-079",
+      "title": "Ví dụ chữ R trong strawberry",
+      "text": "Dùng function đếm ký tự giúp kết quả chắc chắn hơn so với yêu cầu LLM tự đếm.",
+      "source_file": "transcript/transcript-03-clean.md"
+    }
+  ],
+  "rules": [
+    "Không phân biệt chữ hoa và chữ thường khi đếm.",
+    "Trả về số nguyên, kể cả khi không tìm thấy ký tự nào.",
+    "Chuỗi rỗng thì trả về 0.",
+    "Chỉ dùng Python thuần, không import thư viện."
+  ],
+  "tests": [
+    {
+      "arguments": ["strawberry", "r"],
+      "expected": 3,
+      "evidence_id": "T03-079",
+      "note": "Ví dụ chữ R trong strawberry ngay trong bài giảng"
+    },
+    {
+      "arguments": ["Strawberry Smoothie", "S"],
+      "expected": 2,
+      "evidence_id": "T03-079",
+      "note": "Đổi chữ hoa/thường vẫn phải đúng"
+    },
+    {
+      "arguments": ["AI Odyssey", "y"],
+      "expected": 2,
+      "evidence_id": "T03-034",
+      "note": "Input là từ cần đếm và chữ cái cần đếm"
+    },
+    {
+      "arguments": ["", "a"],
+      "expected": 0,
+      "evidence_id": "T03-078",
+      "note": "Kết quả phải xác định cả với input rỗng"
+    }
+  ],
+  "mock_case_count": 2,
+  "mock_case_pool": [
+    {"text": "VinCourse", "targets": ["c", "o", "z"]},
+    {"text": "AI Odyssey", "targets": ["a", "d", "z"]},
+    {"text": "Tool Calling", "targets": ["l", "o", "x"]},
+    {"text": "Large Language Model", "targets": ["l", "g", "z"]},
+    {"text": "Prompt Engineering", "targets": ["n", "e", "x"]},
+    {"text": "Deterministic Function", "targets": ["t", "i", "z"]},
+    {"text": "Human in the Loop", "targets": ["h", "o", "z"]},
+    {"text": "", "targets": ["a"]}
+  ]
+}

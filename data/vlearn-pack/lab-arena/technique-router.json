@@ -1,0 +1,72 @@
+{
+  "id": "technique-router",
+  "order": 3,
+  "topic": "Advanced prompting",
+  "difficulty": "Cơ bản",
+  "xp": 100,
+  "course": "AI Odyssey",
+  "lesson": "Ngày 4 · Prompt engineering & tool calling",
+  "title": "Chọn kỹ thuật prompting theo task, không dùng như thần chú",
+  "prompt": "Slide xếp thứ tự thử zero-shot → few-shot → CoT, cảnh báo CoT có lúc làm hại task nhận diện pattern, và dặn với reasoning model thì đừng ép \"think step-by-step\". Viết choose_technique() để quyết định thay vì đoán.",
+  "language": "python",
+  "function_name": "choose_technique",
+  "starter_code": "def choose_technique(task_type, has_examples, model_kind):\n    \"\"\"Trả về 'direct', 'cot', 'few-shot' hoặc 'zero-shot'.\"\"\"\n    # Hoàn thiện hàm bằng Python thuần\n    raise NotImplementedError(\"Viết code ở đây\")",
+  "rules": [
+    "model_kind == 'reasoning' → 'direct' (cho mục tiêu + ràng buộc, không kê từng bước).",
+    "Còn lại, task_type == 'reasoning' → 'cot'.",
+    "task_type == 'classification' → 'few-shot' nếu có ví dụ, ngược lại 'zero-shot'.",
+    "Mọi task khác → 'zero-shot' (thử rẻ nhất trước)."
+  ],
+  "evidence": [
+    {
+      "id": "S04-17",
+      "title": "Zero-shot, one-shot, few-shot, CoT",
+      "text": "Thứ tự thử: zero-shot → few-shot → CoT. Few-shot 1–2 ví dụ chọn lọc thường tốt hơn 5 ví dụ ngẫu nhiên.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 17"
+    },
+    {
+      "id": "S04-19",
+      "title": "Chain-of-Thought: khi giúp, khi hại",
+      "text": "CoT giúp task suy luận nhiều bước, nhưng có thể hại với task trực giác / nhận diện pattern như phân loại.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 19"
+    },
+    {
+      "id": "S04-20",
+      "title": "Reasoning model — đừng ép CoT",
+      "text": "Với reasoning model, cho mục tiêu + ràng buộc + output contract, đừng kê từng bước.",
+      "source_file": "slides/day04-prompt-engineering-tool-calling-e403.pdf · trang 20"
+    }
+  ],
+  "tests": [
+    {
+      "arguments": ["reasoning", false, "standard"],
+      "expected": "cot",
+      "evidence_id": "S04-19",
+      "note": "Task suy luận nhiều bước trên model thường"
+    },
+    {
+      "arguments": ["reasoning", true, "reasoning"],
+      "expected": "direct",
+      "evidence_id": "S04-20",
+      "note": "Reasoning model thì không ép CoT dù có ví dụ"
+    },
+    {
+      "arguments": ["classification", true, "standard"],
+      "expected": "few-shot",
+      "evidence_id": "S04-17",
+      "note": "Phân loại có ví dụ: few-shot giữ format ổn định"
+    },
+    {
+      "arguments": ["classification", false, "standard"],
+      "expected": "zero-shot",
+      "evidence_id": "S04-19",
+      "note": "Phân loại không ví dụ: vẫn không được dùng CoT"
+    },
+    {
+      "arguments": ["summarization", true, "standard"],
+      "expected": "zero-shot",
+      "evidence_id": "S04-17",
+      "note": "Task tóm tắt: thử zero-shot trước cho rẻ"
+    }
+  ]
+}

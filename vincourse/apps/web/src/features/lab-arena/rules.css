@@ -1,0 +1,26 @@
+.react-lab-rules {
+  display: grid;
+  gap: 7px;
+  margin-top: 15px;
+}
+
+.react-lab-rules > div {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 7px;
+  align-items: start;
+  color: #627168;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.react-lab-rules b {
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  color: #08784a;
+  background: #dcfff0;
+  font-size: 9px;
+}

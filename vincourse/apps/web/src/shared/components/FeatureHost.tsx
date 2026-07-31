@@ -3,6 +3,7 @@ import { getModeSession, submitMode } from "../../api/modes";
 import type { GameMode, GameResult, GameSession } from "../../types/game";
 import { DailyRecallView } from "../../features/daily-recall";
 import { ErrorDungeonView } from "../../features/error-dungeon";
+import { LabArena } from "../../features/lab-arena/LabArena";
 
 type Props = {
   mode: GameMode;
@@ -16,16 +17,52 @@ export function FeatureHost({ mode, onCompleted }: Props) {
   const [result, setResult] = useState<GameResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [labRound, setLabRound] = useState(1);
+
+  const isLabArena = mode === "lab_arena";
 
   useEffect(() => {
     setSession(null);
     setResult(null);
     setAnswer("");
     setError("");
-    void getModeSession(mode)
-      .then(setSession)
+    if (isLabArena) setLabRound(1);
+
+    void getModeSession(mode, isLabArena ? 1 : undefined)
+      .then((nextSession) => {
+        setSession(nextSession);
+        if (isLabArena && typeof nextSession.payload?.starter_code === "string") {
+          setAnswer(nextSession.payload.starter_code);
+        }
+      })
       .catch((err) => setError(err instanceof Error ? err.message : "Cannot load mode session."));
-  }, [mode]);
+  }, [mode, isLabArena]);
+
+  async function restartLab(resetChallenge = false, targetRound = labRound) {
+    const nextRound = resetChallenge ? 1 : targetRound;
+    if (resetChallenge) setLabRound(1);
+    setSession(null);
+    setResult(null);
+    setAnswer("");
+    setError("");
+    try {
+      const nextSession = await getModeSession("lab_arena", nextRound);
+      setSession(nextSession);
+      setAnswer(String(nextSession.payload.starter_code ?? ""));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Cannot create Lab Arena session.");
+    }
+  }
+
+  async function nextLabRound() {
+    if (labRound >= 10) {
+      onCompleted();
+      return;
+    }
+    const nextRound = labRound + 1;
+    setLabRound(nextRound);
+    await restartLab(false, nextRound);
+  }
 
   async function submit() {
     if (!session) return;
@@ -36,12 +73,12 @@ export function FeatureHost({ mode, onCompleted }: Props) {
         user_id: "demo-user",
         course_id: "ml-foundations",
         session_id: session.session_id,
-        question_id: "q-demo-001",
+        question_id: isLabArena ? `lab-round-${labRound}` : "q-demo-001",
         answer,
-        confidence,
+        confidence
       });
       setResult(nextResult);
-      onCompleted();
+      if (!isLabArena) onCompleted();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Submit failed.");
     } finally {
@@ -49,13 +86,30 @@ export function FeatureHost({ mode, onCompleted }: Props) {
     }
   }
 
-  // Render feature-specific custom views when session is loaded
   if (session && mode === "daily_recall") {
     return <DailyRecallView session={session} onCompleted={onCompleted} />;
   }
 
   if (session && mode === "error_dungeon") {
     return <ErrorDungeonView session={session} onCompleted={onCompleted} />;
+  }
+
+  if (isLabArena) {
+    return (
+      <LabArena
+        session={session}
+        code={answer}
+        result={result}
+        loading={loading}
+        error={error}
+        onCodeChange={setAnswer}
+        onSubmit={() => void submit()}
+        onRestart={() => void restartLab(true)}
+        onNext={() => void nextLabRound()}
+        round={labRound}
+        totalRounds={10}
+      />
+    );
   }
 
   return (

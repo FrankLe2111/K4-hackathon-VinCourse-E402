@@ -1,0 +1,27 @@
+.react-lab-round {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.react-lab-round > div {
+  width: 220px;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5ece8;
+}
+
+.react-lab-round i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #06c875;
+  transition: width 200ms ease;
+}
+
+.react-lab-round strong {
+  color: #08784a;
+  font-size: 11px;
+}

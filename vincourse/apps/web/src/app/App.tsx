@@ -4,6 +4,14 @@ import { listModes, getProgress, resetProgress } from "../api/modes";
 import type { GameMode, ModeInfo, ProgressSummary } from "../types/game";
 import { FeatureHost } from "../shared/components/FeatureHost";
 
+export type Route =
+  | "understanding" | "home" | "map" | "modes" | "quest" | "feedback"
+  | "recovery" | "result" | "recall" | "mastery" | "error-dungeon"
+  | "lab" | "boss" | "live" | "ai-adversary"
+  | "admin-dashboard" | "admin-upload" | "admin-generate" | "admin-world"
+  | "admin-questions" | "admin-analytics";
+export type Role = "student" | "admin";
+
 export function App() {
   const [modes, setModes] = useState<ModeInfo[]>([]);
   const [progress, setProgress] = useState<ProgressSummary | null>(null);
@@ -26,7 +34,6 @@ export function App() {
     try {
       const resetData = await resetProgress();
       setProgress(resetData);
-      // Remount current feature view
       const current = selectedMode;
       setSelectedMode("story");
       setTimeout(() => setSelectedMode(current), 50);
@@ -84,11 +91,11 @@ export function App() {
                 border: "1px solid #fecaca",
                 fontWeight: 600,
                 fontSize: "13px",
-                cursor: "pointer",
+                cursor: "pointer"
               }}
-              title="Reset toàn bộ điểm XP và hàng đợi lỗi sai"
+              title="Reset all XP and recovery queue"
             >
-              <RotateCcw size={15} /> Reset Data 🔄
+              <RotateCcw size={15} /> Reset Data
             </button>
             <button className="icon-button" onClick={() => void reload()} aria-label="Reload">
               <RefreshCcw size={18} />
