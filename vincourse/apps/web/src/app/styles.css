@@ -34,32 +34,32 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .mode-dashboard-top strong { color: #172033; }
 .mode-dashboard-top strong span { width: 13px; height: 13px; display: inline-block; margin-right: 9px; border-radius: 50%; background: #12d993; box-shadow: 0 0 0 7px rgba(18,217,147,.12); vertical-align: -1px; }
 .mode-dashboard-top small { margin-top: 3px; color: #64748b; }
-.dashboard-chips { display: flex; gap: 10px; align-items: center; }
+.dashboard-chips { display: flex; gap: 12px; align-items: center; }
 .dashboard-chips > span, 
 .dashboard-chips .language-chip,
 .dashboard-chips .icon-button,
 .dashboard-chips .chip-avatar { 
-  height: 42px; 
+  height: 48px; 
   display: inline-flex; 
-  gap: 8px; 
+  gap: 10px; 
   align-items: center; 
   justify-content: center; 
   border: 1px solid #e0e5ef; 
-  border-radius: 12px; 
-  padding: 0 14px; 
+  border-radius: 14px; 
+  padding: 0 18px; 
   color: #172033; 
   background: #fff; 
   box-shadow: 0 6px 18px rgba(15,23,42,.04); 
   font-weight: 800; 
-  font-size: 14px; 
+  font-size: 14.5px; 
   box-sizing: border-box;
 }
-.dashboard-chips .language-chip { padding: 4px 10px 4px 5px; }
-.language-chip b { border-radius: 8px; padding: 5px 9px; color: #fff; background: #10d18f; font-size: 13px; line-height: 1; }
-.language-chip small { color: #64748b; font-size: 13px; font-weight: 700; }
-.chip-icon-button { width: 42px; padding: 0; border: 1px solid #e0e5ef; background: #fff; cursor: pointer; color: #475569; transition: background .15s, color .15s; }
+.dashboard-chips .language-chip { padding: 0 12px 0 6px; }
+.language-chip b { height: 34px; border-radius: 10px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; color: #fff; background: #10d18f; font-size: 13.5px; font-weight: 900; line-height: 1; }
+.language-chip small { color: #64748b; font-size: 13.5px; font-weight: 700; margin-left: 2px; }
+.chip-icon-button { width: 48px; height: 48px; padding: 0; border: 1px solid #e0e5ef; border-radius: 14px; background: #fff; cursor: pointer; color: #475569; transition: background .15s, color .15s; }
 .chip-icon-button:hover { color: #047857; background: #effdf8; }
-.chip-avatar { width: 42px; padding: 0; color: #047857; background: #d7fff2; font-size: 14px; font-weight: 900; }
+.chip-avatar { width: 48px; height: 48px; padding: 0; border-radius: 14px; color: #047857; background: #d7fff2; font-size: 15px; font-weight: 900; }
 .mode-select-hero { display: grid; grid-template-columns: minmax(0, 760px) minmax(120px, 160px); gap: 12px; align-items: end; margin-bottom: 30px; }
 .mode-select-hero p { margin: 0 0 8px; color: #09a66d; font-size: 13px; font-weight: 1000; letter-spacing: .13em; text-transform: uppercase; }
 .mode-select-hero h1 { margin: 0; color: #142016; font-size: clamp(42px, 5vw, 66px); line-height: .96; letter-spacing: -.07em; }
