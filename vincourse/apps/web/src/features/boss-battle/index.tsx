@@ -1,128 +1,644 @@
-import { useState } from "react";
-import { CheckCircle2, ShieldAlert, Swords, Trophy, Users, Zap } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowDown,
+  ArrowUp,
+  CheckCircle2,
+  Copy,
+  Crown,
+  Music,
+  QrCode,
+  ShieldAlert,
+  Swords,
+  Timer,
+  Trophy,
+  Users,
+  Volume2,
+  VolumeX,
+  Zap,
+} from "lucide-react";
 import { submitMode } from "../../api/modes";
 import type { GameResult, GameSession } from "../../types/game";
 import "./boss-battle.css";
 
-type Props = {
-  session: GameSession;
-  onCompleted: () => void;
+type Props = { session: GameSession; onCompleted: () => void };
+type GameState = "lobby" | "countdown" | "question" | "locked" | "reveal" | "leaderboard" | "damage" | "victory";
+type BossRound = { round_id: string; title: string; concept_id: string; question: string; options: Array<{ id: string; label: string }> };
+type Player = { player_id: string; nickname: string; avatar?: string };
+type LeaderboardRow = { player_id: string; nickname: string; correct: boolean; score_delta: number; total_score?: number; elapsed_seconds: number; rank?: number; rank_delta?: number };
+type DistributionRow = { option_id: string; label: string; count: number; percent: number; correct: boolean; selected_by_player: boolean };
+type ReviewItem = {
+  result: GameResult;
+  round: BossRound;
+  selectedOptionId: string;
+  correctOptionId: string;
+};
+type ResultPayload = {
+  round_id?: string;
+  round_title?: string;
+  correct_rate?: number;
+  correct_count?: number;
+  active_players?: number;
+  boss_damaged?: boolean;
+  damage?: number;
+  player_score?: number;
+  ai_mentor?: string;
+  correct_option_id?: string;
+  answer_distribution?: DistributionRow[];
+  leaderboard?: LeaderboardRow[];
+};
+type BossPayload = {
+  room?: { room_code?: string; join_url?: string; host_name?: string };
+  boss?: { boss_name?: string; max_hp?: number; hp?: number; attack_damage?: number };
+  rules?: { threshold?: number; round_time_seconds?: number; correct_points?: number; damage_rule?: string };
+  players?: Player[];
+  rounds?: BossRound[];
 };
 
-type Team = {
-  name: string;
-  correct: boolean;
-};
+const STORAGE_KEY = "vincourse-boss-player";
+const COUNTDOWN = ["3", "2", "1", "CHIẾN"];
+const ANSWER_COLORS = ["red", "blue", "gold", "green"];
+const BOSS_ART_URL = "https://opengameart.org/sites/default/files/gaia_freebossmonster_by_antifarea_0.png";
+
+function getStoredName() {
+  return localStorage.getItem(STORAGE_KEY) ?? "";
+}
+
+function playerIdFromName(name: string) {
+  return `guest-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "player"}`;
+}
+
+function mergeCumulativeLeaderboard(previous: LeaderboardRow[], roundRows: LeaderboardRow[]) {
+  const previousById = new Map(previous.map((row) => [row.player_id, row]));
+  const rankById = new Map(previous.map((row, index) => [row.player_id, row.rank ?? index + 1]));
+  const merged = roundRows.map((row) => {
+    const previousRow = previousById.get(row.player_id);
+    return {
+      ...row,
+      total_score: Number(previousRow?.total_score ?? 0) + Number(row.score_delta ?? 0),
+    };
+  });
+  merged.sort((a, b) => Number(b.total_score ?? 0) - Number(a.total_score ?? 0) || Number(a.elapsed_seconds) - Number(b.elapsed_seconds));
+  return merged.map((row, index) => {
+    const rank = index + 1;
+    const previousRank = rankById.get(row.player_id) ?? rank;
+    return {
+      ...row,
+      rank,
+      rank_delta: previousRank - rank,
+    };
+  });
+}
+
+function useTone(muted: boolean) {
+  const audioContextRef = useRef<AudioContext | null>(null);
+  return (frequency: number, durationMs = 120, type: OscillatorType = "sine") => {
+    if (muted || !window.AudioContext) return;
+    const context = audioContextRef.current ?? new AudioContext();
+    audioContextRef.current = context;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(0.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + durationMs / 1000);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + durationMs / 1000);
+  };
+}
+
+function AudioStrip({ muted, gameState, onToggle }: { muted: boolean; gameState: GameState; onToggle: () => void }) {
+  return (
+    <div className="boss-audio-strip" aria-hidden="true">
+      <Music size={16} />
+      <span>{muted ? "Tắt âm" : gameState === "question" ? "Đếm ngược" : "Nhạc trận"}</span>
+      <button type="button" onClick={onToggle} aria-label="Bật tắt âm thanh">
+        {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
+      </button>
+    </div>
+  );
+}
+
+function Hero({ bossName, roomCode, joinUrl, threshold }: { bossName: string; roomCode: string; joinUrl: string; threshold: number }) {
+  return (
+    <div className="boss-hero">
+      <div>
+        <p>Đại chiến Trùm · Phòng trực tiếp</p>
+        <h1>{bossName}</h1>
+        <span>Mỗi người đua điểm riêng. Cả lớp cần đạt {threshold}% đúng để mở khóa đòn đánh boss.</span>
+      </div>
+      <div className="boss-room-card">
+        <QrCode size={34} />
+        <small>Mã phòng</small>
+        <strong>{roomCode}</strong>
+        <span><Copy size={14} /> {joinUrl}</span>
+      </div>
+    </div>
+  );
+}
+
+function StatusRow({ totalScore, activeCount, threshold, bossHp, maxHp }: { totalScore: number; activeCount: number; threshold: number; bossHp: number; maxHp: number }) {
+  return (
+    <div className="boss-status-row">
+      <div><Crown size={18} /><span>Điểm của bạn</span><strong>{totalScore}</strong></div>
+      <div><Users size={18} /><span>Người chơi</span><strong>{activeCount}</strong></div>
+      <div><Zap size={18} /><span>Ngưỡng</span><strong>{threshold}%</strong></div>
+      <div><Swords size={18} /><span>Máu Boss</span><strong>{bossHp}/{maxHp}</strong></div>
+    </div>
+  );
+}
+
+function Lobby({ nickname, joined, roomCode, players, onNameChange, onJoin, onStart }: {
+  nickname: string;
+  joined: boolean;
+  roomCode: string;
+  players: Player[];
+  onNameChange: (name: string) => void;
+  onJoin: () => void;
+  onStart: () => void;
+}) {
+  return (
+    <article className="boss-lobby">
+      <div className="boss-lobby-main">
+        <span className="boss-live-pill">Đang chờ người chơi</span>
+        <h2>Vào phòng Boss</h2>
+        <strong>{roomCode}</strong>
+        <p>Nhập nickname, nhìn tên mình xuất hiện trong lobby, rồi bắt đầu trận đấu.</p>
+        <div className="boss-join-row">
+          <input value={nickname} onChange={(event) => onNameChange(event.target.value)} placeholder="Tên hiển thị của bạn" />
+          <button onClick={onJoin}>{joined ? "Đã vào" : "Vào phòng"}</button>
+        </div>
+        <button className="boss-start" onClick={onStart}>Bắt đầu trận</button>
+      </div>
+      <div className="boss-player-cloud">
+        {players.map((player, index) => (
+          <span key={player.player_id} style={{ animationDelay: `${index * 70}ms` }}>{player.avatar ?? player.nickname.slice(0, 2).toUpperCase()} · {player.nickname}</span>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function Countdown({ questionNumber, totalQuestions, step }: { questionNumber: number; totalQuestions: number; step: number }) {
+  return (
+    <article className="boss-countdown">
+      <small>Câu {questionNumber}/{totalQuestions}</small>
+      <strong>{COUNTDOWN[step]}</strong>
+      <span>Chuẩn bị chọn đáp án thật nhanh</span>
+    </article>
+  );
+}
+
+function QuestionStage({ round, gameState, timeLeft, activeCount, answeredCount, maxPoints, selectedOption, resultPayload, distribution, playerCorrect, onPick }: {
+  round: BossRound;
+  gameState: GameState;
+  timeLeft: number;
+  activeCount: number;
+  answeredCount: number;
+  maxPoints: number;
+  selectedOption: string;
+  resultPayload?: ResultPayload;
+  distribution: DistributionRow[];
+  playerCorrect: boolean;
+  onPick: (optionId: string) => void;
+}) {
+  const reveal = gameState === "reveal";
+  const hasChosen = Boolean(selectedOption);
+  const stateLabel = gameState === "question" ? "Chọn đáp án" : gameState === "locked" ? "Đã khóa" : "Kết quả";
+  return (
+    <article className="boss-question-stage">
+      <div className="boss-question-top">
+        <div className="boss-timer"><Timer size={20} /><strong>{timeLeft}</strong></div>
+        <div><span>{stateLabel}</span><b>{answeredCount}/{activeCount} đã trả lời · {maxPoints} điểm</b></div>
+      </div>
+      <h2>{round.question}</h2>
+      <div className="boss-answer-grid">
+        {round.options.map((option, index) => {
+          const isSelected = selectedOption === option.id;
+          const isCorrect = resultPayload?.correct_option_id === option.id;
+          const revealClass = reveal ? (isCorrect ? "correct-answer" : isSelected ? "wrong-answer selected-wrong-answer" : "dimmed") : "";
+          const focusClass = hasChosen && !isSelected && !reveal ? "choice-muted" : "";
+          const row = distribution.find((item) => item.option_id === option.id);
+          return (
+            <button
+              key={option.id}
+              className={`${ANSWER_COLORS[index] ?? "green"} ${isSelected ? "selected" : ""} ${focusClass} ${revealClass}`}
+              onClick={() => onPick(option.id)}
+              disabled={gameState !== "question"}
+            >
+              <i>{["◆", "●", "▲", "■"][index]}</i>
+              <span>{option.label}</span>
+              {reveal && isCorrect ? <CheckCircle2 className="answer-mark" size={34} /> : null}
+              {reveal && isSelected && !isCorrect ? <ShieldAlert className="answer-mark" size={34} /> : null}
+              {reveal && row ? <small>{row.count} chọn</small> : null}
+            </button>
+          );
+        })}
+      </div>
+      {gameState === "locked" ? <div className="boss-locked">Đáp án đã khóa. Đang chờ cả lớp...</div> : null}
+    </article>
+  );
+}
+
+function ResultOverlay({ selectedOption, playerCorrect, resultPayload, totalScore, streak }: { selectedOption: string; playerCorrect: boolean; resultPayload?: ResultPayload; totalScore: number; streak: number }) {
+  const timedOut = selectedOption === "__timeout";
+  const score = Number(resultPayload?.player_score ?? 0);
+  return (
+    <div className={`boss-result-overlay ${playerCorrect ? "correct" : "incorrect"}`}>
+      <div className="boss-result-panel">
+        {playerCorrect ? <CheckCircle2 size={82} /> : <ShieldAlert size={82} />}
+        <strong>{playerCorrect ? "Đúng rồi" : timedOut ? "Hết giờ" : "Sai rồi"}</strong>
+        <small>{playerCorrect ? `Chuỗi trả lời đúng x${Math.max(1, streak)}` : "Cơ hội bứt phá ở câu tiếp theo"}</small>
+        <span>{playerCorrect ? `+${score} điểm` : "Không có điểm ở câu này"}</span>
+        <b>Tổng điểm: {totalScore}</b>
+        <small>{resultPayload?.correct_count}/{resultPayload?.active_players} người trả lời đúng</small>
+      </div>
+    </div>
+  );
+}
+
+function LeaderboardOverlay({ leaderboard, playerId }: { leaderboard: LeaderboardRow[]; playerId: string }) {
+  return (
+    <div className="boss-overlay">
+      <article className="boss-leaderboard-modal">
+        <span className="boss-live-pill">Bảng xếp hạng</span>
+        <h2>Ai đang dẫn đầu?</h2>
+        <div className="boss-leaderboard">
+          {leaderboard.map((row, index) => {
+            const delta = Number(row.rank_delta ?? 0);
+            return (
+              <div
+                key={`${row.player_id}-${index}`}
+                className={`${row.correct ? "correct" : ""} ${row.player_id === playerId ? "you" : ""} ${delta > 0 ? "moved-up" : delta < 0 ? "moved-down" : "held-rank"}`}
+                style={{ animationDelay: `${index * 90}ms` }}
+              >
+                <strong>#{row.rank ?? index + 1}</strong>
+                <span>{row.nickname}</span>
+                <b className="score-pop">{row.total_score ?? row.score_delta}</b>
+                <em className={delta >= 0 ? "up" : "down"}>
+                  {delta >= 0 ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+                  {Math.abs(delta)}
+                </em>
+              </div>
+            );
+          })}
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function DamageStage({ resultPayload, correctRate, isFinished }: { resultPayload?: ResultPayload; correctRate: number; isFinished: boolean }) {
+  const bossDamaged = Boolean(resultPayload?.boss_damaged);
+  return (
+    <article className={`boss-damage-stage ${bossDamaged ? "hit" : "blocked"}`}>
+      <div className="boss-battle-scene" aria-label={bossDamaged ? "Cả lớp bắn chưởng vào boss" : "Boss chặn đòn vì chưa đủ 80 phần trăm đúng"}>
+        <div className="boss-casters">
+          <div className="caster-team">
+            <Users size={38} />
+            <strong>Cả lớp</strong>
+            <span>{resultPayload?.correct_count}/{resultPayload?.active_players} đúng</span>
+          </div>
+          <div className="caster-aura" />
+        </div>
+        {bossDamaged ? (
+          <>
+            <div className="energy-beam">
+              <i />
+              <i />
+              <i />
+            </div>
+            <div className="impact-burst">
+              <span />
+              <span />
+              <span />
+            </div>
+          </>
+        ) : (
+          <div className="boss-shield">
+            <ShieldAlert size={44} />
+            <span>Chưa đủ lực</span>
+          </div>
+        )}
+        <div className="boss-target">
+          <img src={BOSS_ART_URL} alt="Boss monster Gaia" />
+          {bossDamaged ? <b>-{resultPayload?.damage} máu</b> : null}
+        </div>
+        <small className="boss-art-credit">Boss art: Antifarea / OpenGameArt</small>
+      </div>
+      <div className="boss-damage-copy">
+        <span className="boss-live-pill">{resultPayload?.correct_count}/{resultPayload?.active_players} đúng · {correctRate}%</span>
+        <h2>{bossDamaged ? "ĐÒN TẬP THỂ TRÚNG ĐÍCH" : "CHƯA ĐỦ 80%"}</h2>
+        <p>{bossDamaged ? `Boss nhận ${resultPayload?.damage} sát thương.` : "Boss dựng khiên chặn đòn. Cả lớp cần đồng đều hơn ở câu tiếp theo."}</p>
+        <p>{isFinished ? "Đang tổng hợp đánh giá AI cuối trận..." : "Chuẩn bị câu tiếp theo..."}</p>
+      </div>
+    </article>
+  );
+}
+
+function FinalReview({ bossHp, leaderboard, history }: { bossHp: number; leaderboard: LeaderboardRow[]; history: ReviewItem[] }) {
+  return (
+    <article className="boss-podium">
+      <Trophy size={48} />
+      <span className="boss-live-pill">{bossHp <= 0 ? "Boss đã bị hạ" : "Trận đấu kết thúc"}</span>
+      <h2>Bục chiến thắng</h2>
+      <div className="boss-podium-grid">
+        {leaderboard.slice(0, 3).map((row, index) => (
+          <div key={row.player_id} className={`place-${index + 1}`}>
+            <strong>#{index + 1}</strong>
+            <span>{row.nickname}</span>
+            <b>{row.total_score ?? row.score_delta} điểm</b>
+          </div>
+        ))}
+      </div>
+      <section className="boss-ai-review">
+        <h3>Bản xem lại cùng AI Mentor</h3>
+        {history.map((item, index) => {
+          const payload = item.result.payload as ResultPayload;
+          const selectedLabel = item.round.options.find((option) => option.id === item.selectedOptionId)?.label ?? "Không trả lời";
+          const correctLabel = item.round.options.find((option) => option.id === item.correctOptionId)?.label ?? "Chưa có đáp án";
+          return (
+            <article key={`${payload.round_id}-${index}`} className={item.result.correct ? "correct" : "incorrect"}>
+              <strong>Câu {index + 1}</strong>
+              <h4>{item.round.question}</h4>
+              <dl>
+                <div>
+                  <dt>Bạn chọn</dt>
+                  <dd>{selectedLabel}</dd>
+                </div>
+                <div>
+                  <dt>Đáp án đúng</dt>
+                  <dd>{correctLabel}</dd>
+                </div>
+              </dl>
+              <span>{item.result.correct ? "Bạn trả lời đúng" : "Bạn cần sửa lại"}</span>
+              <p>{payload.ai_mentor}</p>
+            </article>
+          );
+        })}
+      </section>
+    </article>
+  );
+}
 
 export function BossBattleView({ session, onCompleted }: Props) {
-  const payload = session.payload as {
-    boss_name?: string;
-    attack_threshold?: number;
-    attack_damage?: number;
-    boss_hp?: number;
-    core_rule?: string;
-    rules?: string[];
-    teams?: Team[];
-    phases?: string[];
-    rewards?: string[];
-    ai_class_coach?: string;
-  };
-  const teams = Array.isArray(payload.teams) ? payload.teams : [];
-  const threshold = Number(payload.attack_threshold ?? 80);
-  const correctTeams = teams.filter((team) => team.correct).length;
-  const correctRate = teams.length ? Math.round((correctTeams / teams.length) * 100) : 0;
-  const attackReady = correctRate >= threshold;
-  const hpAfterAttack = Math.max(0, Number(payload.boss_hp ?? 100) - (attackReady ? Number(payload.attack_damage ?? 25) : 0));
+  const payload = session.payload as BossPayload;
+  const rounds = Array.isArray(payload.rounds) ? payload.rounds : [];
+  const players = Array.isArray(payload.players) ? payload.players : [];
+  const threshold = Number(payload.rules?.threshold ?? 80);
+  const maxHp = Number(payload.boss?.max_hp ?? 100);
+  const damage = Number(payload.boss?.attack_damage ?? 34);
+  const timerSeconds = Number(payload.rules?.round_time_seconds ?? 30);
+  const maxPoints = Number(payload.rules?.correct_points ?? 1000);
+  const [nickname, setNickname] = useState(getStoredName());
+  const [joined, setJoined] = useState(Boolean(getStoredName()));
+  const [muted, setMuted] = useState(false);
+  const [gameState, setGameState] = useState<GameState>("lobby");
+  const [countdownStep, setCountdownStep] = useState(0);
+  const [roundIndex, setRoundIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState("");
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(timerSeconds);
+  const [bossHp, setBossHp] = useState(Number(payload.boss?.hp ?? 100));
+  const [totalScore, setTotalScore] = useState(0);
+  const [streak, setStreak] = useState(0);
   const [result, setResult] = useState<GameResult | null>(null);
+  const [history, setHistory] = useState<ReviewItem[]>([]);
+  const [cumulativeLeaderboard, setCumulativeLeaderboard] = useState<LeaderboardRow[]>([]);
+  const [damagedRoundIds, setDamagedRoundIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const playTone = useTone(muted);
 
-  async function attackBoss() {
+  const currentRound = rounds[roundIndex] ?? rounds[0];
+  const resultPayload = result?.payload as ResultPayload | undefined;
+  const leaderboard = Array.isArray(resultPayload?.leaderboard) ? resultPayload.leaderboard : [];
+  const displayLeaderboard = cumulativeLeaderboard.length ? cumulativeLeaderboard : leaderboard;
+  const distribution = Array.isArray(resultPayload?.answer_distribution) ? resultPayload.answer_distribution : [];
+  const correctRate = Number(resultPayload?.correct_rate ?? 0);
+  const roomCode = payload.room?.room_code ?? "VINC24";
+  const joinUrl = payload.room?.join_url ?? `/boss/join/${roomCode}`;
+  const activeCount = players.length + (joined ? 1 : 0);
+  const answeredCount = gameState === "question" ? Math.min(activeCount, 3 + roundIndex * 2 + (selectedOption ? 5 : 0) + Math.floor((timerSeconds - timeLeft) / 4)) : activeCount;
+  const playerId = playerIdFromName(nickname);
+  const playerCorrect = Boolean(result?.correct);
+  const isFinished = bossHp <= 0 || roundIndex >= rounds.length - 1;
+
+  const projectedPlayers = useMemo(() => {
+    const guest = joined ? [{ player_id: playerId, nickname: nickname.trim() || "You", avatar: "YOU" }] : [];
+    return [...guest, ...players];
+  }, [joined, nickname, playerId, players]);
+
+  function joinRoom() {
+    const cleanName = nickname.trim() || "Guest Player";
+    localStorage.setItem(STORAGE_KEY, cleanName);
+    setNickname(cleanName);
+    setJoined(true);
+  }
+
+  function startBattle() {
+    if (!joined) joinRoom();
+    playTone(220, 160, "sawtooth");
+    setResult(null);
+    setSelectedOption("");
+    setTotalScore(0);
+    setStreak(0);
+    setCumulativeLeaderboard([]);
+    setHistory([]);
+    setTimeLeft(timerSeconds);
+    setElapsedSeconds(0);
+    setCountdownStep(0);
+    setGameState("countdown");
+  }
+
+  async function lockAnswer(optionId: string) {
+    if (!currentRound || loading || gameState !== "question") return;
+    setSelectedOption(optionId);
+    setGameState("locked");
+    playTone(440, 110, "square");
     setLoading(true);
     setError("");
     try {
       const next = await submitMode("boss_battle", {
-        user_id: "demo-user",
+        user_id: playerId,
         course_id: "ml-foundations",
         session_id: session.session_id,
-        question_id: String(payload.boss_name ?? "boss-class-raid"),
-        answer: attackReady ? "attack unlocked by 80 percent team correctness" : "not enough correct teams",
-        confidence: 5,
+        question_id: currentRound.round_id,
+        answer: JSON.stringify({
+          room_code: roomCode,
+          nickname,
+          round_id: currentRound.round_id,
+          option_id: optionId,
+          elapsed_seconds: optionId === "__timeout" ? timerSeconds : elapsedSeconds,
+        }),
+        confidence: 4,
       });
+      const nextPayload = next.payload as ResultPayload;
+      const roundScore = Number(nextPayload.player_score ?? 0);
+      setTotalScore((current) => current + roundScore);
+      setStreak((current) => (next.correct ? current + 1 : 0));
+      if (Array.isArray(nextPayload.leaderboard)) {
+        setCumulativeLeaderboard((current) => mergeCumulativeLeaderboard(current, nextPayload.leaderboard ?? []));
+      }
       setResult(next);
+      setHistory((items) => [
+        ...items,
+        {
+          result: next,
+          round: currentRound,
+          selectedOptionId: optionId,
+          correctOptionId: String(nextPayload.correct_option_id ?? currentRound.options[0]?.id ?? ""),
+        },
+      ]);
       onCompleted();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể tấn công Boss lúc này.");
+      setError(err instanceof Error ? err.message : "Không thể gửi câu trả lời Đại chiến Trùm.");
+      setGameState("question");
     } finally {
       setLoading(false);
     }
   }
 
+  function applyBossDamage() {
+    const roundId = String(resultPayload?.round_id ?? currentRound.round_id);
+    if (!damagedRoundIds.includes(roundId)) {
+      const nextDamage = Number(resultPayload?.damage ?? 0);
+      setBossHp((current) => Math.max(0, current - nextDamage));
+      setDamagedRoundIds((items) => [...items, roundId]);
+    }
+    setGameState("damage");
+  }
+
+  function continueFlow() {
+    const nextHp = Math.max(0, bossHp - (damagedRoundIds.includes(String(resultPayload?.round_id ?? "")) ? 0 : Number(resultPayload?.damage ?? 0)));
+    if (nextHp <= 0 || roundIndex >= rounds.length - 1) {
+      setGameState("victory");
+      return;
+    }
+    const nextIndex = roundIndex + 1;
+    setRoundIndex(nextIndex);
+    setSelectedOption("");
+    setElapsedSeconds(0);
+    setTimeLeft(timerSeconds);
+    setResult(null);
+    setCountdownStep(0);
+    setGameState("countdown");
+  }
+
+  useEffect(() => {
+    if (gameState !== "countdown") return;
+    const timer = window.setTimeout(() => {
+      if (countdownStep >= COUNTDOWN.length - 1) {
+        setCountdownStep(0);
+        setTimeLeft(timerSeconds);
+        setElapsedSeconds(0);
+        setGameState("question");
+      } else {
+        setCountdownStep((current) => current + 1);
+      }
+    }, 760);
+    return () => window.clearTimeout(timer);
+  }, [countdownStep, gameState, timerSeconds]);
+
+  useEffect(() => {
+    if (gameState !== "question" || loading) return;
+    if (timeLeft <= 0) {
+      void lockAnswer(selectedOption || "__timeout");
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setTimeLeft((current) => {
+        const next = Math.max(0, current - 1);
+        setElapsedSeconds(timerSeconds - next);
+        return next;
+      });
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [gameState, loading, selectedOption, timeLeft, timerSeconds]);
+
+  useEffect(() => {
+    if (gameState !== "locked" || loading || !result) return;
+    const timer = window.setTimeout(() => setGameState("reveal"), 1200);
+    return () => window.clearTimeout(timer);
+  }, [gameState, loading, result]);
+
+  useEffect(() => {
+    if (gameState !== "reveal" || !result) return;
+    const timer = window.setTimeout(() => setGameState("leaderboard"), 3200);
+    return () => window.clearTimeout(timer);
+  }, [gameState, result]);
+
+  useEffect(() => {
+    if (gameState !== "leaderboard" || !result) return;
+    const timer = window.setTimeout(applyBossDamage, 3300);
+    return () => window.clearTimeout(timer);
+  }, [gameState, result]);
+
+  useEffect(() => {
+    if (gameState !== "damage" || !result) return;
+    const timer = window.setTimeout(continueFlow, 3000);
+    return () => window.clearTimeout(timer);
+  }, [gameState, result, bossHp, roundIndex]);
+
+  useEffect(() => {
+    if (muted) return;
+    if (gameState === "countdown") playTone(countdownStep >= COUNTDOWN.length - 1 ? 660 : 330, 90, "square");
+    if (gameState === "reveal") playTone(playerCorrect ? 760 : 180, playerCorrect ? 180 : 240, playerCorrect ? "sine" : "sawtooth");
+    if (gameState === "leaderboard") playTone(520, 180, "triangle");
+    if (gameState === "damage") playTone(resultPayload?.boss_damaged ? 140 : 240, 260, "sawtooth");
+    if (gameState === "victory") playTone(880, 260, "triangle");
+  }, [countdownStep, gameState, muted, playerCorrect, resultPayload?.boss_damaged]);
+
+  useEffect(() => {
+    if (muted || gameState !== "question" || timeLeft > 5 || timeLeft <= 0) return;
+    playTone(260 + timeLeft * 20, 70, "square");
+  }, [gameState, muted, timeLeft]);
+
+  if (!currentRound) return <section className="boss-shell"><div className="boss-card">Đại chiến Trùm chưa có câu hỏi demo.</div></section>;
+
   return (
-    <section className="boss-shell">
-      <div className="boss-hero">
-        <div>
-          <p>Boss Battle · Class Cooperation</p>
-          <h1>{payload.boss_name ?? "The Broken Model"}</h1>
-          <span>{payload.core_rule ?? session.prompt}</span>
-        </div>
-        <div className="boss-crystal"><Swords size={44} /></div>
-      </div>
+    <section className={`boss-shell state-${gameState}`}>
+      <AudioStrip muted={muted} gameState={gameState} onToggle={() => setMuted((value) => !value)} />
+      {gameState === "lobby" ? <Hero bossName={payload.boss?.boss_name ?? "Mô hình Hỏng"} roomCode={roomCode} joinUrl={joinUrl} threshold={threshold} /> : null}
+      {gameState === "lobby" ? <StatusRow totalScore={totalScore} activeCount={activeCount} threshold={threshold} bossHp={bossHp} maxHp={maxHp} /> : null}
 
-      <div className="boss-grid">
-        <article className="boss-card boss-main-card">
-          <div className="boss-card-head">
-            <strong><Users size={18} /> Class Sync</strong>
-            <span className={attackReady ? "ready" : "blocked"}>{correctRate}% correct</span>
-          </div>
-          <div className="boss-meter"><span style={{ width: `${correctRate}%` }} /><b>{correctTeams}/{teams.length} teams correct</b></div>
-          <div className="boss-threshold">
-            <span><Zap size={18} /> Attack threshold</span>
-            <strong>{threshold}%</strong>
-          </div>
-          <p className="boss-ai-coach">{payload.ai_class_coach ?? "AI Coach: Theo dõi tỉ lệ đúng của cả lớp để quyết định lúc nào được tấn công Boss."}</p>
-          <button className="boss-attack" onClick={() => void attackBoss()} disabled={!attackReady || loading}>
-            {attackReady ? "Tấn công Boss" : "Chưa đủ 80% đội đúng"}
-          </button>
-          {error ? <p className="boss-error">{error}</p> : null}
-          {result ? <p className="boss-result">{result.feedback} · +{result.xp} XP</p> : null}
-        </article>
+      {gameState === "lobby" ? <Lobby nickname={nickname} joined={joined} roomCode={roomCode} players={projectedPlayers} onNameChange={setNickname} onJoin={joinRoom} onStart={startBattle} /> : null}
+      {gameState === "countdown" ? <Countdown questionNumber={roundIndex + 1} totalQuestions={rounds.length} step={countdownStep} /> : null}
 
-        <article className="boss-card">
-          <div className="boss-card-head">
-            <strong><ShieldAlert size={18} /> Boss HP</strong>
-            <span>{hpAfterAttack}/100</span>
+      {gameState === "question" || gameState === "locked" || gameState === "reveal" ? (
+        <main className="boss-focused-play">
+          <div className="boss-game-hud">
+            <span>Câu {roundIndex + 1}/{rounds.length}</span>
+            <strong>{totalScore} điểm</strong>
+            <b>Máu Boss {bossHp}/{maxHp}</b>
           </div>
-          <div className="boss-hp"><span style={{ width: `${hpAfterAttack}%` }} /></div>
-          <ul className="boss-rules">
-            {(payload.rules ?? []).map((rule) => <li key={rule}>{rule}</li>)}
-          </ul>
-        </article>
-      </div>
+          <QuestionStage
+            round={currentRound}
+            gameState={gameState}
+            timeLeft={timeLeft}
+            activeCount={activeCount}
+            answeredCount={answeredCount}
+            maxPoints={maxPoints}
+            selectedOption={selectedOption}
+            resultPayload={resultPayload}
+            distribution={distribution}
+            playerCorrect={playerCorrect}
+            onPick={(optionId) => void lockAnswer(optionId)}
+          />
+          {gameState === "reveal" ? (
+            <ResultOverlay selectedOption={selectedOption} playerCorrect={playerCorrect} resultPayload={resultPayload} totalScore={totalScore} streak={streak} />
+          ) : null}
+        </main>
+      ) : null}
 
-      <div className="boss-grid bottom">
-        <article className="boss-card">
-          <h2>Team Board</h2>
-          <div className="boss-team-list">
-            {teams.map((team) => (
-              <span key={team.name} className={team.correct ? "correct" : "wrong"}>
-                {team.correct ? <CheckCircle2 size={16} /> : <ShieldAlert size={16} />}
-                {team.name}
-              </span>
-            ))}
-          </div>
-        </article>
+      {gameState === "leaderboard" ? <LeaderboardOverlay leaderboard={displayLeaderboard} playerId={playerId} /> : null}
+      {gameState === "damage" ? <DamageStage resultPayload={resultPayload} correctRate={correctRate} isFinished={isFinished} /> : null}
+      {gameState === "victory" ? <FinalReview bossHp={bossHp} leaderboard={displayLeaderboard} history={history} /> : null}
 
-        <article className="boss-card">
-          <h2>Victory Path</h2>
-          <div className="boss-phase-list">
-            {(payload.phases ?? []).map((phase, index) => <span key={phase}>{index + 1}. {phase}</span>)}
-          </div>
-          <div className="boss-rewards">
-            {(payload.rewards ?? []).map((reward) => <b key={reward}><Trophy size={15} /> {reward}</b>)}
-          </div>
-        </article>
-      </div>
+      {error ? <p className="boss-error">{error}</p> : null}
+      {gameState === "lobby" ? <span className="boss-damage-note">Mỗi câu đạt {threshold}% đúng gây {damage} máu. Chỉ cần 3 câu thành công để hạ boss 100 máu.</span> : null}
     </section>
   );
 }

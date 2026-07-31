@@ -4,86 +4,225 @@ Owner: Trung Quan
 
 ## Goal
 
-Mode tong hop cuoi zone. Nguoi hoc phai van dung nhieu concept trong mot scenario lon va di qua nhieu phase.
+Boss Battle la live room kieu Kahoot ket hop muc tieu ha boss tap the.
 
-Core rule: Boss Battle la thu thach hop tac ca lop. Moi team tra loi doc lap; neu it nhat `80%` team trong lop tra loi dung o cung mot round, ca lop mo duoc mot don tan cong len boss.
+Nguoi choi join bang nickname, khong can tai khoan. Moi round moi nguoi tra loi doc lap, nhan diem ca nhan va bonus toc do. Neu it nhat `80%` nguoi choi tra loi dung trong round, boss moi mat mau.
 
-## Demo Path
+## Demo Flow
 
 ```text
-Open Boss Battle
-  -> load boss scenario
-  -> teams answer independently
-  -> system calculates class correct rate
-  -> if correct rate >= 80%, class attacks boss
-  -> if boss HP reaches 0, boss defeated
-  -> wrong teams receive recovery suggestions
+Host mo Boss Battle
+  -> man hinh hien room code / join link
+  -> nguoi choi nhap nickname
+  -> host bam Start Battle
+  -> countdown 3-2-1-FIGHT
+  -> round hien timer lon, cau hoi va 4 dap an mau
+  -> tung nguoi bam dap an va bi lock answer
+  -> backend cham dung/sai va tinh diem ca nhan
+  -> reveal dap an dung + phan bo nguoi chon tung dap an
+  -> hien leaderboard overlay sau moi cau
+  -> animate diem va tang/giam thu hang
+  -> backend tinh correct_rate cua ca phong
+  -> neu correct_rate >= 80%, boss mat 34 HP
+  -> boss damage stage hien -34 HP hoac Attack blocked
+  -> AI mentor analysis duoc luu lai, chua hien dai dong giua tran
+  -> lap lai den khi boss HP = 0 hoac het round demo
+  -> final podium
 ```
 
-## Allowed Folders
+## Scoring Rules
 
-Allowed folders:
+```text
+Dung: toi da 1000 diem
+Dung nhanh: diem cang gan 1000
+Sai: +0 diem
+Khong nop: +0 diem
+```
 
-- `vincourse/apps/web/src/features/boss-battle/**`
-- `vincourse/apps/api/app/features/boss_battle/**`
+Cong thuc demo:
 
-## Endpoints
+```text
+score = round(1000 * (1 - elapsed_seconds / timer_seconds / 2))
+```
 
-Endpoint:
+## Boss Damage Rules
+
+```text
+correct_rate = correct_players / active_players * 100
+
+Neu correct_rate >= 80:
+  boss mat 34 HP
+
+Neu correct_rate < 80:
+  boss khong mat mau
+  AI mentor tao recovery hint de hien o final review
+```
+
+Boss co 100 HP va moi hit la 34 HP, nen lop chi can 3 round thanh cong trong tong 4 round de ha boss.
+
+## AI Usage
+
+AI that trong module nay nam o backend:
+
+```text
+FE -> FastAPI /api/modes/boss_battle/submit
+   -> feature-local _boss_round_mentor()
+   -> OpenAI
+   -> GameResult.payload.ai_mentor
+```
+
+AI chi sinh feedback/recovery hint. AI khong ghi truc tiep vao JSON/database.
+
+UX rule: khong hien AI analysis dai giua round vi lam dut nhip game. Trong luc choi chi hien dung/sai, diem, distribution va leaderboard. Tat ca AI mentor review duoc gom lai o final podium.
+
+Neu thieu `OPENAI_API_KEY`, backend tu fallback sang mentor text deterministic de team van start duoc app.
+
+## Current Endpoints
 
 ```text
 GET  /api/modes/boss_battle/session
 POST /api/modes/boss_battle/submit
 ```
 
-## Suggested Session Payload
+## Submit Answer Contract
+
+`GameSubmitRequest.answer` la JSON string de khong can sua schema chung:
 
 ```json
 {
-  "boss_id": "broken-model",
-  "phase": 1,
-  "phases": [
-    "diagnose_root_cause",
-    "choose_pipeline_fix",
-    "explain_interaction",
-    "transfer_to_new_data",
-    "final_challenge"
-  ],
-  "scenario": "A model diverges after training because features have very different scales.",
-  "concept_ids": ["feature-scaling", "learning-rate", "mse-loss"],
-  "attack_threshold": 80,
-  "core_rule": "At least 80% of teams must answer correctly in the same round to unlock a boss attack.",
-  "boss_hp": 100,
-  "attack_damage": 25
+  "room_code": "24",
+  "nickname": "Minh",
+  "round_id": "diagnose",
+  "option_id": "scale_mismatch",
+  "elapsed_seconds": 10
 }
 ```
 
-## Cooperation Rules
+## Result Payload Contract
 
-1. Moi team nhan cung mot boss question trong round hien tai.
-2. Team nop dap an doc lap, khong can tat ca thanh vien phai trung mot dap an trong UI demo.
-3. Sau khi het gio, he thong tinh `class_correct_rate = correct_teams / active_teams * 100`.
-4. Neu `class_correct_rate >= 80%`, ca lop duoc tan cong boss.
-5. Neu duoi `80%`, boss khong mat mau va cac team sai nhan recovery hint.
-6. Moi don tan cong giam HP boss theo `attack_damage`.
-7. Khi HP boss ve `0`, ca lop thang Boss Battle va mo zone tiep theo.
+```json
+{
+  "round_id": "diagnose",
+  "player_score": 833,
+  "speed_bonus": 333,
+  "active_players": 10,
+  "correct_count": 8,
+  "correct_rate": 80,
+  "threshold": 80,
+  "boss_damaged": true,
+  "damage": 34,
+  "answer_distribution": [
+    {
+      "option_id": "scale_mismatch",
+      "count": 8,
+      "percent": 80,
+      "correct": true,
+      "selected_by_player": true
+    }
+  ],
+  "leaderboard": [
+    {
+      "rank": 1,
+      "rank_delta": 2,
+      "nickname": "Minh",
+      "score_delta": 933,
+      "correct": true
+    }
+  ],
+  "ai_mentor": "AI Mentor..."
+}
+```
 
-## GameResult Notes
+## UI State Machine
 
-- Phase clear: `mastered`, partial XP.
-- Final clear: `mastered`, large XP, unlock next zone.
-- Class attack: only when at least `80%` of active teams are correct.
-- Weak explanation: `partial` or `needs_clarification`.
-- Wrong causal model: `misconception`, `recovery_created=true`.
+Frontend Boss Battle khong render nhu mot form quiz. No chay theo cac state rieng:
 
-## What Can Be Mocked
+```text
+lobby
+countdown
+question
+locked
+reveal
+leaderboard
+damage
+victory
+```
 
-- Real unlock tree.
-- Full multi-zone progression.
+Nguoi choi chi can:
 
-## What Should Feel Real
+```text
+join room
+start battle
+chon dap an
+```
 
-- Multi-phase boss progress.
-- Explanation grading.
-- Transfer evidence.
-- Big result state.
+Sau khi start battle, UI chuyen sang game surface full-screen:
+
+```text
+Khong hien hero/dashboard cua trang web.
+Khong hien thong tin phu nhu mo ta tinh nang hay phase list.
+Chi giu HUD toi thieu: vong hien tai, diem, boss HP, timer, so nguoi da tra loi.
+```
+
+Sau khi nguoi choi chon dap an hoac het gio, UI tu dong chay tiep:
+
+```text
+locked
+  -> reveal correct/incorrect
+  -> answer distribution
+  -> leaderboard overlay
+  -> boss damage
+  -> next countdown hoac final podium
+```
+
+Yeu cau UX:
+
+```text
+lobby: room code lon, player chips, Start Battle
+countdown: 3-2-1-FIGHT full stage
+question: timer lon, answer cards mau, answered count
+locked: cho ca lop, khong reveal ngay, tu dong sang reveal
+reveal: hien Correct/Incorrect, dap an dung co check, dap an sai co warning, hien distribution
+leaderboard: overlay full-screen, diem count-up, rank movement, tu dong sang damage
+damage: boss shake, -34 HP hoac attack blocked, tu dong sang round tiep
+victory: final podium top 3
+final review: hien AI Mentor Review tung round de nguoi hoc doc lai sau khi game dung
+```
+
+## Database Contract For Future JSON Server
+
+Boss Battle la module rieng ve gameplay live-room, nhung van noi voi app chung bang shared keys.
+
+Feature tables du kien:
+
+```text
+bossBattleRooms
+bossBattlePlayers
+bossBattleRounds
+bossBattleAnswers
+```
+
+Shared keys bat buoc khi ghi DB sau nay:
+
+```text
+course_id
+mode = boss_battle
+session_id
+user_id hoac guest_id
+concept_id
+evidence_ids
+```
+
+Nguyen tac:
+
+```text
+FE khong ghi db.json.
+AI khong ghi db.json.
+FE -> FastAPI -> storage layer -> JSON DB.
+```
+
+## Allowed Folders
+
+- `vincourse/apps/web/src/features/boss-battle/**`
+- `vincourse/apps/api/app/features/boss_battle/**`
+- `vincourse/docs/features/boss-battle.md`
