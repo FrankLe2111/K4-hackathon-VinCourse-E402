@@ -27,23 +27,31 @@ Muc tieu cua bo docs:
 5. `AI_MODULE_GUIDE.md`
    - Cach goi AI dung cach, khong goi OpenAI tu frontend.
 
-6. `FEATURE_WORKFLOW.md`
+6. `TEAM_HANDOFF_DEVELOP.md`
+   - Huong dan tao branch moi tu develop va phat trien tiep sau khi merge feature.
+
+7. `JSON_DATABASE_PLAN.md`
+   - Ke hoach dung JSON DB tong + seed rieng theo feature, bat buoc ghi qua FastAPI.
+
+8. `FEATURE_WORKFLOW.md`
    - Checklist cho tung thanh vien khi lam mode rieng.
 
-7. `AGENT_WORKFLOW.md`
+9. `AGENT_WORKFLOW.md`
    - Prompt va quy tac khi dung AI Agent de gen code.
 
-8. `AI_AGENT_INTEGRATION_RULES.md`
+10. `AI_AGENT_INTEGRATION_RULES.md`
    - Quy tac chong conflict khi AI Agent tich hop module vao file chung.
 
-9. `features/*.md`
+11. `features/*.md`
    - Tai lieu rieng cho tung feature owner.
 
 ## Nguyen Tac Chinh
 
 - React chi goi FastAPI.
 - FastAPI quan ly game logic, progress, evidence.
+- Moi thao tac ghi database phai di qua FastAPI va storage layer.
 - Module AI nam trong backend va la noi duy nhat goi OpenAI.
+- AI module khong duoc tu ghi truc tiep vao JSON database.
 - Moi mode tra ve cung `GameResult`.
 - Moi nguoi chi sua folder feature cua minh.
 - Shared files chi do base/integration owner sua.

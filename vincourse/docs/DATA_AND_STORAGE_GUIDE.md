@@ -1,6 +1,6 @@
 # Data And Storage Guide
 
-Trong hackathon, codebase dung in-memory storage de nhanh. Tai lieu nay thong nhat cach cac feature ghi progress/evidence.
+Trong hackathon, codebase ban dau dung in-memory storage de nhanh. Sau khi cac feature da duoc merge, team nen chuyen dan sang JSON database co kiem soat theo `JSON_DATABASE_PLAN.md`.
 
 ## 1. Tam Thoi Dung In-Memory
 
@@ -87,7 +87,46 @@ Live Battle:
 - Participation.
 - Collaborative reasoning evidence.
 
-## 4. Khi Nao Nang Cap Len Database?
+## 4. Ke Hoach Nang Cap Len JSON Database
+
+Tai lieu chi tiet:
+
+```text
+docs/JSON_DATABASE_PLAN.md
+```
+
+Nguyen tac bat buoc:
+
+```text
+Frontend -> FastAPI -> storage layer -> JSON file
+```
+
+Khong cho phep:
+
+```text
+Frontend -> db.json
+AI module -> db.json
+AI Agent -> sua truc tiep runtime JSON khi app dang chay
+```
+
+Seed data chia theo feature de tranh conflict:
+
+```text
+apps/api/data/seeds/story_quest.json
+apps/api/data/seeds/daily_recall.json
+apps/api/data/seeds/error_dungeon.json
+apps/api/data/seeds/lab_arena.json
+apps/api/data/seeds/boss_battle.json
+apps/api/data/seeds/live_battle.json
+```
+
+Runtime data ghi local-only:
+
+```text
+apps/api/data/db.runtime.json
+```
+
+## 5. Khi Nao Nang Cap Len Database?
 
 Chi nang cap khi:
 

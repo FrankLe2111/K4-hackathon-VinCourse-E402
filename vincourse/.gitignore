@@ -9,3 +9,7 @@ dist/
 .vite/
 *.tsbuildinfo
 *.log
+apps/api/data/db.runtime.json
+apps/api/data/db.runtime.tmp
+apps/api/data/backups/
+apps/api/data/db.json

@@ -201,6 +201,12 @@ Frontend -> db.json
 AI Agent -> append truc tiep db.json
 ```
 
+Doc them:
+
+```text
+docs/JSON_DATABASE_PLAN.md
+```
+
 ## 8. Checklist Truoc Khi Push Feature Branch
 
 - Khong co conflict marker `<<<<<<<`.
