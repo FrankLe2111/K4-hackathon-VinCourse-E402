@@ -8,6 +8,31 @@ import type { GameMode, ModeInfo, ProgressSummary } from "../types/game";
 import { FeatureHost } from "../shared/components/FeatureHost";
 import odysseyOwl from "../assets/odyssey-owl.png";
 
+export type Role = "learner" | "admin";
+
+export type Route =
+  | "home"
+  | "map"
+  | "modes"
+  | "understanding"
+  | "quest"
+  | "feedback"
+  | "recovery"
+  | "result"
+  | "recall"
+  | "mastery"
+  | "error-dungeon"
+  | "boss"
+  | "live"
+  | "ai-adversary"
+  | "admin-dashboard"
+  | "admin-upload"
+  | "admin-generate"
+  | "admin-world"
+  | "admin-questions"
+  | "admin-analytics"
+  | "lab";
+
 const modeIcons = {
   story: BookOpen,
   daily_recall: BrainCircuit,
@@ -86,6 +111,10 @@ export function App() {
   const recoveryCount = progress?.recovery_queue_size ?? 0;
   const streakDays = Math.max(1, Math.min(7, Math.floor(totalXp / 120) + completedCount + 1));
   const level = Math.floor(totalXp / 500) + 1;
+  const canOpenMode = (mode: GameMode) => modes.some((item) => item.mode === mode);
+  const openMode = (mode: GameMode) => {
+    if (canOpenMode(mode)) setSelectedMode(mode);
+  };
 
   if (!selectedMode) {
     return (
@@ -97,15 +126,35 @@ export function App() {
           </div>
           <p className="nav-label">Học tập</p>
           <nav className="rail-list" aria-label="Điều hướng chính">
-            <span><Home size={16} />Trang chủ</span>
-            <span><Map size={16} />Bản đồ khóa học</span>
-            <span className="active"><Sparkles size={16} />Chế độ chơi <b>{modes.length || 7}</b></span>
-            <span><BrainCircuit size={16} />Ôn tập hằng ngày <b>5</b></span>
+            <button type="button" onClick={() => setSelectedMode(null)}><Home size={16} />Trang chủ</button>
+            <button type="button" onClick={() => openMode("story")} disabled={!canOpenMode("story")}><Map size={16} />Bản đồ khóa học</button>
+            <button type="button" className="active" onClick={() => setSelectedMode(null)}><Sparkles size={16} />Chế độ chơi <b>{modes.length || 7}</b></button>
+            <button type="button" onClick={() => openMode("daily_recall")} disabled={!canOpenMode("daily_recall")}><BrainCircuit size={16} />Ôn tập hằng ngày <b>5</b></button>
+          </nav>
+          <nav className="mode-list rail-mode-list" aria-label="Chọn chế độ chơi">
+            {loading ? <div className="nav-skeleton">Đang mở bản đồ…</div> : modes.map((mode) => {
+              const Icon = modeIcons[mode.mode];
+              const done = progress?.completed_modes.includes(mode.mode);
+              return (
+                <button
+                  key={mode.mode}
+                  className={mode.mode === selectedMode ? "active" : ""}
+                  onClick={() => setSelectedMode(mode.mode)}
+                >
+                  <span className="mode-icon"><Icon size={18} /></span>
+                  <span className="mode-copy">
+                    <strong>{mode.title}</strong>
+                    <small>{mode.owner}</small>
+                  </span>
+                  <span className="mode-done">{done ? "✓" : ""}</span>
+                </button>
+              );
+            })}
           </nav>
           <p className="nav-label">Khắc phục</p>
           <nav className="rail-list" aria-label="Khắc phục">
-            <span><ShieldAlert size={16} />Hầm ngục lỗi sai <b>{recoveryCount}</b></span>
-            <span><Swords size={16} />Đối thủ AI</span>
+            <button type="button" onClick={() => openMode("error_dungeon")} disabled={!canOpenMode("error_dungeon")}><ShieldAlert size={16} />Hầm ngục lỗi sai <b>{recoveryCount}</b></button>
+            <button type="button" onClick={() => openMode("understanding")} disabled={!canOpenMode("understanding")}><Swords size={16} />Đối thủ AI</button>
           </nav>
           <div className="rail-profile">
             <span className="avatar">LM</span>
