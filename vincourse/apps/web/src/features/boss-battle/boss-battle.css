@@ -328,7 +328,7 @@
 .boss-answer-grid button {
   min-height: 128px;
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-columns: 44px minmax(0, 1fr) 40px;
   gap: 14px;
   align-items: center;
   border: 0;
@@ -370,6 +370,10 @@
 .boss-answer-grid .correct-answer { filter: saturate(1.25); animation: boss-correct .7s ease both; }
 .boss-answer-grid .wrong-answer { animation: boss-wrong .45s ease both; }
 .boss-answer-grid .dimmed { opacity: .28; filter: grayscale(.5); }
+.answer-mark {
+  justify-self: end;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.22));
+}
 
 .boss-speed {
   display: grid;
@@ -394,11 +398,50 @@
   text-align: center;
 }
 
+.boss-player-feedback {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  border-radius: 12px;
+  padding: 20px;
+  color: #fff;
+  text-align: center;
+  animation: boss-board-in .24s ease both;
+}
+
+.boss-player-feedback.correct {
+  background: #16a34a;
+}
+
+.boss-player-feedback.incorrect {
+  background: #dc2626;
+}
+
+.boss-player-feedback strong {
+  font-size: 30px;
+}
+
+.boss-player-feedback span {
+  font-weight: 1000;
+}
+
 .boss-stage-action {
   width: max-content;
   min-width: 190px;
   margin-top: 18px;
   padding: 0 18px;
+}
+
+.boss-auto-note {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  border-radius: 999px;
+  padding: 10px 14px;
+  color: #475569;
+  background: #f1f5f9;
+  font-weight: 900;
 }
 
 .boss-side-panel {

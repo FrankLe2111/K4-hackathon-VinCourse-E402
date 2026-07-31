@@ -144,16 +144,35 @@ damage
 victory
 ```
 
+Nguoi choi chi can:
+
+```text
+join room
+start battle
+chon dap an
+```
+
+Sau khi nguoi choi chon dap an hoac het gio, UI tu dong chay tiep:
+
+```text
+locked
+  -> reveal correct/incorrect
+  -> answer distribution
+  -> leaderboard overlay
+  -> boss damage
+  -> next countdown hoac final podium
+```
+
 Yeu cau UX:
 
 ```text
 lobby: room code lon, player chips, Start Battle
 countdown: 3-2-1-FIGHT full stage
 question: timer lon, answer cards mau, answered count
-locked: cho ca lop, khong reveal ngay
-reveal: dap an dung sang len, dap an sai mo/rung, hien distribution
-leaderboard: overlay full-screen, diem count-up, rank movement
-damage: boss shake, -25 HP hoac attack blocked
+locked: cho ca lop, khong reveal ngay, tu dong sang reveal
+reveal: hien Correct/Incorrect, dap an dung co check, dap an sai co warning, hien distribution
+leaderboard: overlay full-screen, diem count-up, rank movement, tu dong sang damage
+damage: boss shake, -25 HP hoac attack blocked, tu dong sang round tiep
 victory: final podium top 3
 ```
 
