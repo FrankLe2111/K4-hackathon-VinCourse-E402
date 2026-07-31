@@ -108,6 +108,16 @@ assert schedule_tools(1, []) == [[0]]
     }
 
 
+def _friendly_lab_feedback(output: str) -> str:
+    if "NotImplementedError" in output or "Write your code here" in output:
+        return "Bạn chưa viết phần xử lý chính. Hãy thay dòng placeholder bằng thuật toán của bạn rồi chạy lại nhé."
+    if "NameError" in output and "schedule_tools" in output:
+        return "Hệ thống chưa tìm thấy hàm schedule_tools. Hãy giữ đúng tên hàm trong đề bài."
+    if "AssertionError" in output:
+        return "Một vài test case chưa khớp. Hãy kiểm tra lại thứ tự round, xử lý cycle, và đảm bảo tool mới mở khóa chỉ chạy ở vòng tiếp theo."
+    return "Bài làm chưa qua visible tests. Hãy xem lại logic rồi thử chạy lại nhé."
+
+
 def grade_lab_arena(mode: GameMode, code: str, session_id: str) -> GameResult:
     if not code.strip():
         return GameResult(
@@ -159,16 +169,16 @@ def grade_lab_arena(mode: GameMode, code: str, session_id: str) -> GameResult:
                 next_action="Great work! You used graph dependencies like a real tool-calling scheduler.",
             )
         except subprocess.CalledProcessError as exc:
-            feedback = exc.stderr.strip() or exc.stdout.strip() or "Your code did not pass the visible tests."
+            output = exc.stderr.strip() or exc.stdout.strip()
             return GameResult(
                 mode=mode,
                 correct=False,
                 status=GameStatus.partial,
-                feedback=f"Visible tests failed: {feedback}",
+                feedback=_friendly_lab_feedback(output),
                 xp=20,
                 mastery_delta=0,
                 recovery_created=True,
-                next_action="Fix the failing assertions and run the tests again.",
+                next_action="Gợi ý: dùng graph + indegree, mỗi lượt gom toàn bộ tool có indegree bằng 0.",
             )
         except subprocess.TimeoutExpired:
             return GameResult(

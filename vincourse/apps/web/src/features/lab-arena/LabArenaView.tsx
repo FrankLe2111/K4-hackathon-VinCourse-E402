@@ -182,7 +182,7 @@ def schedule_tools(n: int, dependencies: List[List[int]]) -> List[List[int]]:
               <h1>Submissions</h1>
               {result ? (
                 <div className={`lab-submission-card ${result.correct ? "success" : "danger"}`}>
-                  <strong>{result.correct ? "Accepted" : "Wrong Answer"}</strong>
+                  <strong>{result.correct ? "Accepted" : "Chưa qua test"}</strong>
                   <p>{result.feedback}</p>
                   <small>{result.correct ? `+${result.xp} XP` : "Đã lưu vào recovery queue để làm lại."}</small>
                 </div>
@@ -207,7 +207,7 @@ def schedule_tools(n: int, dependencies: List[List[int]]) -> List[List[int]]:
             <strong><CheckCircle2 size={16} /> Testcase</strong>
             <div className="lab-tests">{visibleTests.map((test) => <span key={test} className={result?.correct ? "pass" : result ? "fail" : ""}>{result?.correct ? "✓" : result ? "!" : "•"} {test}</span>)}</div>
             {error ? <p className="alert">{error}</p> : null}
-            {result ? <div className={`lab-result ${result.correct ? "success" : "danger"}`}><strong>{result.correct ? `Accepted · +${result.xp} XP` : `Wrong Answer · +${result.xp} XP`}</strong><p>{result.feedback}</p><small>{result.next_action}</small></div> : null}
+            {result ? <div className={`lab-result ${result.correct ? "success" : "danger"}`}><strong>{result.correct ? `Accepted · +${result.xp} XP` : `Chưa qua test · +${result.xp} XP luyện tập`}</strong><p>{result.feedback}</p><small>{result.next_action}</small></div> : null}
           </div>
         </section>
       </div>
