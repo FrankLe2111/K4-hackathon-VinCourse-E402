@@ -11,6 +11,7 @@ import parkIcon from "../../assets/park.png";
 import ruralIcon from "../../assets/rural.png";
 import shippingIcon from "../../assets/shipping.png";
 import stadiumIcon from "../../assets/stadium.png";
+import odysseyOwl from "../../assets/odyssey-owl.png";
 import "./story-quest.css";
 
 type StoryOption = { id: string; text: string };
@@ -291,9 +292,52 @@ export function StoryQuest({ onCompleted }: { onCompleted: () => void }) {
     tone.stop(audio.currentTime + 0.12);
   }
 
-  if (loading && !session) return <section className="feature-panel"><h2>Đang tải Hành Trình AI…</h2></section>;
-  if (error && !session) return <section className="feature-panel alert">{error}</section>;
-  if (!zone || !question) return <section className="feature-panel alert">Dữ liệu bài học chưa sẵn sàng.</section>;
+  if (loading && !session) return (
+    <div className="vc-loading-container">
+      <div className="vc-loading-card">
+        <div className="vc-loading-owl-wrapper">
+          <div className="vc-loading-glow-circle" />
+          <div className="vc-loading-spinner-ring" />
+          <img src={odysseyOwl} alt="Mascot cú VinCourse" className="vc-loading-owl" />
+        </div>
+        <h3>Đang mở Hành Trình AI...</h3>
+        <p>AI Coach đang nạp dữ liệu bản đồ và các Vùng kiến thức cho bạn.</p>
+        <div className="vc-loading-bar-track">
+          <div className="vc-loading-bar-fill" />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (error && !session) return (
+    <div className="vc-loading-container">
+      <div className="vc-loading-card" style={{ borderColor: "#fecaca" }}>
+        <div className="vc-loading-owl-wrapper">
+          <img src={odysseyOwl} alt="Mascot cú VinCourse" className="vc-loading-owl" style={{ filter: "grayscale(0.4)" }} />
+        </div>
+        <h3 style={{ color: "#b91c1c" }}>Không kết nối được máy chủ</h3>
+        <p style={{ color: "#64748b" }}>{error}</p>
+        <p style={{ fontSize: "13px", color: "#94a3b8" }}>Hãy đảm bảo API đang chạy tại <strong>localhost:8000</strong> rồi thử lại.</p>
+      </div>
+    </div>
+  );
+
+  if (!zone || !question) return (
+    <div className="vc-loading-container">
+      <div className="vc-loading-card">
+        <div className="vc-loading-owl-wrapper">
+          <div className="vc-loading-glow-circle" />
+          <div className="vc-loading-spinner-ring" />
+          <img src={odysseyOwl} alt="Mascot cú VinCourse" className="vc-loading-owl" />
+        </div>
+        <h3>Đang chuẩn bị bài học...</h3>
+        <p>Dữ liệu bài học đang được tải. Vui lòng chờ trong giây lát.</p>
+        <div className="vc-loading-bar-track">
+          <div className="vc-loading-bar-fill" />
+        </div>
+      </div>
+    </div>
+  );
 
   if (showIntro && viewLevel === "zone_detail") {
     return (
