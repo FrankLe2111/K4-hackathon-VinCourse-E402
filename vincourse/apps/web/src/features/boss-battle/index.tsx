@@ -24,7 +24,7 @@ type Props = { session: GameSession; onCompleted: () => void };
 type GameState = "lobby" | "countdown" | "question" | "locked" | "reveal" | "leaderboard" | "damage" | "victory";
 type BossRound = { round_id: string; title: string; concept_id: string; question: string; options: Array<{ id: string; label: string }> };
 type Player = { player_id: string; nickname: string; avatar?: string };
-type LeaderboardRow = { player_id: string; nickname: string; correct: boolean; score_delta: number; elapsed_seconds: number; rank?: number; rank_delta?: number };
+type LeaderboardRow = { player_id: string; nickname: string; correct: boolean; score_delta: number; total_score?: number; elapsed_seconds: number; rank?: number; rank_delta?: number };
 type DistributionRow = { option_id: string; label: string; count: number; percent: number; correct: boolean; selected_by_player: boolean };
 type ResultPayload = {
   round_id?: string;
@@ -58,6 +58,28 @@ function getStoredName() {
 
 function playerIdFromName(name: string) {
   return `guest-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "player"}`;
+}
+
+function mergeCumulativeLeaderboard(previous: LeaderboardRow[], roundRows: LeaderboardRow[]) {
+  const previousById = new Map(previous.map((row) => [row.player_id, row]));
+  const rankById = new Map(previous.map((row, index) => [row.player_id, row.rank ?? index + 1]));
+  const merged = roundRows.map((row) => {
+    const previousRow = previousById.get(row.player_id);
+    return {
+      ...row,
+      total_score: Number(previousRow?.total_score ?? 0) + Number(row.score_delta ?? 0),
+    };
+  });
+  merged.sort((a, b) => Number(b.total_score ?? 0) - Number(a.total_score ?? 0) || Number(a.elapsed_seconds) - Number(b.elapsed_seconds));
+  return merged.map((row, index) => {
+    const rank = index + 1;
+    const previousRank = rankById.get(row.player_id) ?? rank;
+    return {
+      ...row,
+      rank,
+      rank_delta: previousRank - rank,
+    };
+  });
 }
 
 function useTone(muted: boolean) {
@@ -213,15 +235,17 @@ function QuestionStage({ round, gameState, timeLeft, activeCount, answeredCount,
   );
 }
 
-function ResultOverlay({ selectedOption, playerCorrect, resultPayload }: { selectedOption: string; playerCorrect: boolean; resultPayload?: ResultPayload }) {
+function ResultOverlay({ selectedOption, playerCorrect, resultPayload, totalScore, streak }: { selectedOption: string; playerCorrect: boolean; resultPayload?: ResultPayload; totalScore: number; streak: number }) {
   const timedOut = selectedOption === "__timeout";
   const score = Number(resultPayload?.player_score ?? 0);
   return (
     <div className={`boss-result-overlay ${playerCorrect ? "correct" : "incorrect"}`}>
       <div className="boss-result-panel">
         {playerCorrect ? <CheckCircle2 size={82} /> : <ShieldAlert size={82} />}
-        <strong>{playerCorrect ? "Chính xác" : timedOut ? "Hết giờ" : "Sai rồi"}</strong>
+        <strong>{playerCorrect ? "Đúng rồi" : timedOut ? "Hết giờ" : "Sai rồi"}</strong>
+        <small>{playerCorrect ? `Chuỗi trả lời đúng x${Math.max(1, streak)}` : "Cơ hội bứt phá ở câu tiếp theo"}</small>
         <span>{playerCorrect ? `+${score} điểm` : "Không có điểm ở câu này"}</span>
+        <b>Tổng điểm: {totalScore}</b>
         <small>{resultPayload?.correct_count}/{resultPayload?.active_players} người trả lời đúng</small>
       </div>
     </div>
@@ -245,7 +269,7 @@ function LeaderboardOverlay({ leaderboard, playerId }: { leaderboard: Leaderboar
               >
                 <strong>#{row.rank ?? index + 1}</strong>
                 <span>{row.nickname}</span>
-                <b className="score-pop">+{row.score_delta}</b>
+                <b className="score-pop">{row.total_score ?? row.score_delta}</b>
                 <em className={delta >= 0 ? "up" : "down"}>
                   {delta >= 0 ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
                   {Math.abs(delta)}
@@ -283,7 +307,7 @@ function FinalReview({ bossHp, leaderboard, history }: { bossHp: number; leaderb
           <div key={row.player_id} className={`place-${index + 1}`}>
             <strong>#{index + 1}</strong>
             <span>{row.nickname}</span>
-            <b>{row.score_delta} điểm</b>
+            <b>{row.total_score ?? row.score_delta} điểm</b>
           </div>
         ))}
       </div>
@@ -324,8 +348,10 @@ export function BossBattleView({ session, onCompleted }: Props) {
   const [timeLeft, setTimeLeft] = useState(timerSeconds);
   const [bossHp, setBossHp] = useState(Number(payload.boss?.hp ?? 100));
   const [totalScore, setTotalScore] = useState(0);
+  const [streak, setStreak] = useState(0);
   const [result, setResult] = useState<GameResult | null>(null);
   const [history, setHistory] = useState<GameResult[]>([]);
+  const [cumulativeLeaderboard, setCumulativeLeaderboard] = useState<LeaderboardRow[]>([]);
   const [damagedRoundIds, setDamagedRoundIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -334,6 +360,7 @@ export function BossBattleView({ session, onCompleted }: Props) {
   const currentRound = rounds[roundIndex] ?? rounds[0];
   const resultPayload = result?.payload as ResultPayload | undefined;
   const leaderboard = Array.isArray(resultPayload?.leaderboard) ? resultPayload.leaderboard : [];
+  const displayLeaderboard = cumulativeLeaderboard.length ? cumulativeLeaderboard : leaderboard;
   const distribution = Array.isArray(resultPayload?.answer_distribution) ? resultPayload.answer_distribution : [];
   const correctRate = Number(resultPayload?.correct_rate ?? 0);
   const roomCode = payload.room?.room_code ?? "VINC24";
@@ -361,6 +388,9 @@ export function BossBattleView({ session, onCompleted }: Props) {
     playTone(220, 160, "sawtooth");
     setResult(null);
     setSelectedOption("");
+    setTotalScore(0);
+    setStreak(0);
+    setCumulativeLeaderboard([]);
     setTimeLeft(timerSeconds);
     setElapsedSeconds(0);
     setCountdownStep(0);
@@ -390,7 +420,12 @@ export function BossBattleView({ session, onCompleted }: Props) {
         confidence: 4,
       });
       const nextPayload = next.payload as ResultPayload;
-      setTotalScore((current) => current + Number(nextPayload.player_score ?? 0));
+      const roundScore = Number(nextPayload.player_score ?? 0);
+      setTotalScore((current) => current + roundScore);
+      setStreak((current) => (next.correct ? current + 1 : 0));
+      if (Array.isArray(nextPayload.leaderboard)) {
+        setCumulativeLeaderboard((current) => mergeCumulativeLeaderboard(current, nextPayload.leaderboard ?? []));
+      }
       setResult(next);
       setHistory((items) => [...items, next]);
       onCompleted();
@@ -529,14 +564,14 @@ export function BossBattleView({ session, onCompleted }: Props) {
             onPick={(optionId) => void lockAnswer(optionId)}
           />
           {gameState === "reveal" ? (
-            <ResultOverlay selectedOption={selectedOption} playerCorrect={playerCorrect} resultPayload={resultPayload} />
+            <ResultOverlay selectedOption={selectedOption} playerCorrect={playerCorrect} resultPayload={resultPayload} totalScore={totalScore} streak={streak} />
           ) : null}
         </main>
       ) : null}
 
-      {gameState === "leaderboard" ? <LeaderboardOverlay leaderboard={leaderboard} playerId={playerId} /> : null}
+      {gameState === "leaderboard" ? <LeaderboardOverlay leaderboard={displayLeaderboard} playerId={playerId} /> : null}
       {gameState === "damage" ? <DamageStage resultPayload={resultPayload} correctRate={correctRate} isFinished={isFinished} /> : null}
-      {gameState === "victory" ? <FinalReview bossHp={bossHp} leaderboard={leaderboard} history={history} /> : null}
+      {gameState === "victory" ? <FinalReview bossHp={bossHp} leaderboard={displayLeaderboard} history={history} /> : null}
 
       {error ? <p className="boss-error">{error}</p> : null}
       {gameState === "lobby" ? <span className="boss-damage-note">Mỗi vòng đạt {threshold}% đúng gây {damage} máu. Chỉ cần 3 vòng thành công để hạ boss 100 máu.</span> : null}
