@@ -71,6 +71,23 @@ function GenericFeatureHost({ mode, onCompleted }: Props) {
     return <ModeLoadingScreen />;
   }
 
+  if (!session && error) {
+    return (
+      <div className="vc-loading-container">
+        <div className="vc-loading-card" style={{ borderColor: "#fecaca" }}>
+          <div className="vc-loading-owl-wrapper">
+            <img src={odysseyOwl} alt="Mascot cú VinCourse" className="vc-loading-owl" style={{ filter: "grayscale(0.4)" }} />
+          </div>
+          <h3 style={{ color: "#b91c1c" }}>Không kết nối được máy chủ</h3>
+          <p style={{ color: "#64748b" }}>{error}</p>
+          <p style={{ fontSize: "13px", color: "#94a3b8" }}>
+            Hãy đảm bảo API đang chạy tại <strong>localhost:8000</strong> rồi thử lại.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   async function restartLab(resetChallenge = false, targetRound = labRound) {
     const nextRound = resetChallenge ? 1 : targetRound;
     if (resetChallenge) setLabRound(1);
