@@ -13,10 +13,10 @@ export OPENAI_API_KEY='key-moi-da-rotate'
 python3 codebase/server.py
 ```
 
-Mở <http://127.0.0.1:8000>. Frontend VinCourse mở thẳng lát cắt **Hiểu Thật** được chấm theo spec. Backend dùng OpenAI Responses API với `gpt-5.6-luna`; có thể đổi qua `OPENAI_MODEL`. Key chỉ đọc từ biến môi trường, không đi vào frontend/log. Nếu key từng được dán vào chat hoặc commit, hãy revoke và tạo key mới trước khi chạy.
+Mở <http://127.0.0.1:8000/checkpoint/> để xem flow **Hiểu Thật** đang chạy. Frontend hiện được phục vụ từ thư mục [codebase/static](codebase/static) và route `/checkpoint/` của server; các asset UI nằm ở [codebase/static/index.html](codebase/static/index.html), [codebase/static/app.js](codebase/static/app.js) và [codebase/static/app.css](codebase/static/app.css). Backend dùng OpenAI Responses API với `gpt-5.6-luna`; có thể đổi qua `OPENAI_MODEL`. Key chỉ đọc từ biến môi trường, không đi vào UI hoặc log client. Nếu key từng được dán vào chat hoặc commit, hãy revoke và tạo key mới trước khi chạy.
 
-- Bảy chế độ chơi của vision dài hạn (mô phỏng): <http://127.0.0.1:8000/#modes>
-- UI checkpoint cũ chỉ giữ làm backup: <http://127.0.0.1:8000/checkpoint/>
+- Bảy chế độ chơi của vision dài hạn (mô phỏng): <http://127.0.0.1:8000/vision/>
+- UI checkpoint hiện là flow chính: <http://127.0.0.1:8000/checkpoint/>
 
 Không có key nhưng cần xem flow UI:
 
@@ -39,7 +39,7 @@ Quality bar đã chốt trong `spec.md`: ≥85% classification exact; 100% safet
 ## Demo 5 phút
 
 1. **Pain (30s):** 3/1.261 turn có check; misconceptions rỗng 100%.
-2. **Happy path (45s):** mở <http://127.0.0.1:8000> → mission 1 → “Demo nhanh: Hiểu đúng” → check → nguồn `[T04-046]` → progress tăng.
+2. **Happy path (45s):** mở <http://127.0.0.1:8000/checkpoint/> → mission 1 → “Demo nhanh: Hiểu đúng” → check → nguồn `[T04-046]` → progress tăng.
 3. **Failure đáng xem (45s):** “Hiểu sai nhưng rất tự tin” → không tăng progress → chỉ một mental model cần sửa.
 4. **Correction (30s):** sửa câu → submit lại → badge “Đã sửa hiểu lầm”.
 5. **Case lạ/prompt injection (30s):** nạp case injection → `out_of_scope`, không lộ prompt/key.
@@ -51,7 +51,7 @@ Quality bar đã chốt trong `spec.md`: ≥85% classification exact; 100% safet
 |---|---|
 | R1 Evidence & impact | [`evidence/mining-report.md`](evidence/mining-report.md), `analyze_chatlog.py` |
 | R2–R4 Spec, risk, eval | [`spec.md`](spec.md), [`eval/golden-set.json`](eval/golden-set.json) |
-| R5 Prototype | [`codebase/server.py`](codebase/server.py), `frontend/` route `#understanding` |
+| R5 Prototype | [`codebase/server.py`](codebase/server.py), route `/checkpoint/` trên [`codebase/static/index.html`](codebase/static/index.html) |
 | R6 Validation | [`validation/feedback-log.md`](validation/feedback-log.md) |
 | CP1 | [`canvas.md`](canvas.md) |
 | CP6 | [`demo-slides.pdf`](demo-slides.pdf), source trong `slides/` |
@@ -69,16 +69,15 @@ OpenAI strict JSON schema ── classify mental model only
 UI: status + source IDs + one next action
 ```
 
-AI thật: phân loại teach-back, diagnosis, next action. Deterministic: input validation, source allowlist, confidence gate, trace và progress. Mock: trigger từ VLearn, LMS/mastery dài hạn và các route game khác ngoài `#understanding`.
+AI thật: phân loại teach-back, diagnosis, next action. Deterministic: input validation, source allowlist, confidence gate, trace và progress. Mock: trigger từ VLearn, LMS/mastery dài hạn và các route game khác ngoài flow `/checkpoint/`.
 
 ## Đội thi — bắt buộc điền trước CP1/CP5
 
 | Thành viên | Mã HV | Phần có thể giải thích khi TA hỏi |
 |---|---|---|
-| `[Tên 1]` | `[Mã]` | Product/spec |
-| `[Tên 2]` | `[Mã]` | Evidence/mining |
-| `[Tên 3]` | `[Mã]` | Prompt/eval |
-| `[Tên 4]` | `[Mã]` | Prototype |
-| `[Tên 5]` | `[Mã]` | Validation/demo |
-
+| Tạ Thị Thu Huyền | 2A202601782 |Hiểu phần team đã làm|
+| Nguyễn Đức Hưng | 2A202601936 | Hiểu phần team đã làm|
+| Giang Trung Quân | 2A202601098 |Hiểu phần team đã làm|
+| Ngô Minh Phước | 2A202601576|Hiểu phần team đã làm|
+| Lê Ngô Thanh Toàn | 2A202601590 |Hiểu phần team đã làm|
 Không commit `.env`, API key, tên giả, quote validation giả hoặc bản sao data pack. Vision dài hạn ban đầu vẫn ở [`bailam.md`](bailam.md); prototype cố ý chỉ build một lát cắt theo rubric.

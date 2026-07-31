@@ -34,6 +34,20 @@ Phạm vi: 1.261 lượt hỏi–đáp, 369 user, 585 conversation từ 22–29/
 
 Năm ví dụ nguyên văn có mã: `T0720`, `T0923`, `T1015`, `T0315`, `T0109`; xem [evidence/mining-report.md](evidence/mining-report.md). Cách diễn giải thận trọng: dữ liệu chứng minh **thiếu bằng chứng hiểu**, không chứng minh 1.258 câu trả lời là sai.
 
+### Evidence bổ trợ — khảo sát tần suất
+
+Khảo sát ngày 30/07/2026 có **59 phản hồi hợp lệ** gồm 55 học viên và 4 Lab Coach. Với vấn đề **“Không biết mình đã thực sự hiểu bài hay chưa”**, 18 người chọn “Thường xuyên” và 18 người chọn “Rất thường xuyên”, tức **36/59 (61,0%)** xác nhận gặp vấn đề ở mức thường xuyên trở lên. Kết quả này bổ trợ cho signal mining 99,8% teaching turn không có bước kiểm tra hiểu.
+
+| Mã phản hồi | Vai trò | Thời điểm | Câu trả lời nguyên văn cho vấn đề “Không biết mình đã thực sự hiểu bài hay chưa” |
+|---|---|---|---|
+| #7 | Học viên | 30/07/2026 15:25:05 | “Thường xuyên” |
+| #8 | Học viên | 30/07/2026 15:25:06 | “Rất thường xuyên” |
+| #15 | Học viên | 30/07/2026 15:33:42 | “Rất thường xuyên” |
+| #16 | Học viên | 30/07/2026 15:34:23 | “Rất thường xuyên” |
+| #24 | Lab Coach | 30/07/2026 15:37:00 | “Rất thường xuyên” |
+
+**Giới hạn:** biểu mẫu không thu tên, không có câu hỏi mở và không hỏi willingness; vì vậy năm dòng trên là quote định lượng ẩn danh, không được trình bày như quote usability test hoặc willing user CP1. Bản tổng hợp dùng cho validation nằm tại [validation/feedback-log.md](validation/feedback-log.md).
+
 ### Job stories
 
 1. Khi vừa đọc một lời giải thích dài, tôi muốn tự nói lại ý chính trong một câu để biết mình có thể học tiếp hay chưa.
@@ -44,9 +58,9 @@ Năm ví dụ nguyên văn có mã: `T0720`, `T0923`, `T1015`, `T0315`, `T0109`;
 
 | Ứng viên | Reach đo được | Tần suất/tổn thất proxy | Khả thi 1,5 ngày | Quyết định |
 |---|---:|---|:---:|---|
-| Bổ sung grounding/citation | 582 turn thiếu nguồn | 46,2% turn khó tự đối chiếu | Có | Loại: VLearn đã có citation UX, đây là cải thiện độ phủ |
-| **Understanding checkpoint** | **1.258 turn không check** | **99,8% teaching turn không sinh evidence mastery** | **Có** | **Chọn: reach lớn nhất, quyết định AI rõ, demo được** |
-| Giảm latency | 49 turn ≥5 giây | 3,9% turn chậm rõ rệt | Khó | Loại: phụ thuộc retrieval/model/hạ tầng |
+| Bổ sung grounding/citation | 582/1.261 turn thiếu nguồn | 46,2% turn khó tự đối chiếu; survey không đo trực tiếp tổn thất này | Có | Loại: VLearn đã có citation UX, đây là cải thiện độ phủ |
+| **Understanding checkpoint** | **1.258/1.261 turn không check; 36/59 người khảo sát xác nhận vấn đề thường xuyên trở lên** | **99,8% teaching turn không sinh evidence mastery; 61,0% người khảo sát thường xuyên không biết mình đã hiểu thật hay chưa** | **Có** | **Chọn: reach lớn nhất trên mining, được survey xác nhận, quyết định AI rõ và demo được** |
+| Giảm latency | 49/1.261 turn ≥5 giây | 3,9% turn chậm rõ rệt; survey có 29/59 người thường xuyên hoặc rất thường xuyên không nhận phản hồi đủ nhanh | Khó | Loại: reach trong log thấp hơn checkpoint và phụ thuộc retrieval/model/hạ tầng |
 
 **Tác động kỳ vọng:** thay đơn vị hoàn thành từ “tutor đã gửi câu trả lời” thành “learner đã tạo một evidence teach-back có trạng thái”. Metric MVP là tỷ lệ checkpoint tạo được quyết định hợp lệ và tỷ lệ misconception được sửa ở lần nộp lại; chưa tuyên bố learning gain trước pilot.
 
@@ -143,13 +157,14 @@ Năm ví dụ nguyên văn có mã: `T0720`, `T0923`, `T1015`, `T0315`, `T0109`;
 
 | Phần | Người phụ trách |
 |---|---|
-| Product/spec | `[TÊN + MÃ HV]` |
-| Evidence/mining | `[TÊN + MÃ HV]` |
-| Prompt/eval | `[TÊN + MÃ HV]` |
-| Prototype | `[TÊN + MÃ HV]` |
-| Validation/demo | `[TÊN + MÃ HV]` |
+| Làm tính năng game code nhiệm vụ cốt truyện|Lê Ngô Thanh Toàn--2A202601590 | 2A202601590 |
+| Làm tính năng game code đấu trường thực hành|Tạ Thị Thu Huyền-2A202601782
+| Làm tính năng game code ôn tập hằng ngày và lỗi sai|Nguyễn Đức Hưng-2A202601936 |
+| Làm tính năng game code đại chiến Trùm|Giang Trung Quân-2A202601098 |
+| Làm tính năng game code thi đấu trực tiếp|Ngô Minh Phước-2A202601576|
 
-**Willing users CP1:** `[Tên 1]`, `[Tên 2]`, `[Tên 3]` — đội thi phải xin đồng ý thật. **Validation CP5:** tối thiểu 5 người ngoài nhóm; protocol và log trống có sẵn trong `validation/`.
+
+**Willing users CP1:** chưa xác định — khảo sát ẩn danh không hỏi willingness nên không được dùng để điền tên. Đội thi vẫn phải xin đồng ý thật và bổ sung tối thiểu 2 người trong nhóm validation. **Validation CP5:** tối thiểu 5 người ngoài nhóm; protocol và phần bằng chứng khảo sát có trong `validation/feedback-log.md`, nhưng usability test trực tiếp vẫn còn thiếu.
 
 **Multi-prototype quyết định:** A = checkpoint tự bật sau mọi câu tutor; B = nút “Kiểm tra mình” do learner chủ động. Chọn B cho MVP vì giảm gián đoạn và cho user quyền bỏ qua; chỉ chuyển sang A nếu validation cho thấy người học không chủ động bấm.
 
@@ -164,4 +179,4 @@ Năm ví dụ nguyên văn có mã: `T0720`, `T0923`, `T1015`, `T0315`, `T0109`;
 | 30/07/2026 | Giãn 4,1 giây giữa các live eval call | AI-01 có 6 lỗi quota ở giới hạn 15 request |
 | 30/07/2026 | Cắt deterministic diagnosis 320 và next action 240 ký tự | Backend khớp đúng định nghĩa concision trong §7 |
 | 30/07/2026 | Chuyển backend sang OpenAI Responses API + strict JSON schema | Dùng provider được đội cung cấp, giữ nguyên contract và eval |
-| `[sau validation]` | `[thay đổi hoặc giữ nguyên]` | `[quote/người thử/case liên quan]` |
+| 31/07/2026 | Giữ lát cắt understanding checkpoint; bổ sung survey 59 phản hồi và ghi rõ giới hạn quote định lượng | 36/59 (61,0%) thường xuyên hoặc rất thường xuyên không biết mình đã thực sự hiểu bài; survey không có tên/willingness nên chưa thay thế validation CP5 |
