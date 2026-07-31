@@ -1,9 +1,29 @@
+import { useRef } from "react";
 import { BookOpen, Check, Code2, FlaskConical, Play, RotateCcw } from "lucide-react";
 import type { GameResult, GameSession } from "../../types/game";
 import "./lab-arena.css";
 import "./lab-arena-fixes.css";
 import "./round-progress.css";
 import "./rules.css";
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function highlightPython(code: string): string {
+  const escaped = escapeHtml(code);
+
+  return escaped
+    .replace(/(#[^\n]*)/g, '<span class="token-comment">$1</span>')
+    .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g, '<span class="token-string">$1</span>')
+    .replace(/\b(\d+)\b/g, '<span class="token-number">$1</span>')
+    .replace(/\b(def|class|return|import|from|for|while|if|elif|else|try|except|with|as|pass|break|continue|and|or|not|in|is|True|False|None|lambda|yield|await|async)\b/g, '<span class="token-keyword">$1</span>')
+    .replace(/\b(print|len|range|min|max|sum|sorted|list|dict|set|tuple|str|int|float|bool|type|input|open|enumerate|zip)\b/g, '<span class="token-builtin">$1</span>')
+    .replace(/\b([A-Za-z_][A-Za-z0-9_]*)\s*(?=\()/g, '<span class="token-function">$1</span>');
+}
 
 type Evidence = { id: string; title: string; text: string };
 type RuntimeTest = {
@@ -32,6 +52,9 @@ type Props = {
 
 export function LabArena(props: Props) {
   const { session, code, result, loading, error, onCodeChange, onSubmit, onRestart, onNext, round, totalRounds } = props;
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const overlayRef = useRef<HTMLPreElement>(null);
+
   if (!session) return <section className="react-lab-loading">{error || "Đang tạo phiên Lab Arena…"}</section>;
   const evidence = (session.payload.evidence as Evidence[]) ?? [];
   const rules = (session.payload.rules as string[]) ?? [];
@@ -65,7 +88,26 @@ export function LabArena(props: Props) {
 
         <section className="react-lab-editor">
           <div><Code2 size={16} /><b>{String(session.payload.function_name)}.py</b><span>Python · isolated subprocess</span></div>
-          <textarea value={code} onChange={(event) => onCodeChange(event.target.value)} spellCheck={false} />
+          <div className="lab-editor-surface">
+            <pre
+              ref={overlayRef}
+              className="lab-editor-highlight"
+              aria-hidden="true"
+              dangerouslySetInnerHTML={{ __html: highlightPython(code) }}
+            />
+            <textarea
+              ref={editorRef}
+              value={code}
+              onChange={(event) => onCodeChange(event.target.value)}
+              spellCheck={false}
+              onScroll={() => {
+                if (editorRef.current && overlayRef.current) {
+                  overlayRef.current.scrollTop = editorRef.current.scrollTop;
+                  overlayRef.current.scrollLeft = editorRef.current.scrollLeft;
+                }
+              }}
+            />
+          </div>
           <small>Challenge {String(session.payload.challenge_id)} · Session {session.session_id}</small>
         </section>
 

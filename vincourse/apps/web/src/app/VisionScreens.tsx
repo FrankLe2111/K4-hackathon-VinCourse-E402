@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Activity, BarChart3, BookOpen, Check, ChevronRight, Code2, FileUp, Lock, Play, ShieldAlert, Sparkles, Trophy, Users } from "lucide-react";
-import type { Role, Route } from "./App";
+
+type Role = "student" | "admin";
+type Route = "home" | "map" | "modes" | "understanding" | "quest" | "feedback" | "recovery" | "result" | "recall" | "mastery" | "error-dungeon" | "boss" | "live" | "ai-adversary" | "admin-dashboard" | "admin-upload" | "admin-generate" | "admin-world" | "admin-questions" | "admin-analytics" | "lab";
 
 type Props = { route: Route; role: Role; navigate: (route: Route) => void; addXp: (value: number) => void; notify: (message: string) => void };
 const concepts = ["LLM và Chatbot", "Next-token Prediction", "Tool Calling", "Prompt Engineering", "RAG", "AI Safety"];
