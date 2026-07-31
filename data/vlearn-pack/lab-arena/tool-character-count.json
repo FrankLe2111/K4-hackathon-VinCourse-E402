@@ -10,7 +10,7 @@
   "prompt": "LLM có thể đúng ở một ví dụ nhưng sai ở dữ liệu khác. Hoàn thiện count_character(text, target) để phép đếm luôn xác định và không phân biệt chữ hoa, chữ thường.",
   "language": "python",
   "function_name": "count_character",
-  "starter_code": "def count_character(text, target):\n    \"\"\"Đếm target trong text, không phân biệt hoa/thường.\"\"\"\n    # Hoàn thiện hàm bằng Python thuần\n    raise NotImplementedError(\"Viết code ở đây\")",
+  "starter_code": "def count_character(text, target):\n    \"\"\"Đếm target trong text, không phân biệt hoa/thường.\"\"\"\n    # Hoàn thiện hàm bằng Python thuần\n    if not isinstance(text, str) or not isinstance(target, str) or target == \"\":\n        return 0\n    return text.lower().count(target.lower())",
   "evidence": [
     {
       "id": "T03-034",

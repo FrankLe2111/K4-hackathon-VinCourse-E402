@@ -104,6 +104,66 @@ class ClassifierTest(unittest.TestCase):
         self.assertEqual((code["correct"], code["xp"]), (True, 21))
         self.assertTrue(alternate["correct"])
 
+    def test_lab_serves_ten_questions_with_course_evidence(self):
+        payload = server.public_lab()
+        self.assertEqual(payload["total"], 10)
+        self.assertEqual(payload["index"], 0)
+        self.assertEqual(len(payload["questions"]), 10)
+        self.assertEqual(len({item["id"] for item in payload["questions"]}), 10)
+        for summary in payload["questions"]:
+            question = server.public_lab(summary["id"])["question"]
+            self.assertGreaterEqual(len(question["tests"]), 4)
+            self.assertTrue(question["rules"], summary["id"])
+            self.assertIn(f"def {question['function_name']}", question["starter_code"])
+            self.assertTrue(all(item["evidence_id"] for item in question["tests"]))
+            declared = {item["id"] for item in question["evidence"]}
+            course_ids = {item["evidence_id"] for item in question["tests"]
+                          if item["provenance"] == "course_evidence"}
+            self.assertTrue(course_ids <= declared, summary["id"])
+
+    def test_lab_executes_real_cases_and_points_at_the_next_question(self):
+        payload = server.public_lab()
+        question = payload["question"]
+        self.assertEqual(question["function_name"], "count_character")
+        result = server.run_lab({
+            "challenge_id": question["id"],
+            "session_id": question["session_id"],
+            "code": "def count_character(text, target):\n    return text.lower().count(target.lower())",
+        })
+        self.assertTrue(result["passed"])
+        self.assertEqual(result["passed_count"], result["total"])
+        self.assertEqual(result["xp"], 120)
+        self.assertEqual(result["next_id"], "prompt-blueprint")
+        self.assertEqual(result["execution"], "python-isolated-subprocess")
+
+    def test_lab_last_question_has_no_next_and_checks_return_type(self):
+        question = server.public_lab("tool-schema-check")["question"]
+        result = server.run_lab({
+            "challenge_id": "tool-schema-check",
+            "session_id": question["session_id"],
+            "code": "def check_tool_schema(schema):\n    return ()",
+        })
+        self.assertFalse(result["passed"])
+        self.assertEqual(result["next_id"], "")
+        self.assertEqual(server.public_lab("tool-schema-check")["index"], 9)
+
+    def test_lab_reports_real_failure_and_blocks_system_access(self):
+        session = server.public_lab()["question"]
+        result = server.run_lab({
+            "challenge_id": session["id"],
+            "session_id": session["session_id"],
+            "code": "def count_character(text, target):\n    return 99",
+        })
+        self.assertFalse(result["passed"])
+        self.assertEqual(result["passed_count"], 0)
+        with self.assertRaises(server.AppError):
+            session = server.public_lab()["question"]
+            server.run_lab({
+                "challenge_id": session["id"],
+                "session_id": session["session_id"],
+                "code": "import os\ndef count_character(text, target):\n    return 0",
+            })
+
 
 if __name__ == "__main__":
     unittest.main()

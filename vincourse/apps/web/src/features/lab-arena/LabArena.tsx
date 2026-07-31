@@ -1,6 +1,7 @@
 import { BookOpen, Check, Code2, FlaskConical, Play, RotateCcw } from "lucide-react";
 import type { GameResult, GameSession } from "../../types/game";
 import "./lab-arena.css";
+import "./lab-arena-fixes.css";
 import "./round-progress.css";
 import "./rules.css";
 
@@ -42,9 +43,7 @@ export function LabArena(props: Props) {
     <section className="react-lab">
       <header className="react-lab-hero">
         <div>
-          <span><FlaskConical size={15} /> CHẾ ĐỘ 4 · VẬN DỤNG</span>
-          <h2>{session.title}</h2>
-          <p>{session.prompt}</p>
+          <span><FlaskConical size={17} /> CHẾ ĐỘ 4 · VẬN DỤNG</span>
           <div className="react-lab-round"><div><i style={{ width: `${(round / totalRounds) * 100}%` }} /></div><strong>Câu {round}/{totalRounds}</strong></div>
         </div>
         <button onClick={onRestart}><RotateCcw size={16} /> Làm lại thử thách</button>
@@ -54,7 +53,6 @@ export function LabArena(props: Props) {
         <aside className="react-lab-card">
           <b className="react-lab-chip">BÀI {round}/{totalRounds} · {String(session.payload.difficulty)}</b>
           <h3>{session.title}</h3>
-          <p>{session.prompt}</p>
           <div className="react-lab-tags"><span>{String(session.payload.topic)}</span><span>{String(session.payload.language)}</span></div>
           <div className="react-lab-rules">{rules.map((rule, index) => <div key={rule}><b>{index + 1}</b><span>{rule}</span></div>)}</div>
           <hr />

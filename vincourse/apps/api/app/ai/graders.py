@@ -58,41 +58,39 @@ def _is_dangerous_code(code: str) -> bool:
 
 
 def _build_lab_arena_challenge() -> dict[str, str]:
-    starter_code = '''def standardize(X):
-    """Standardize each feature column in X.
+    starter_code = '''def count_character(text, target):
+    """Count target in text without depending on letter case.
 
-    X is a list of rows, where each row is a list of numbers.
-    Return a new list with the same shape.
+    Example: count_character("Strawberry", "r") returns 3.
     """
-    raise NotImplementedError("Write your code here")
+    # Hoàn thiện hàm bằng Python thuần.
+    if not isinstance(text, str) or not isinstance(target, str) or target == "":
+        return 0
+    return text.lower().count(target.lower())
 '''
 
     test_code = '''
-X = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
-result = standardize(X)
-assert isinstance(result, list), "Result must be a list of rows"
-assert len(result) == 3, "Output shape must preserve row count"
-assert all(len(row) == 2 for row in result), "Output shape must preserve column count"
-
-columns = list(zip(*result))
-means = [sum(col) / len(col) for col in columns]
-variances = [sum((x - mean) ** 2 for x in col) / len(col) for col, mean in zip(columns, means)]
-stds = [variance**0.5 for variance in variances]
-assert all(abs(mean) < 1e-6 for mean in means), f"Means must be near zero: {means}"
-assert all(abs(std - 1) < 1e-6 for std in stds), f"Standard deviations must be near one: {stds}"
+assert count_character("strawberry", "r") == 3, "Phải đếm đúng chữ r trong strawberry"
+assert count_character("VinCourse", "c") == 1, "Phải không phân biệt chữ hoa/chữ thường"
+assert count_character("AI Odyssey", "z") == 0, "Ký tự không xuất hiện phải trả về 0"
+assert count_character("", "a") == 0, "Chuỗi rỗng phải trả về 0"
 '''
 
     return {
-        "lab_id": "standardize-features",
+        "lab_id": "deterministic-character-tool",
         "language": "python",
         "starter_code": starter_code,
         "visible_tests": [
-            "Preserve the input shape",
-            "Column means are near zero",
-            "Column standard deviations are near one",
+            'count_character("strawberry", "r") == 3',
+            "Không phân biệt chữ hoa/chữ thường",
+            "Ký tự không tồn tại trả về 0",
+            "Xử lý được chuỗi rỗng",
         ],
-        "concept_ids": ["feature-scaling", "gradient-descent"],
-        "prompt": "Implement standardize(X) so each feature column in X has mean 0 and standard deviation 1.",
+        "concept_ids": ["tool-calling", "deterministic-function", "llm-limitations"],
+        "prompt": (
+            "Hoàn thiện count_character(text, target) để biến một phép đếm cần độ "
+            "chính xác thành hàm Python xác định, thay vì yêu cầu LLM tự suy đoán."
+        ),
         "test_code": test_code,
     }
 
@@ -140,12 +138,12 @@ def grade_lab_arena(mode: GameMode, code: str, session_id: str) -> GameResult:
                 mode=mode,
                 correct=True,
                 status=GameStatus.mastered,
-                feedback="All visible tests passed. Your code correctly standardizes the input.",
-                evidence_ids=["T-LABSTANDARD-001"],
+                feedback="Tất cả test đã đạt. Bạn đã tách tác vụ cần độ chắc chắn thành một hàm Python xác định.",
+                evidence_ids=["T03-078", "T03-079"],
                 xp=120,
                 mastery_delta=15,
                 recovery_created=False,
-                next_action="Great work! Try the next Lab Arena challenge.",
+                next_action="Tốt lắm! Tiếp theo, hãy thử nối hàm này vào một luồng tool calling.",
             )
         except subprocess.CalledProcessError as exc:
             feedback = exc.stderr.strip() or exc.stdout.strip() or "Your code did not pass the visible tests."
@@ -153,11 +151,11 @@ def grade_lab_arena(mode: GameMode, code: str, session_id: str) -> GameResult:
                 mode=mode,
                 correct=False,
                 status=GameStatus.partial,
-                feedback=f"Visible tests failed: {feedback}",
+                feedback=f"Test chưa đạt: {feedback}",
                 xp=20,
                 mastery_delta=0,
                 recovery_created=True,
-                next_action="Fix the failing assertions and run the tests again.",
+                next_action="Sửa test đang lỗi rồi chạy lại.",
             )
         except subprocess.TimeoutExpired:
             return GameResult(
@@ -179,4 +177,3 @@ def grade_explanation(mode: GameMode, answer: str) -> GameResult:
     # Keep real OpenAI grading centralized here. Feature modules should call this function,
     # not the OpenAI SDK directly.
     return demo_grade(mode, answer)
-
