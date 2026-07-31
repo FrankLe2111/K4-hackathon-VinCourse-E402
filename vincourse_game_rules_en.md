@@ -381,17 +381,17 @@ Completion rewards:
 
 ### 7.1 Objective
 
-Boss Battle is the final integrated challenge of a zone.
+Boss Battle is the final integrated challenge of a zone and a class cooperation raid.
 
-Instead of testing only one concept, it requires the player to combine multiple concepts in a larger scenario.
+Instead of testing only one concept, it requires teams to combine multiple concepts in a larger scenario. Core rule: if at least `80%` of active teams answer correctly in the same round, the class unlocks one attack on the boss.
 
 ### 7.2 Core Loop
 
 1. The game presents a complex scenario.
-2. The player completes several phases.
-3. Each phase collects a different type of evidence.
-4. When enough evidence has been collected, the player defeats the boss.
-5. Defeating the boss unlocks the next zone.
+2. Teams answer independently during the round timer.
+3. The system calculates the class correct rate.
+4. If at least `80%` of teams are correct, the class attacks the boss.
+5. When boss HP reaches `0`, the boss is defeated and the next zone unlocks.
 
 ### 7.3 Boss Battle Phases
 
@@ -408,6 +408,8 @@ The current boss includes five phases:
 To win, the player must:
 
 - Complete all five phases.
+- Unlock attacks by reaching at least `80%` correct teams in a round.
+- Accept that rounds below `80%` deal no boss damage and send wrong teams to recovery.
 - Demonstrate understanding of multiple concepts.
 - Explain the relationships between different problems.
 - Avoid simply listing the names of the problems.

@@ -229,15 +229,15 @@ Completion:
 
 ### Muc tieu
 
-Boss Battle la bai tong hop cuoi khu vuc. Nguoi choi phai chung minh rang minh co the ket hop nhieu concept trong mot scenario lon.
+Boss Battle la bai tong hop cuoi khu vuc va la thu thach hop tac ca lop. Moi team phai van dung nhieu concept trong mot scenario lon; khi it nhat `80%` team tra loi dung trong cung mot round, ca lop mo duoc mot don tan cong len Boss.
 
 ### Core Loop
 
 1. Game mo mot scenario phuc hop.
-2. Nguoi choi di qua nhieu phase.
-3. Moi phase thu thap mot loai evidence.
-4. Khi du evidence, nguoi choi danh bai boss.
-5. Boss defeated se mo zone tiep theo.
+2. Cac team tra loi doc lap trong thoi gian gioi han.
+3. He thong tinh ti le team tra loi dung cua ca lop.
+4. Neu ti le dung `>= 80%`, ca lop tan cong Boss.
+5. Neu HP Boss ve `0`, Boss defeated va mo zone tiep theo.
 
 ### Phase trong frontend
 
@@ -252,6 +252,8 @@ Boss hien tai co 5 phase:
 ### Rule thang
 
 - Phai qua du 5 phase.
+- Moi don tan cong can it nhat `80%` team trong lop tra loi dung.
+- Neu duoi `80%`, Boss khong mat mau va cac team sai nhan recovery hint.
 - Phai chung minh duoc nhieu concept: Feature Scaling, Learning Rate, MSE Loss, Train/Test Split.
 - Cau tra loi giai thich phai noi duoc quan he giua cac loi, khong chi neu ten loi.
 - Khi thang: nhan `+250 XP`, `Boss badge`, `Next zone unlocked`.
