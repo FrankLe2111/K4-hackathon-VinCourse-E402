@@ -124,7 +124,7 @@ export function App() {
     },
     modes: {
       eyebrow: "Chọn thử thách của bạn",
-      title: "Bảy cách xây dựng năng lực",
+      title: "Sáu cách xây dựng năng lực",
       text: "Mỗi chế độ thu thập một loại minh chứng khác nhau: ghi nhớ, thực hành code, sửa lỗi sai và thi đấu cùng lớp.",
     },
   };
@@ -142,7 +142,7 @@ export function App() {
           <nav className="rail-list" aria-label="Điều hướng chính">
             <button type="button" className={route === "home" ? "active" : ""} onClick={() => navigate("home")}><Home size={16} />Trang chủ</button>
             <button type="button" className={route === "map" ? "active" : ""} onClick={() => navigate("map")}><Map size={16} />Bản đồ khóa học</button>
-            <button type="button" className={route === "modes" ? "active" : ""} onClick={() => navigate("modes")}><Sparkles size={16} />Chế độ chơi <b>{modes.length || 7}</b></button>
+            <button type="button" className={route === "modes" ? "active" : ""} onClick={() => navigate("modes")}><Sparkles size={16} />Chế độ chơi <b>{modes.length || 6}</b></button>
             <button type="button" onClick={() => navigate("recall")}><BrainCircuit size={16} />Ôn tập hằng ngày <b>5</b></button>
           </nav>
           <p className="nav-label">Khắc phục</p>
@@ -165,10 +165,10 @@ export function App() {
               <span className="language-chip"><b>VI</b><small>EN</small></span>
               <span><Flame size={16} />{streakDays} ngày liên tiếp</span>
               <span><Sparkles size={16} />{formatNumber(totalXp)} XP</span>
-              <button className="icon-button" onClick={() => void reload()} aria-label="Tải lại dữ liệu" title="Tải lại dữ liệu">
+              <button className="icon-button chip-icon-button" onClick={() => void reload()} aria-label="Tải lại dữ liệu" title="Tải lại dữ liệu">
                 <RefreshCcw size={18} />
               </button>
-              <span className="avatar mint-avatar">LM</span>
+              <span className="avatar mint-avatar chip-avatar">LM</span>
             </div>
           </div>
 
@@ -200,12 +200,6 @@ export function App() {
                 </button>
               );
             })}
-          </div>
-
-          <div className="learner-card mode-select-learner">
-            <span className="avatar"><User size={18} /></span>
-            <span><strong>Nhà kiến tạo AI</strong><small>Level {level}</small></span>
-            <Flame size={18} />
           </div>
         </section>
       </main>
