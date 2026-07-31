@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, Award, BookOpen, CheckCircle2, HelpCircle, Highlighter, PenLine, PlayCircle, RefreshCw, ShieldAlert, SkipForward, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowRight, Award, BookOpen, CheckCircle2, FileText, HelpCircle, Highlighter, PenLine, PlayCircle, RefreshCw, ShieldAlert, SkipForward, ZoomIn, ZoomOut } from "lucide-react";
 import { submitMode } from "../../api/modes";
 import type { GameResult, GameSession } from "../../types/game";
 import "./daily-recall.css";
@@ -25,6 +25,14 @@ const confidenceLevels = [
   { level: 5, label: "Chắc chắn", emoji: "🔥" },
 ];
 
+const summaries = [
+  ["AI khác automation vì có thể suy luận từ dữ liệu mới, không chỉ chạy luật cố định.", "LLM dự đoán token tiếp theo theo xác suất nên cần kiểm chứng nguồn.", "Dùng AI tốt nhất khi xác định rõ input, output, người dùng và rủi ro."],
+  ["Feature scaling giúp gradient descent hội tụ ổn định hơn.", "Label là kết quả cần dự đoán; feature là tín hiệu có trước dự đoán.", "Data leakage làm điểm validation đẹp giả tạo."],
+  ["Pattern không đồng nghĩa quan hệ nhân quả.", "Shortcut learning xảy ra khi mô hình học tín hiệu dễ nhưng sai bản chất.", "Chọn task dựa vào output mong muốn: phân loại, dự đoán số, gợi ý."],
+  ["Prompt tốt có vai trò, bối cảnh, tiêu chí và định dạng đầu ra.", "Hallucination giảm bằng grounding, source và kiểm chứng.", "Prompt injection cần giới hạn quyền và tách dữ liệu khỏi chỉ dẫn."],
+  ["Human-in-the-loop cần thiết ở quyết định rủi ro cao.", "Monitoring giúp phát hiện drift và lỗi sau triển khai.", "Evaluation phải đo đúng outcome học tập, không chỉ cảm giác hay."],
+];
+
 export function DailyRecallView({ session, onCompleted }: Props) {
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
@@ -37,6 +45,7 @@ export function DailyRecallView({ session, onCompleted }: Props) {
   const [selectedDoc, setSelectedDoc] = useState(0);
   const [page, setPage] = useState(1);
   const [zoom, setZoom] = useState(100);
+  const [sideTab, setSideTab] = useState<"summary" | "quiz">("summary");
 
   const payload = session.payload || {};
   const allQuestions = (payload.all_questions as Array<{
@@ -184,30 +193,53 @@ export function DailyRecallView({ session, onCompleted }: Props) {
       </main>
 
       <aside className="daily-quiz">
-        <div className="daily-quiz-head"><span>Câu {activeQuestionIndex + 1}/{queueSize}</span><b>{currentQ.due_reason}</b></div>
-        <h2>{currentQ.title}</h2>
-        <p>{currentQ.prompt}</p>
-        <div className="daily-source">{currentQ.evidence_ids.map((id) => <span key={id}>[{id}]</span>)}</div>
-        <div className="daily-options">
-          {currentQ.options.map((opt) => (
-            <button key={opt.id} className={selectedOption === opt.id ? "selected" : ""} onClick={() => !result && setSelectedOption(opt.id)} disabled={Boolean(result)}>
-              <span>{opt.id}</span>{opt.text}
-            </button>
-          ))}
+        <div className="daily-side-tabs">
+          <button className={sideTab === "summary" ? "active" : ""} onClick={() => setSideTab("summary")}><FileText size={15} /> Summary slide</button>
+          <button className={sideTab === "quiz" ? "active" : ""} onClick={() => setSideTab("quiz")}><HelpCircle size={15} /> Trắc nghiệm</button>
         </div>
-        {!result ? (
-          <>
-            <div className="daily-confidence"><HelpCircle size={16} />{confidenceLevels.map((item) => <button key={item.level} className={confidence === item.level ? "active" : ""} onClick={() => setConfidence(item.level)}>{item.emoji}<small>{item.label}</small></button>)}</div>
-            {error ? <p className="daily-error">{error}</p> : null}
-            <div className="button-row"><button className="primary-button" disabled={loading || !selectedOption} onClick={() => void handleSubmit()}>{loading ? "Đang xử lý…" : <>Nộp bài <ArrowRight size={16} /></>}</button><button className="secondary-button" disabled={loading} onClick={() => void handleSkip()}><SkipForward size={16} /> Bỏ qua</button></div>
-          </>
-        ) : (
-          <div className={result.correct ? "daily-result success" : "daily-result danger"}>
-            {result.correct ? <CheckCircle2 /> : <ShieldAlert />}
-            <strong>{result.correct ? "Chính xác!" : "Cần ôn lại"} · +{result.xp} XP</strong>
-            <p>{result.feedback}</p>
-            <button className="primary-button" onClick={handleNextQuestion}>{activeQuestionIndex + 1 < queueSize ? "Sang câu tiếp theo" : "Xem tổng kết"}</button>
+
+        {sideTab === "summary" ? (
+          <div className="daily-summary">
+            <div className="daily-quiz-head"><span>{days[selectedDay].title}</span><b>{doc.name}</b></div>
+            <h2>Tóm tắt bài giảng</h2>
+            <p>Ôn nhanh các ý chính trước khi làm câu hỏi recall.</p>
+            <div className="daily-summary-list">
+              {summaries[selectedDay].map((item, index) => <article key={item}><strong>{index + 1}</strong><p>{item}</p></article>)}
+            </div>
+            <div className="daily-summary-callout">
+              <strong>Gợi ý học tập</strong>
+              <p>Đọc summary trước, tự giải thích lại bằng lời của bạn, rồi chuyển sang trắc nghiệm để kiểm tra trí nhớ.</p>
+            </div>
+            <button className="primary-button" onClick={() => setSideTab("quiz")}>Làm trắc nghiệm <ArrowRight size={16} /></button>
           </div>
+        ) : (
+          <>
+            <div className="daily-quiz-head"><span>Câu {activeQuestionIndex + 1}/{queueSize}</span><b>{currentQ.due_reason}</b></div>
+            <h2>{currentQ.title}</h2>
+            <p>{currentQ.prompt}</p>
+            <div className="daily-source">{currentQ.evidence_ids.map((id) => <span key={id}>[{id}]</span>)}</div>
+            <div className="daily-options">
+              {currentQ.options.map((opt) => (
+                <button key={opt.id} className={selectedOption === opt.id ? "selected" : ""} onClick={() => !result && setSelectedOption(opt.id)} disabled={Boolean(result)}>
+                  <span>{opt.id}</span>{opt.text}
+                </button>
+              ))}
+            </div>
+            {!result ? (
+              <>
+                <div className="daily-confidence"><HelpCircle size={16} />{confidenceLevels.map((item) => <button key={item.level} className={confidence === item.level ? "active" : ""} onClick={() => setConfidence(item.level)}>{item.emoji}<small>{item.label}</small></button>)}</div>
+                {error ? <p className="daily-error">{error}</p> : null}
+                <div className="button-row"><button className="primary-button" disabled={loading || !selectedOption} onClick={() => void handleSubmit()}>{loading ? "Đang xử lý…" : <>Nộp bài <ArrowRight size={16} /></>}</button><button className="secondary-button" disabled={loading} onClick={() => void handleSkip()}><SkipForward size={16} /> Bỏ qua</button></div>
+              </>
+            ) : (
+              <div className={result.correct ? "daily-result success" : "daily-result danger"}>
+                {result.correct ? <CheckCircle2 /> : <ShieldAlert />}
+                <strong>{result.correct ? "Chính xác!" : "Cần ôn lại"} · +{result.xp} XP</strong>
+                <p>{result.feedback}</p>
+                <button className="primary-button" onClick={handleNextQuestion}>{activeQuestionIndex + 1 < queueSize ? "Sang câu tiếp theo" : "Xem tổng kết"}</button>
+              </div>
+            )}
+          </>
         )}
       </aside>
     </section>
