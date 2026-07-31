@@ -26,6 +26,12 @@ type BossRound = { round_id: string; title: string; concept_id: string; question
 type Player = { player_id: string; nickname: string; avatar?: string };
 type LeaderboardRow = { player_id: string; nickname: string; correct: boolean; score_delta: number; total_score?: number; elapsed_seconds: number; rank?: number; rank_delta?: number };
 type DistributionRow = { option_id: string; label: string; count: number; percent: number; correct: boolean; selected_by_player: boolean };
+type ReviewItem = {
+  result: GameResult;
+  round: BossRound;
+  selectedOptionId: string;
+  correctOptionId: string;
+};
 type ResultPayload = {
   round_id?: string;
   round_title?: string;
@@ -296,7 +302,7 @@ function DamageStage({ resultPayload, correctRate, isFinished }: { resultPayload
   );
 }
 
-function FinalReview({ bossHp, leaderboard, history }: { bossHp: number; leaderboard: LeaderboardRow[]; history: GameResult[] }) {
+function FinalReview({ bossHp, leaderboard, history }: { bossHp: number; leaderboard: LeaderboardRow[]; history: ReviewItem[] }) {
   return (
     <article className="boss-podium">
       <Trophy size={48} />
@@ -312,13 +318,26 @@ function FinalReview({ bossHp, leaderboard, history }: { bossHp: number; leaderb
         ))}
       </div>
       <section className="boss-ai-review">
-        <h3>AI Mentor tổng kết</h3>
+        <h3>Bản xem lại cùng AI Mentor</h3>
         {history.map((item, index) => {
-          const payload = item.payload as ResultPayload;
+          const payload = item.result.payload as ResultPayload;
+          const selectedLabel = item.round.options.find((option) => option.id === item.selectedOptionId)?.label ?? "Không trả lời";
+          const correctLabel = item.round.options.find((option) => option.id === item.correctOptionId)?.label ?? "Chưa có đáp án";
           return (
-            <article key={`${payload.round_id}-${index}`} className={item.correct ? "correct" : "incorrect"}>
+            <article key={`${payload.round_id}-${index}`} className={item.result.correct ? "correct" : "incorrect"}>
               <strong>{payload.round_title ?? `Vòng ${index + 1}`}</strong>
-              <span>{item.correct ? "Bạn trả lời đúng" : "Bạn cần sửa lại"}</span>
+              <h4>{item.round.question}</h4>
+              <dl>
+                <div>
+                  <dt>Bạn chọn</dt>
+                  <dd>{selectedLabel}</dd>
+                </div>
+                <div>
+                  <dt>Đáp án đúng</dt>
+                  <dd>{correctLabel}</dd>
+                </div>
+              </dl>
+              <span>{item.result.correct ? "Bạn trả lời đúng" : "Bạn cần sửa lại"}</span>
               <p>{payload.ai_mentor}</p>
             </article>
           );
@@ -350,7 +369,7 @@ export function BossBattleView({ session, onCompleted }: Props) {
   const [totalScore, setTotalScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [result, setResult] = useState<GameResult | null>(null);
-  const [history, setHistory] = useState<GameResult[]>([]);
+  const [history, setHistory] = useState<ReviewItem[]>([]);
   const [cumulativeLeaderboard, setCumulativeLeaderboard] = useState<LeaderboardRow[]>([]);
   const [damagedRoundIds, setDamagedRoundIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -391,6 +410,7 @@ export function BossBattleView({ session, onCompleted }: Props) {
     setTotalScore(0);
     setStreak(0);
     setCumulativeLeaderboard([]);
+    setHistory([]);
     setTimeLeft(timerSeconds);
     setElapsedSeconds(0);
     setCountdownStep(0);
@@ -427,7 +447,15 @@ export function BossBattleView({ session, onCompleted }: Props) {
         setCumulativeLeaderboard((current) => mergeCumulativeLeaderboard(current, nextPayload.leaderboard ?? []));
       }
       setResult(next);
-      setHistory((items) => [...items, next]);
+      setHistory((items) => [
+        ...items,
+        {
+          result: next,
+          round: currentRound,
+          selectedOptionId: optionId,
+          correctOptionId: String(nextPayload.correct_option_id ?? currentRound.options[0]?.id ?? ""),
+        },
+      ]);
       onCompleted();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể gửi câu trả lời Đại chiến Trùm.");

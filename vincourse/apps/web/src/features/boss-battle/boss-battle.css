@@ -781,6 +781,55 @@
   color: #172033;
 }
 
+.boss-ai-review h4 {
+  margin: 4px 0;
+  color: #172033;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.boss-ai-review dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 4px 0;
+}
+
+.boss-ai-review dl div {
+  display: grid;
+  gap: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255,255,255,.72);
+}
+
+.boss-ai-review dt {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.boss-ai-review dd {
+  margin: 0;
+  color: #172033;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.boss-ai-review article.correct dl div:last-child {
+  border-color: #bbf7d0;
+}
+
+.boss-ai-review article.incorrect dl div:first-child {
+  border-color: #fecaca;
+}
+
+.boss-ai-review article.incorrect dl div:last-child {
+  border-color: #bbf7d0;
+}
+
 .boss-ai-review span {
   color: #64748b;
   font-weight: 900;
@@ -898,5 +947,9 @@
   .boss-damage-stage {
     justify-items: center;
     text-align: center;
+  }
+
+  .boss-ai-review dl {
+    grid-template-columns: 1fr;
   }
 }
