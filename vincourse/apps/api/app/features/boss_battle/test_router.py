@@ -41,7 +41,7 @@ def test_boss_battle_submit_scores_player_and_damages_boss(monkeypatch):
     assert data["correct"] is True
     assert data["xp"] > 800
     assert data["payload"]["boss_damaged"] is True
-    assert data["payload"]["damage"] == 25
+    assert data["payload"]["damage"] == 34
     assert data["payload"]["leaderboard"][0]["rank"] == 1
     assert data["payload"]["answer_distribution"][0]["count"] > 0
     assert data["payload"]["ai_mentor"] == "AI Mentor: test hint"

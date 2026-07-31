@@ -23,9 +23,9 @@ Host mo Boss Battle
   -> hien leaderboard overlay sau moi cau
   -> animate diem va tang/giam thu hang
   -> backend tinh correct_rate cua ca phong
-  -> neu correct_rate >= 80%, boss mat 25 HP
-  -> boss damage stage hien -25 HP hoac Attack blocked
-  -> AI mentor phan tich loi chung va goi y round tiep theo
+  -> neu correct_rate >= 80%, boss mat 34 HP
+  -> boss damage stage hien -34 HP hoac Attack blocked
+  -> AI mentor analysis duoc luu lai, chua hien dai dong giua tran
   -> lap lai den khi boss HP = 0 hoac het round demo
   -> final podium
 ```
@@ -51,12 +51,14 @@ score = round(1000 * (1 - elapsed_seconds / timer_seconds / 2))
 correct_rate = correct_players / active_players * 100
 
 Neu correct_rate >= 80:
-  boss mat 25 HP
+  boss mat 34 HP
 
 Neu correct_rate < 80:
   boss khong mat mau
-  AI mentor tao recovery hint cho ca lop
+  AI mentor tao recovery hint de hien o final review
 ```
+
+Boss co 100 HP va moi hit la 34 HP, nen lop chi can 3 round thanh cong trong tong 4 round de ha boss.
 
 ## AI Usage
 
@@ -70,6 +72,8 @@ FE -> FastAPI /api/modes/boss_battle/submit
 ```
 
 AI chi sinh feedback/recovery hint. AI khong ghi truc tiep vao JSON/database.
+
+UX rule: khong hien AI analysis dai giua round vi lam dut nhip game. Trong luc choi chi hien dung/sai, diem, distribution va leaderboard. Tat ca AI mentor review duoc gom lai o final podium.
 
 Neu thieu `OPENAI_API_KEY`, backend tu fallback sang mentor text deterministic de team van start duoc app.
 
@@ -106,7 +110,7 @@ POST /api/modes/boss_battle/submit
   "correct_rate": 80,
   "threshold": 80,
   "boss_damaged": true,
-  "damage": 25,
+  "damage": 34,
   "answer_distribution": [
     {
       "option_id": "scale_mismatch",
@@ -172,8 +176,9 @@ question: timer lon, answer cards mau, answered count
 locked: cho ca lop, khong reveal ngay, tu dong sang reveal
 reveal: hien Correct/Incorrect, dap an dung co check, dap an sai co warning, hien distribution
 leaderboard: overlay full-screen, diem count-up, rank movement, tu dong sang damage
-damage: boss shake, -25 HP hoac attack blocked, tu dong sang round tiep
+damage: boss shake, -34 HP hoac attack blocked, tu dong sang round tiep
 victory: final podium top 3
+final review: hien AI Mentor Review tung round de nguoi hoc doc lai sau khi game dung
 ```
 
 ## Database Contract For Future JSON Server

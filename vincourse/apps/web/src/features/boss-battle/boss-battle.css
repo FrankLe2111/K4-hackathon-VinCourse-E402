@@ -12,7 +12,6 @@
 .boss-status-row > div,
 .boss-lobby,
 .boss-question-stage,
-.boss-side-panel,
 .boss-damage-stage,
 .boss-podium {
   border: 1px solid #e1e7f0;
@@ -265,14 +264,7 @@
   font-weight: 900;
 }
 
-.boss-play-stage {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 18px;
-}
-
-.boss-question-stage,
-.boss-side-panel {
+.boss-question-stage {
   padding: 20px;
 }
 
@@ -328,7 +320,7 @@
 .boss-answer-grid button {
   min-height: 128px;
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 40px;
+  grid-template-columns: 44px minmax(0, 1fr) 40px 56px;
   gap: 14px;
   align-items: center;
   border: 0;
@@ -360,6 +352,16 @@
   border: 2px solid rgba(255,255,255,.85);
   border-radius: 10px;
   font-style: normal;
+}
+
+.boss-answer-grid small {
+  justify-self: end;
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: rgba(255,255,255,.94);
+  background: rgba(0,0,0,.16);
+  font-size: 13px;
+  font-weight: 1000;
 }
 
 .boss-answer-grid .red { background: #d92929; }
@@ -443,71 +445,6 @@
   background: #f1f5f9;
   font-weight: 900;
 }
-
-.boss-side-panel {
-  display: grid;
-  align-content: start;
-  gap: 14px;
-}
-
-.boss-hp {
-  position: relative;
-  height: 32px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e8edf5;
-}
-
-.boss-hp span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #ef4444, #f59e0b);
-  transition: width .5s ease;
-}
-
-.boss-rules {
-  margin: 0;
-  padding-left: 20px;
-  color: #566173;
-  line-height: 1.65;
-}
-
-.boss-ai-coach {
-  border-radius: 10px;
-  padding: 13px;
-  color: #075985;
-  background: #e0f2fe;
-  font-weight: 800;
-  line-height: 1.55;
-}
-
-.boss-distribution {
-  display: grid;
-  gap: 10px;
-}
-
-.boss-distribution div {
-  position: relative;
-  min-height: 42px;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) 44px;
-  gap: 8px;
-  align-items: center;
-  border-radius: 10px;
-  padding: 0 10px;
-  background: #f1f5f9;
-}
-
-.boss-distribution b {
-  height: 12px;
-  border-radius: 999px;
-  background: #94a3b8;
-}
-
-.boss-distribution .correct b { background: #10b981; }
-.boss-distribution .selected b { background: #f97316; }
 
 .boss-overlay {
   position: fixed;
@@ -624,6 +561,18 @@
   line-height: 1.6;
 }
 
+.boss-damage-note {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  border-radius: 999px;
+  padding: 9px 12px;
+  color: #64748b;
+  background: #f8fafc;
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .boss-podium {
   display: grid;
   justify-items: center;
@@ -657,6 +606,55 @@
 
 .boss-podium-grid .place-2 { min-height: 170px; }
 .boss-podium-grid .place-3 { min-height: 140px; }
+
+.boss-ai-review {
+  width: min(900px, 100%);
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.boss-ai-review h3 {
+  margin: 0;
+  color: #172033;
+  font-size: 24px;
+}
+
+.boss-ai-review article {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  background: #f8fafc;
+}
+
+.boss-ai-review article.correct {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.boss-ai-review article.incorrect {
+  border-color: #fecaca;
+  background: #fff5f5;
+}
+
+.boss-ai-review strong {
+  color: #172033;
+}
+
+.boss-ai-review span {
+  color: #64748b;
+  font-weight: 900;
+}
+
+.boss-ai-review p {
+  margin: 0;
+  color: #475569;
+  font-size: 15px;
+  line-height: 1.55;
+}
 
 .boss-phase-list {
   display: flex;
@@ -746,7 +744,6 @@
   .boss-hero,
   .boss-status-row,
   .boss-lobby,
-  .boss-play-stage,
   .boss-damage-stage,
   .boss-podium-grid {
     grid-template-columns: 1fr;

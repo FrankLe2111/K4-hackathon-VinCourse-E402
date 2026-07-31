@@ -13,7 +13,7 @@ from app.storage.memory import record_result
 router = APIRouter(tags=["boss-battle"])
 
 THRESHOLD = 80
-ATTACK_DAMAGE = 25
+ATTACK_DAMAGE = 34
 ROUND_TIME_SECONDS = 30
 CORRECT_POINTS = 1000
 
@@ -123,7 +123,7 @@ def _boss_session() -> GameSession:
                 "threshold": THRESHOLD,
                 "round_time_seconds": ROUND_TIME_SECONDS,
                 "correct_points": CORRECT_POINTS,
-                "damage_rule": "Neu correct_rate >= 80%, boss mat 25 HP. Neu thap hon, boss khong mat mau.",
+                "damage_rule": "Neu correct_rate >= 80%, boss mat 34 HP. Neu thap hon, boss khong mat mau.",
             },
             "players": PLAYERS,
             "rounds": ROUNDS,
