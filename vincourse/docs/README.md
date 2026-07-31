@@ -33,7 +33,10 @@ Muc tieu cua bo docs:
 7. `AGENT_WORKFLOW.md`
    - Prompt va quy tac khi dung AI Agent de gen code.
 
-8. `features/*.md`
+8. `AI_AGENT_INTEGRATION_RULES.md`
+   - Quy tac chong conflict khi AI Agent tich hop module vao file chung.
+
+9. `features/*.md`
    - Tai lieu rieng cho tung feature owner.
 
 ## Nguyen Tac Chinh

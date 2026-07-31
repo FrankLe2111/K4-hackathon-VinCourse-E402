@@ -82,6 +82,14 @@ class ClassifierTest(unittest.TestCase):
         public = json.dumps(server.public_story(), ensure_ascii=False)
         self.assertNotIn("accepted answers", public.casefold())
         self.assertNotIn('"answer":', public)
+        self.assertEqual(
+            [option["id"] for option in server.public_story()["zones"][0]["questions"][0]["options"]],
+            ["A", "B", "C", "D"],
+        )
+        questions = server.public_questions()["questions"]
+        self.assertEqual(len(questions), 50)
+        self.assertNotIn('"answer":', json.dumps(questions, ensure_ascii=False))
+        self.assertIn("daily_recall", questions[0]["modes"])
 
         correct = server.check_story({
             "question_id": "prologue_quiz_01", "answer": "B", "confidence": "high",

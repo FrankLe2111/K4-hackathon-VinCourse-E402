@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { getModeSession, submitMode } from "../../api/modes";
 import type { GameMode, GameResult, GameSession } from "../../types/game";
+import { BossBattleView } from "../../features/boss-battle";
 import { DailyRecallView } from "../../features/daily-recall";
 import { ErrorDungeonView } from "../../features/error-dungeon";
-import { LabArena } from "../../features/lab-arena/LabArena";
+import { LabArena } from "../../features/lab-arena";
+import { LiveBattleFeature } from "../../features/live-battle";
+import { StoryQuest } from "../../features/story-quest";
 
 type Props = {
   mode: GameMode;
@@ -11,6 +14,12 @@ type Props = {
 };
 
 export function FeatureHost({ mode, onCompleted }: Props) {
+  if (mode === "story") return <StoryQuest onCompleted={onCompleted} />;
+  if (mode === "live_battle") return <LiveBattleFeature onCompleted={onCompleted} />;
+  return <GenericFeatureHost mode={mode} onCompleted={onCompleted} />;
+}
+
+function GenericFeatureHost({ mode, onCompleted }: Props) {
   const [session, setSession] = useState<GameSession | null>(null);
   const [answer, setAnswer] = useState("");
   const [confidence, setConfidence] = useState(3);
@@ -92,6 +101,10 @@ export function FeatureHost({ mode, onCompleted }: Props) {
 
   if (session && mode === "error_dungeon") {
     return <ErrorDungeonView session={session} onCompleted={onCompleted} />;
+  }
+
+  if (session && mode === "boss_battle") {
+    return <BossBattleView session={session} onCompleted={onCompleted} />;
   }
 
   if (isLabArena) {

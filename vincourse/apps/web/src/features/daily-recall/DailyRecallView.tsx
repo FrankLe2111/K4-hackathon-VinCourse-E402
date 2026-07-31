@@ -1,31 +1,64 @@
 import { useState } from "react";
-import { Clock, ShieldAlert, Award, ArrowRight, CheckCircle2, Sparkles, HelpCircle, SkipForward, RefreshCw } from "lucide-react";
+import { ArrowRight, Award, BookOpen, CheckCircle2, FileText, HelpCircle, Highlighter, PenLine, PlayCircle, RefreshCw, ShieldAlert, SkipForward, ZoomIn, ZoomOut } from "lucide-react";
 import { submitMode } from "../../api/modes";
 import type { GameResult, GameSession } from "../../types/game";
+import day4Pdf from "../../assets/day4.pdf";
+import "./daily-recall.css";
 
 type Props = {
   session: GameSession;
   onCompleted: () => void;
 };
 
-const CONFIDENCE_LEVELS = [
+const days = Array.from({ length: 5 }, (_, index) => ({
+  title: `Day0${index + 1}`,
+  docs: [
+    index === 3 ? { name: "day4.pdf", pages: 9, src: day4Pdf } : { name: `day0${index + 1}_lecture.pdf`, pages: 42 + index * 8 },
+    ...(index % 2 === 0 ? [{ name: `day0${index + 1}_material.pdf`, pages: 24 + index * 4 }] : []),
+  ],
+}));
+
+const confidenceLevels = [
   { level: 1, label: "Chưa chắc", emoji: "🤔" },
-  { level: 2, label: "Hơi phân vân", emoji: "🧐" },
-  { level: 3, label: "Vừa phải", emoji: "👍" },
+  { level: 2, label: "Phân vân", emoji: "🧐" },
+  { level: 3, label: "Vừa", emoji: "👍" },
   { level: 4, label: "Tự tin", emoji: "💪" },
-  { level: 5, label: "Chắc chắn 100%", emoji: "🔥" },
+  { level: 5, label: "Chắc chắn", emoji: "🔥" },
+];
+
+const summaries = [
+  ["AI khác automation vì có thể suy luận từ dữ liệu mới, không chỉ chạy luật cố định.", "LLM dự đoán token tiếp theo theo xác suất nên cần kiểm chứng nguồn.", "Dùng AI tốt nhất khi xác định rõ input, output, người dùng và rủi ro."],
+  ["Feature scaling giúp gradient descent hội tụ ổn định hơn.", "Label là kết quả cần dự đoán; feature là tín hiệu có trước dự đoán.", "Data leakage làm điểm validation đẹp giả tạo."],
+  ["Pattern không đồng nghĩa quan hệ nhân quả.", "Shortcut learning xảy ra khi mô hình học tín hiệu dễ nhưng sai bản chất.", "Chọn task dựa vào output mong muốn: phân loại, dự đoán số, gợi ý."],
+  [
+    "Prompt là interface giữa human intent và model behavior; specificity beats cleverness.",
+    "RTCF gồm Role, Task, Context, Format; bắt đầu với Task + Format trước.",
+    "Negative prompt hiệu quả nhất khi có positive alternative: nói model nên làm gì thay vì chỉ nói đừng.",
+    "Zero-shot nên thử trước; few-shot dùng khi cần format/consistency; CoT chỉ nên dùng cho reasoning nhiều bước.",
+    "System prompt production-grade cần persona, rules, capabilities, constraints và output format.",
+    "System prompt phải được test với happy path, edge case, out-of-scope, injection, tool decision và format consistency.",
+  ],
+  ["Human-in-the-loop cần thiết ở quyết định rủi ro cao.", "Monitoring giúp phát hiện drift và lỗi sau triển khai.", "Evaluation phải đo đúng outcome học tập, không chỉ cảm giác hay."],
 ];
 
 export function DailyRecallView({ session, onCompleted }: Props) {
-  const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
-  const [selectedOption, setSelectedOption] = useState<string>("");
-  const [confidence, setConfidence] = useState<number>(3);
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState("");
+  const [confidence, setConfidence] = useState(3);
   const [result, setResult] = useState<GameResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [sessionTotalXp, setSessionTotalXp] = useState<number>(0);
+  const [sessionTotalXp, setSessionTotalXp] = useState(0);
+  const [selectedDay, setSelectedDay] = useState(3);
+  const [selectedDoc, setSelectedDoc] = useState(0);
+  const [page, setPage] = useState(1);
+  const [zoom, setZoom] = useState(100);
+  const [sideTab, setSideTab] = useState<"summary" | "quiz">("summary");
 
   const payload = session.payload || {};
+  const aiSummary = selectedDay === 3 ? (payload.ai_summary as string[] | undefined) ?? summaries[selectedDay] : summaries[selectedDay];
+  const aiFlashcards = selectedDay === 3 ? (payload.ai_flashcards as Array<{ front: string; back: string }> | undefined) ?? [] : [];
+  const aiGeneratedQuestions = selectedDay === 3 ? (payload.ai_generated_questions as string[] | undefined) ?? [] : [];
   const allQuestions = (payload.all_questions as Array<{
     question_id: string;
     title: string;
@@ -34,10 +67,10 @@ export function DailyRecallView({ session, onCompleted }: Props) {
     due_reason: string;
     options: Array<{ id: string; text: string }>;
   }>) || [];
-
   const queueSize = allQuestions.length || 4;
   const isFinished = activeQuestionIndex >= queueSize;
-
+  const doc = days[selectedDay].docs[selectedDoc] ?? days[selectedDay].docs[0];
+  const isRealPdf = "src" in doc;
   const currentQ = allQuestions[activeQuestionIndex] || {
     question_id: (payload.question_id as string) || "q-dr-001",
     title: session.title,
@@ -48,10 +81,7 @@ export function DailyRecallView({ session, onCompleted }: Props) {
   };
 
   async function handleSubmit() {
-    if (!selectedOption) {
-      setError("Vui lòng chọn 1 đáp án trước khi nộp!");
-      return;
-    }
+    if (!selectedOption) return setError("Vui lòng chọn 1 đáp án trước khi nộp!");
     setLoading(true);
     setError("");
     try {
@@ -77,7 +107,6 @@ export function DailyRecallView({ session, onCompleted }: Props) {
     setLoading(true);
     setError("");
     try {
-      // Record SKIP action in backend so it creates a recovery item in Error Dungeon!
       await submitMode("daily_recall", {
         user_id: "demo-user",
         course_id: "ml-foundations",
@@ -87,11 +116,7 @@ export function DailyRecallView({ session, onCompleted }: Props) {
         confidence: 1,
       });
       onCompleted();
-      // Move to next question immediately
-      setSelectedOption("");
-      setConfidence(3);
-      setResult(null);
-      setActiveQuestionIndex((prev) => prev + 1);
+      handleNextQuestion();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Bỏ qua câu hỏi thất bại.");
     } finally {
@@ -107,7 +132,7 @@ export function DailyRecallView({ session, onCompleted }: Props) {
     setActiveQuestionIndex((prev) => prev + 1);
   }
 
-  function handleRestartSession() {
+  function restart() {
     setSelectedOption("");
     setConfidence(3);
     setResult(null);
@@ -116,298 +141,137 @@ export function DailyRecallView({ session, onCompleted }: Props) {
     setActiveQuestionIndex(0);
   }
 
-  // Final Session Summary Screen
   if (isFinished) {
     return (
-      <div style={{ width: "100%", color: "#0f172a", fontFamily: "system-ui, -apple-system, sans-serif" }}>
-        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "32px", textAlign: "center", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" }}>
-          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#ecfdf5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px auto", border: "1px solid #a7f3d0" }}>
-            <Award size={36} />
-          </div>
-          <h2 style={{ fontSize: "22px", fontWeight: 800, color: "#065f46", margin: "0 0 8px 0" }}>
-            🎉 Hoàn Thành Phiên Ôn Tập Daily Recall!
-          </h2>
-          <p style={{ fontSize: "15px", color: "#475569", margin: "0 0 24px 0" }}>
-            Bạn đã hoàn thành phiên ôn tập hôm nay. Các câu làm sai/bỏ qua đã được lưu vào <strong>Error Dungeon</strong> để tiêu diệt!
-          </p>
-
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#fef3c7", color: "#b45309", padding: "12px 24px", borderRadius: "30px", fontWeight: 800, fontSize: "18px", border: "1px solid #fde68a", marginBottom: "28px" }}>
-            <Sparkles size={20} color="#d97706" /> +{sessionTotalXp} Tổng XP Đạt Được
-          </div>
-
-          <div>
-            <button
-              onClick={handleRestartSession}
-              style={{
-                padding: "14px 28px",
-                borderRadius: "12px",
-                background: "#4f46e5",
-                color: "#ffffff",
-                fontWeight: 700,
-                fontSize: "15px",
-                border: "none",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                boxShadow: "0 4px 12px rgba(79, 70, 229, 0.3)",
-              }}
-            >
-              <RefreshCw size={16} /> Ôn Tập Lại Phiên Này
-            </button>
-          </div>
-        </div>
-      </div>
+      <section className="daily-finish">
+        <Award size={42} />
+        <h2>Hoàn thành Daily Recall</h2>
+        <p>Câu sai/bỏ qua đã được đẩy sang Error Dungeon để ôn lại.</p>
+        <strong>+{sessionTotalXp} XP</strong>
+        <button className="primary-button" onClick={restart}><RefreshCw size={16} /> Ôn lại phiên này</button>
+      </section>
     );
   }
 
   return (
-    <div style={{ width: "100%", color: "#0f172a", fontFamily: "system-ui, -apple-system, sans-serif" }}>
-      {/* Full Width White Card */}
-      <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "24px", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" }}>
-        
-        {/* Top Header Bar */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#f1f5f9", padding: "6px 14px", borderRadius: "30px", border: "1px solid #e2e8f0" }}>
-            <Clock size={15} color="#0284c7" />
-            <span style={{ fontSize: "13px", fontWeight: 600, color: "#0284c7" }}>Câu {activeQuestionIndex + 1} / {queueSize}</span>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", background: "#eef2ff", color: "#4f46e5", border: "1px solid #c7d2fe", padding: "6px 14px", borderRadius: "30px", fontSize: "13px", fontWeight: 600 }}>
-            <Sparkles size={14} color="#6366f1" />
-            <span>{currentQ.due_reason}</span>
-          </div>
-        </div>
-
-        {/* Question Prompt Card */}
-        <div style={{ marginBottom: "24px" }}>
-          <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#0f172a", margin: "0 0 12px 0", lineHeight: "1.4" }}>
-            {currentQ.title}
-          </h2>
-          <div style={{ background: "#f8fafc", padding: "18px 20px", borderRadius: "12px", borderLeft: "4px solid #4f46e5", borderTop: "1px solid #f1f5f9", borderRight: "1px solid #f1f5f9", borderBottom: "1px solid #f1f5f9" }}>
-            <p style={{ fontSize: "16px", lineHeight: "1.6", color: "#334155", margin: 0, fontWeight: 500 }}>
-              {currentQ.prompt}
-            </p>
-          </div>
-        </div>
-
-        {/* Evidence Source Chip */}
-        {currentQ.evidence_ids && currentQ.evidence_ids.length > 0 && (
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px" }}>
-            <span style={{ fontSize: "13px", color: "#64748b", fontWeight: 500 }}>Nguồn bài giảng:</span>
-            {currentQ.evidence_ids.map((id) => (
-              <span key={id} style={{ background: "#e0f2fe", color: "#0369a1", padding: "3px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: 700, border: "1px solid #bae6fd" }}>
-                [{id}]
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Multiple Choice Options */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "28px" }}>
-          {currentQ.options.map((opt) => {
-            const isSelected = selectedOption === opt.id;
-            return (
-              <button
-                key={opt.id}
-                onClick={() => !result && setSelectedOption(opt.id)}
-                disabled={Boolean(result)}
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "14px",
-                  padding: "16px 18px",
-                  borderRadius: "12px",
-                  background: isSelected ? "#eef2ff" : "#ffffff",
-                  border: isSelected ? "2px solid #4f46e5" : "1px solid #e2e8f0",
-                  color: "#0f172a",
-                  cursor: result ? "default" : "pointer",
-                  textAlign: "left",
-                  transition: "all 0.15s ease",
-                  boxShadow: isSelected ? "0 4px 12px rgba(79, 70, 229, 0.12)" : "0 1px 2px rgba(0,0,0,0.02)",
-                }}
-              >
-                <div
-                  style={{
-                    width: "28px",
-                    height: "28px",
-                    borderRadius: "50%",
-                    background: isSelected ? "#4f46e5" : "#f1f5f9",
-                    color: isSelected ? "#ffffff" : "#475569",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                    fontSize: "14px",
-                    flexShrink: 0,
-                    border: isSelected ? "none" : "1px solid #cbd5e1",
-                  }}
-                >
-                  {opt.id}
-                </div>
-                <span style={{ fontSize: "15px", lineHeight: "1.5", paddingTop: "2px", color: isSelected ? "#1e1b4b" : "#334155", fontWeight: isSelected ? 600 : 400 }}>
-                  {opt.text}
-                </span>
+    <section className="daily-shell">
+      <aside className="daily-library">
+        <div className="daily-library-head"><BookOpen size={22} /><div><h2>Học liệu môn học</h2><p>Chương, slide và tài liệu đã upload</p></div></div>
+        {days.map((day, dayIndex) => (
+          <section key={day.title} className={dayIndex === selectedDay ? "daily-day active" : "daily-day"}>
+            <button onClick={() => {
+              setSelectedDay(dayIndex);
+              setSelectedDoc(0);
+              setPage(1);
+            }}><PlayCircle size={18} /><strong>{day.title}</strong><span>{day.docs.length} tài liệu · published</span></button>
+            {dayIndex === selectedDay ? day.docs.map((item, docIndex) => (
+              <button key={item.name} className={docIndex === selectedDoc ? "daily-doc selected" : "daily-doc"} onClick={() => {
+                setSelectedDoc(docIndex);
+                setPage(1);
+              }}>
+                <PlayCircle size={16} /><strong>{item.name}</strong><span>{item.pages} trang</span>
               </button>
-            );
-          })}
+            )) : null}
+          </section>
+        ))}
+      </aside>
+
+      <main className="daily-study">
+        <div className="daily-toolbar">
+          <button className="secondary-button"><PlayCircle size={16} /> Đọc</button>
+          <button className="secondary-button"><PenLine size={16} /> Bút</button>
+          <button className="secondary-button"><Highlighter size={16} /> Highlight</button>
+          <span>Trang {page} · 1 note</span>
+          <button className="secondary-button" onClick={() => setZoom((value) => Math.max(70, value - 10))}><ZoomOut size={16} /></button>
+          <strong>{zoom}%</strong>
+          <button className="secondary-button" onClick={() => setZoom((value) => Math.min(140, value + 10))}><ZoomIn size={16} /></button>
         </div>
 
-        {/* Confidence Selector */}
-        {!result && (
-          <div style={{ background: "#f8fafc", padding: "18px", borderRadius: "14px", marginBottom: "24px", border: "1px solid #e2e8f0" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", fontSize: "14px", color: "#475569", fontWeight: 600 }}>
-              <HelpCircle size={16} color="#4f46e5" />
-              <span>Đánh giá mức tự tin của bạn:</span>
-            </div>
+        <section className="daily-reader">
+          <div className="daily-page-meta"><span>Trang {page} / {doc.pages}</span><span>{doc.name}</span></div>
+          {isRealPdf ? (
+            <iframe className="daily-pdf" src={`${doc.src}#page=${page}&zoom=${zoom}`} title={doc.name} />
+          ) : (
+            <article className="daily-slide" style={{ transform: `scale(${zoom / 100})` }}>
+              <small>AI IN ACTION — {days[selectedDay].title}</small>
+              <h1>{selectedDay === 0 ? "AI & LLM Foundation" : currentQ.title.replace("Daily Recall — ", "")}</h1>
+              <p>Bạn đang ôn lại phần kiến thức sẽ được hỏi trong Daily Recall. Sau này khu vực này hiển thị PDF thật bạn upload.</p>
+              <b>VinCourse</b>
+            </article>
+          )}
+        </section>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px" }}>
-              {CONFIDENCE_LEVELS.map((item) => {
-                const isActive = confidence === item.level;
-                return (
-                  <button
-                    key={item.level}
-                    type="button"
-                    onClick={() => setConfidence(item.level)}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "4px",
-                      padding: "10px 4px",
-                      borderRadius: "10px",
-                      background: isActive ? "#4f46e5" : "#ffffff",
-                      border: isActive ? "2px solid #4f46e5" : "1px solid #cbd5e1",
-                      color: isActive ? "#ffffff" : "#64748b",
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                      boxShadow: isActive ? "0 4px 10px rgba(79, 70, 229, 0.2)" : "none",
-                    }}
-                  >
-                    <span style={{ fontSize: "18px" }}>{item.emoji}</span>
-                    <span style={{ fontSize: "11px", fontWeight: isActive ? 700 : 500 }}>{item.label}</span>
-                  </button>
-                );
-              })}
+        <div className="daily-page-nav">
+          <button className="secondary-button" onClick={() => setPage((value) => Math.max(1, value - 1))}>‹</button>
+          <span>Trang {page} / {doc.pages}</span>
+          <button className="secondary-button" onClick={() => setPage((value) => Math.min(doc.pages, value + 1))}>›</button>
+        </div>
+      </main>
+
+      <aside className="daily-quiz">
+        <div className="daily-side-tabs">
+          <button className={sideTab === "summary" ? "active" : ""} onClick={() => setSideTab("summary")}><FileText size={15} /> Summary slide</button>
+          <button className={sideTab === "quiz" ? "active" : ""} onClick={() => setSideTab("quiz")}><HelpCircle size={15} /> Trắc nghiệm</button>
+        </div>
+
+        {sideTab === "summary" ? (
+          <div className="daily-summary">
+            <div className="daily-quiz-head"><span>{days[selectedDay].title}</span><b>{doc.name}</b></div>
+            <h2>Tóm tắt bài giảng</h2>
+            <p>AI Coach tóm tắt nhanh các ý chính trước khi làm câu hỏi recall.</p>
+            <div className="daily-summary-list">
+              {aiSummary.map((item, index) => <article key={item}><strong>{index + 1}</strong><p>{item}</p></article>)}
             </div>
+            {aiFlashcards.length ? (
+              <>
+                <h3>Flashcard AI</h3>
+                <div className="daily-summary-list">
+                  {aiFlashcards.map((card) => <article key={card.front}><strong>Q</strong><p><b>{card.front}</b><br />{card.back}</p></article>)}
+                </div>
+              </>
+            ) : null}
+            {aiGeneratedQuestions.length ? (
+              <div className="daily-summary-callout">
+                <strong>Câu hỏi AI gợi ý</strong>
+                <p>{aiGeneratedQuestions.join(" · ")}</p>
+              </div>
+            ) : null}
+            <div className="daily-summary-callout">
+              <strong>Gợi ý học tập</strong>
+              <p>Đọc summary trước, tự giải thích lại bằng lời của bạn, rồi chuyển sang trắc nghiệm để kiểm tra trí nhớ.</p>
+            </div>
+            <button className="primary-button" onClick={() => setSideTab("quiz")}>Làm trắc nghiệm <ArrowRight size={16} /></button>
           </div>
+        ) : (
+          <>
+            <div className="daily-quiz-head"><span>Câu {activeQuestionIndex + 1}/{queueSize}</span><b>{currentQ.due_reason}</b></div>
+            <h2>{currentQ.title}</h2>
+            <p>{currentQ.prompt}</p>
+            <div className="daily-source">{currentQ.evidence_ids.map((id) => <span key={id}>[{id}]</span>)}</div>
+            <div className="daily-options">
+              {currentQ.options.map((opt) => (
+                <button key={opt.id} className={selectedOption === opt.id ? "selected" : ""} onClick={() => !result && setSelectedOption(opt.id)} disabled={Boolean(result)}>
+                  <span>{opt.id}</span>{opt.text}
+                </button>
+              ))}
+            </div>
+            {!result ? (
+              <>
+                <div className="daily-confidence"><HelpCircle size={16} />{confidenceLevels.map((item) => <button key={item.level} className={confidence === item.level ? "active" : ""} onClick={() => setConfidence(item.level)}>{item.emoji}<small>{item.label}</small></button>)}</div>
+                {error ? <p className="daily-error">{error}</p> : null}
+                <div className="button-row"><button className="primary-button" disabled={loading || !selectedOption} onClick={() => void handleSubmit()}>{loading ? "Đang xử lý…" : <>Nộp bài <ArrowRight size={16} /></>}</button><button className="secondary-button" disabled={loading} onClick={() => void handleSkip()}><SkipForward size={16} /> Bỏ qua</button></div>
+              </>
+            ) : (
+              <div className={result.correct ? "daily-result success" : "daily-result danger"}>
+                {result.correct ? <CheckCircle2 /> : <ShieldAlert />}
+                <strong>{result.correct ? "Chính xác!" : "Cần ôn lại"} · +{result.xp} XP</strong>
+                <p>{result.feedback}</p>
+                <button className="primary-button" onClick={handleNextQuestion}>{activeQuestionIndex + 1 < queueSize ? "Sang câu tiếp theo" : "Xem tổng kết"}</button>
+              </div>
+            )}
+          </>
         )}
-
-        {/* Alert message */}
-        {error && (
-          <div style={{ color: "#dc2626", background: "#fef2f2", padding: "12px 16px", borderRadius: "10px", marginBottom: "20px", fontSize: "14px", border: "1px solid #fecaca" }}>
-            {error}
-          </div>
-        )}
-
-        {/* Action Buttons Row */}
-        {!result ? (
-          <div style={{ display: "flex", gap: "12px" }}>
-            <button
-              onClick={() => void handleSubmit()}
-              disabled={loading || !selectedOption}
-              style={{
-                flex: 1,
-                padding: "16px",
-                borderRadius: "12px",
-                background: selectedOption ? "#4f46e5" : "#94a3b8",
-                color: "#ffffff",
-                fontWeight: 700,
-                fontSize: "16px",
-                border: "none",
-                cursor: selectedOption ? "pointer" : "not-allowed",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                boxShadow: selectedOption ? "0 4px 12px rgba(79, 70, 229, 0.3)" : "none",
-                transition: "all 0.15s ease",
-              }}
-            >
-              {loading ? "Đang xử lý..." : <>Xác nhận & Nộp bài <ArrowRight size={18} /></>}
-            </button>
-
-            <button
-              onClick={() => void handleSkip()}
-              disabled={loading}
-              title="Bỏ qua câu hỏi này và đẩy vào Error Dungeon"
-              style={{
-                padding: "16px 20px",
-                borderRadius: "12px",
-                background: "#f1f5f9",
-                color: "#475569",
-                fontWeight: 600,
-                fontSize: "14px",
-                border: "1px solid #cbd5e1",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
-              Bỏ qua ⏭️
-            </button>
-          </div>
-        ) : null}
-
-        {/* Result Card with Next Question Action */}
-        {result && (
-          <div
-            style={{
-              marginTop: "24px",
-              padding: "20px",
-              borderRadius: "14px",
-              background: result.correct ? "#ecfdf5" : "#fff1f2",
-              border: result.correct ? "1px solid #a7f3d0" : "1px solid #fecdd3",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-              {result.correct ? <CheckCircle2 size={24} color="#059669" /> : <ShieldAlert size={24} color="#e11d48" />}
-              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: result.correct ? "#065f46" : "#9f1239" }}>
-                {result.correct ? "Chính xác!" : "Lưu ý Lỗi sai Misconception"} ({result.status.toUpperCase()})
-              </h3>
-            </div>
-
-            <p style={{ fontSize: "15px", lineHeight: "1.6", color: "#334155", margin: "0 0 14px 0" }}>
-              {result.feedback}
-            </p>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "14px", background: "#ffffff", padding: "10px 14px", borderRadius: "8px", marginBottom: "16px", border: "1px solid #e2e8f0" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "#d97706", fontWeight: 700 }}>
-                <Award size={18} /> +{result.xp} XP
-              </span>
-              <span style={{ color: "#0284c7", fontWeight: 600 }}>Mastery: +{result.mastery_delta}</span>
-            </div>
-
-            {/* Next Question CTA Button */}
-            <button
-              onClick={handleNextQuestion}
-              style={{
-                width: "100%",
-                padding: "14px",
-                borderRadius: "12px",
-                background: result.correct ? "#059669" : "#4f46e5",
-                color: "#ffffff",
-                fontWeight: 700,
-                fontSize: "15px",
-                border: "none",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-              }}
-            >
-              {activeQuestionIndex + 1 < queueSize ? (
-                <>Sang câu tiếp theo ({activeQuestionIndex + 2}/{queueSize}) <ArrowRight size={18} /></>
-              ) : (
-                <>Xem tổng kết phiên ôn tập 🎉 <ArrowRight size={18} /></>
-              )}
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+      </aside>
+    </section>
   );
 }

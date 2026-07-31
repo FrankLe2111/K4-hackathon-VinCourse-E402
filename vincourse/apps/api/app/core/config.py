@@ -6,8 +6,10 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
-load_dotenv(ENV_FILE)
+API_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+ROOT_ENV_FILE = Path(__file__).resolve().parents[5] / ".env"
+load_dotenv(ROOT_ENV_FILE)
+load_dotenv(API_ENV_FILE, override=True)
 
 
 class Settings(BaseSettings):
@@ -25,4 +27,3 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
-

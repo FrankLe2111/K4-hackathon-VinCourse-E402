@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, Query
+from app.ai.tutor import daily_recall_feedback, daily_recall_pack
 from app.schemas import GameMode, GameResult, GameSession, GameStatus, GameSubmitRequest
 from app.storage.memory import record_result
 
@@ -8,63 +9,78 @@ router = APIRouter(tags=["daily-recall"])
 MOCK_DAILY_RECALL_QUEUE = [
     {
         "question_id": "q-dr-001",
-        "title": "Daily Recall — Ôn Tập Hàng Ngày (1/4)",
-        "prompt": "Vì sao cần thực hiện Feature Scaling (Chuẩn hóa dữ liệu) trước khi chạy Gradient Descent trong Machine Learning?",
-        "evidence_ids": ["T02-034"],
-        "due_reason": "Chưa ôn lại sau 7 ngày",
+        "title": "Day 4 — Prompt Fundamentals (1/5)",
+        "prompt": "Theo slide “4 Thành Phần Của Prompt Tốt”, 4 thành phần RTCF là gì?",
+        "evidence_ids": ["Day4 slide 5"],
+        "due_reason": "Ôn tập RTCF",
         "options": [
-            {"id": "A", "text": "Giúp bề mặt hàm mất mát cân đối, từ đó Gradient Descent hội tụ nhanh và ổn định hơn."},
-            {"id": "B", "text": "Chỉ nhằm mục đích giảm dung lượng RAM sử dụng khi huấn luyện mô hình."},
-            {"id": "C", "text": "Nhằm thay thế số lượng Epochs cần chạy khi mô hình bị overfitting."},
-            {"id": "D", "text": "Tự động phát hiện và xóa các dòng dữ liệu bị thiếu (Missing Values)."}
+            {"id": "A", "text": "Role, Task, Context, Format."},
+            {"id": "B", "text": "Reasoning, Temperature, Code, Feedback."},
+            {"id": "C", "text": "Retrieval, Tool, Cache, Function."},
+            {"id": "D", "text": "Read, Transform, Classify, Fine-tune."}
         ],
         "correct_answer": "A",
-        "misconception_id": "more_epochs_fix_scaling"
+        "misconception_id": "prompt_without_structure"
     },
     {
         "question_id": "q-dr-002",
-        "title": "Daily Recall — Ôn Tập Hàng Ngày (2/4)",
-        "prompt": "Mối quan hệ chính xác giữa LLM (Large Language Model) và Chatbot là gì?",
-        "evidence_ids": ["T04-046"],
-        "due_reason": "Tự tin thấp ở lần học trước",
+        "title": "Day 4 — Prompt Priority (2/5)",
+        "prompt": "Slide Day4 khuyên nên bắt đầu prompt tốt bằng thành phần nào trước?",
+        "evidence_ids": ["Day4 slide 5"],
+        "due_reason": "Ôn tập cách viết prompt thực dụng",
         "options": [
-            {"id": "A", "text": "LLM và Chatbot là hai tên gọi hoàn toàn giống nhau của cùng một sản phẩm."},
-            {"id": "B", "text": "LLM là mô hình nền tảng bên dưới (underlying model), còn Chatbot là lớp giao diện tương tác người dùng."},
-            {"id": "C", "text": "Chatbot sinh ra LLM khi người dùng đặt câu hỏi."},
-            {"id": "D", "text": "Chatbot chỉ hoạt động offline còn LLM luôn hoạt động online."}
+            {"id": "A", "text": "Task + Format; chỉ thêm Role/Context khi chúng cải thiện chất lượng hoặc nhất quán."},
+            {"id": "B", "text": "Role + Context; luôn bỏ Task và Format để model tự linh hoạt."},
+            {"id": "C", "text": "Temperature + top_p; prompt không quan trọng nếu sampling đúng."},
+            {"id": "D", "text": "Ví dụ thật dài; càng nhiều ví dụ càng tốt."}
         ],
-        "correct_answer": "B",
-        "misconception_id": "llm_equals_chatbot"
+        "correct_answer": "A",
+        "misconception_id": "role_context_overuse"
     },
     {
         "question_id": "q-dr-003",
-        "title": "Daily Recall — Ôn Tập Hàng Ngày (3/4)",
-        "prompt": "Vì sao LLM lại có thể xảy ra hiện tượng Hallucination (Ảo giác / Sinh thông tin sai)?",
-        "evidence_ids": ["T04-047", "T04-048"],
-        "due_reason": "Câu từng làm sai tuần trước",
+        "title": "Day 4 — Specificity Beats Cleverness (3/5)",
+        "prompt": "Theo slide “Prompt = Interface…”, vì sao prompt “Viết email cho tôi” là prompt kém?",
+        "evidence_ids": ["Day4 slide 4"],
+        "due_reason": "Ôn tập prompt cụ thể",
         "options": [
-            {"id": "A", "text": "Vì LLM cố tình nói dối người dùng khi bị quá tải server."},
-            {"id": "B", "text": "Vì cơ chế cốt lõi của LLM là dự đoán token tiếp theo theo xác suất, không bảo đảm tính đúng sự thật."},
-            {"id": "C", "text": "Vì dữ liệu huấn luyện của LLM không có bất kỳ thông tin nào đúng."},
-            {"id": "D", "text": "Vì LLM không thể viết được mã nguồn lập trình."}
+            {"id": "A", "text": "Vì không rõ gửi ai, về việc gì, tone nào, dài bao nhiêu."},
+            {"id": "B", "text": "Vì prompt ngắn luôn làm model từ chối trả lời."},
+            {"id": "C", "text": "Vì email không phải use case AI hợp lệ."},
+            {"id": "D", "text": "Vì thiếu Chain-of-Thought nên không thể viết email."}
         ],
-        "correct_answer": "B",
-        "misconception_id": "hallucination_intentional_lie"
+        "correct_answer": "A",
+        "misconception_id": "vague_prompt_is_enough"
     },
     {
         "question_id": "q-dr-004",
-        "title": "Daily Recall — Ôn Tập Hàng Ngày (4/4)",
-        "prompt": "Nguyên tắc lựa chọn giữa Augment (Hỗ trợ) và Automate (Tự động hóa hoàn toàn) cho công việc là gì?",
-        "evidence_ids": ["T02-032"],
-        "due_reason": "Lịch ôn tập định kỳ 14 ngày",
+        "title": "Day 4 — Advanced Prompting (4/5)",
+        "prompt": "Theo slide “Zero-shot, One-shot, Few-shot, CoT”, thứ tự thử thực dụng là gì?",
+        "evidence_ids": ["Day4 slide 13"],
+        "due_reason": "Ôn tập khi nào dùng kỹ thuật nâng cao",
         "options": [
-            {"id": "A", "text": "Công việc có rủi ro/hậu quả sai lầm (cost-of-error) càng cao thì càng nên Augment (giữ con người giám sát)."},
-            {"id": "B", "text": "Nên Automate 100% mọi công việc để tiết kiệm thời gian tối đa."},
-            {"id": "C", "text": "Công việc càng quan trọng thì càng nên bỏ con người ra khỏi luồng quyết định."},
-            {"id": "D", "text": "Augment và Automate không khác nhau về mức độ kiểm soát của con người."}
+            {"id": "A", "text": "Zero-shot → few-shot → decomposition / CoT."},
+            {"id": "B", "text": "CoT → Tree-of-Thought → few-shot → zero-shot."},
+            {"id": "C", "text": "Luôn dùng CoT trước vì mọi task đều cần reasoning dài."},
+            {"id": "D", "text": "Luôn dùng nhiều hơn 5 ví dụ để tăng độ chính xác."}
         ],
         "correct_answer": "A",
-        "misconception_id": "automate_high_risk_tasks"
+        "misconception_id": "advanced_prompting_first"
+    },
+    {
+        "question_id": "q-dr-005",
+        "title": "Day 4 — System Prompt Testing (5/5)",
+        "prompt": "Checklist test system prompt trong slide Day4 bao gồm điều nào?",
+        "evidence_ids": ["Day4 slide 26"],
+        "due_reason": "Ôn tập production-grade system prompt",
+        "options": [
+            {"id": "A", "text": "Happy path, edge case, out-of-scope, adversarial injection, tool decision, format consistency."},
+            {"id": "B", "text": "Chỉ kiểm tra một câu happy path là đủ nếu model trả lời hay."},
+            {"id": "C", "text": "Chỉ đo tốc độ phản hồi, không cần kiểm tra refusal hay tool failure."},
+            {"id": "D", "text": "Không cần test system prompt vì system prompt luôn được model tuân thủ tuyệt đối."}
+        ],
+        "correct_answer": "A",
+        "misconception_id": "untested_system_prompt"
     }
 ]
 
@@ -73,6 +89,7 @@ MOCK_DAILY_RECALL_QUEUE = [
 def get_session(index: int = Query(default=0, ge=0)) -> GameSession:
     question_index = index % len(MOCK_DAILY_RECALL_QUEUE)
     item = MOCK_DAILY_RECALL_QUEUE[question_index]
+    ai_pack = daily_recall_pack()
     return GameSession(
         mode=GameMode.daily_recall,
         session_id=f"dr-{uuid.uuid4().hex[:8]}",
@@ -85,6 +102,9 @@ def get_session(index: int = Query(default=0, ge=0)) -> GameSession:
             "current_index": question_index + 1,
             "due_reason": item["due_reason"],
             "options": item["options"],
+            "ai_summary": ai_pack["summary"],
+            "ai_flashcards": ai_pack["flashcards"],
+            "ai_generated_questions": ai_pack["generated_questions"],
             "all_questions": [
                 {
                     "question_id": q["question_id"],
@@ -115,7 +135,7 @@ def submit(request: GameSubmitRequest) -> GameResult:
             mode=GameMode.daily_recall,
             correct=False,
             status=GameStatus.needs_clarification,
-            feedback=f"Bạn đã bỏ qua câu hỏi này (Recall Gap). Khái niệm [{item['question_id']}] đã được tự động thêm vào Error Dungeon để bạn ôn lại.",
+            feedback=daily_recall_feedback(item["prompt"], False, f"Bạn đã bỏ qua câu hỏi này (Recall Gap). Khái niệm [{item['question_id']}] đã được tự động thêm vào Error Dungeon để bạn ôn lại."),
             evidence_ids=item["evidence_ids"],
             misconception_id=item["misconception_id"],
             xp=0,
@@ -163,7 +183,7 @@ def submit(request: GameSubmitRequest) -> GameResult:
         mode=GameMode.daily_recall,
         correct=is_correct,
         status=status,
-        feedback=feedback,
+        feedback=daily_recall_feedback(item["prompt"], is_correct, feedback),
         evidence_ids=item["evidence_ids"],
         misconception_id=misconception_id,
         xp=xp,

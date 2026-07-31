@@ -20,9 +20,9 @@ def test_feature_submit_returns_game_result_contract():
     response = client.post("/api/modes/story/submit", json={
         "user_id": "demo-user",
         "course_id": "ml-foundations",
-        "session_id": "story-demo-session",
-        "question_id": "q1",
-        "answer": "Scaling helps stabilize gradient descent.",
+        "session_id": "story-quest-bank",
+        "question_id": "prologue_quiz_01",
+        "answer": "B",
         "confidence": 4,
     })
     assert response.status_code == 200

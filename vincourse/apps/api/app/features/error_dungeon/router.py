@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, Query
+from app.ai.tutor import error_dungeon_feedback, error_repair_plan
 from app.schemas import GameMode, GameResult, GameSession, GameStatus, GameSubmitRequest
 from app.storage.memory import get_user_recovery_queue, record_result
 
@@ -134,6 +135,7 @@ def get_session(user_id: str = "demo-user", index: int = Query(default=0, ge=0))
     for item in recovery_items:
         mid = item.get("misconception_id", "more_epochs_fix_scaling")
         info = MISCONCEPTION_BANK.get(mid, DEFAULT_MISCONCEPTION)
+        repair = error_repair_plan(info)
         all_unresolved.append({
             "misconception_id": mid,
             "title": info.get("title", DEFAULT_MISCONCEPTION["title"]),
@@ -145,6 +147,9 @@ def get_session(user_id: str = "demo-user", index: int = Query(default=0, ge=0))
             "source_summary": info.get("source_summary", DEFAULT_MISCONCEPTION["source_summary"]),
             "transfer_question": info.get("transfer_question", DEFAULT_MISCONCEPTION["transfer_question"]),
             "transfer_options": info.get("transfer_options", DEFAULT_MISCONCEPTION["transfer_options"]),
+            "ai_mentor_line": repair["mentor_line"],
+            "ai_repair_steps": repair["repair_steps"],
+            "ai_transfer_drill": repair["transfer_drill"],
         })
 
     active_index = index % len(all_unresolved)
@@ -168,6 +173,9 @@ def get_session(user_id: str = "demo-user", index: int = Query(default=0, ge=0))
             "queue_size": len(all_unresolved),
             "current_index": active_index + 1,
             "all_unresolved": all_unresolved,
+            "ai_mentor_line": data["ai_mentor_line"],
+            "ai_repair_steps": data["ai_repair_steps"],
+            "ai_transfer_drill": data["ai_transfer_drill"],
         },
     )
 
@@ -199,7 +207,7 @@ def submit(request: GameSubmitRequest) -> GameResult:
         mode=GameMode.error_dungeon,
         correct=is_correct,
         status=status,
-        feedback=feedback,
+        feedback=error_dungeon_feedback(is_correct, data.get("misconception_id", target_id), feedback),
         evidence_ids=data.get("evidence_ids", []),
         misconception_id=data.get("misconception_id", target_id),
         xp=xp,

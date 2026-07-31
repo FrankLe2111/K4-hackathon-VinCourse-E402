@@ -18,7 +18,7 @@
 1. Giữ nguyên `questionId`, `conceptId`, option ID và machine-readable status.
 2. Chỉ gửi nội dung cần hiển thị tới client; đáp án đúng và hidden tests phải nằm server-side.
 3. Chỉ bật nút kiểm tra quiz khi người học đã chọn đáp án và confidence.
-4. Xáo trộn thứ tự lựa chọn nhưng không thay đổi option ID.
+4. Giữ nguyên thứ tự lựa chọn A–D để option ID khớp đáp án server-side.
 5. Ghi nhận đáp án, confidence, số lần thử, hint đã dùng, thời gian và recovery event.
 6. Sai với confidence cao phải có mức ưu tiên Error Dungeon cao nhất.
 7. Code phải chạy trong sandbox giới hạn thời gian, bộ nhớ, import, file system và network.
@@ -217,7 +217,7 @@
 | A | Nên dùng kiến trúc neural network nào? | Không | `technology-first-framing` | Chưa nên chọn công nghệ khi chưa xác định rõ vấn đề người dùng. |
 | B | Ai đang gặp vấn đề cụ thể nào? | Có | `` | — | Người dùng và pain point rõ ràng là điểm bắt đầu của problem framing. |
 | C | Có thể mua bao nhiêu GPU? | Không | `infrastructure-first-framing` | Hạ tầng chỉ nên được quyết định sau khi bài toán đã rõ. |
-| D | Dashboard nên có màu gì? | Không | `interface-before-problem` | Thiết kế giao diện không phải quyết định đầu tiên của bài toán. |
+| D | Accuracy mục tiêu nên là bao nhiêu? | Không | `metric-before-problem` | Chưa thể đặt metric khi chưa biết user, pain point và quyết định cần hỗ trợ. |
 
     - **Đáp án đúng:** `B`
     - **Giải thích:** Bắt đầu từ người dùng và vấn đề cụ thể, sau đó mới xác định decision, input, output và metric.
@@ -729,7 +729,7 @@
 | A | Điều chỉnh parameter theo hướng giảm loss. | Có | `` | — | Training sử dụng error để cập nhật parameter và giảm loss. |
 | B | Xóa target sau mỗi prediction. | Không | `targets-are-not-needed` | Target cần thiết để tính loss trong supervised learning. |
 | C | Giữ nguyên parameter dù error lớn. | Không | `training-without-update` | Không cập nhật thì model không học từ sai số. |
-| D | Chỉ thay đổi màu giao diện. | Không | `ui-is-training` | Giao diện không ảnh hưởng parameter model. |
+| D | Chọn prediction có vẻ hợp lý nhất nhưng không cập nhật parameter. | Không | `prediction-without-learning` | Training cần dùng loss để cập nhật parameter, không chỉ chọn output nghe hợp lý. |
 
     - **Đáp án đúng:** `A`
     - **Giải thích:** Training là chu trình prediction → loss → update parameter → lặp lại.
@@ -775,7 +775,7 @@
     | Lựa chọn | Nội dung | Đúng | Misconception ID | Phản hồi ngay |
 |---|---|:---:|---|---|
 | A | Learning rate có thể quá lớn. | Có | `` | — | Bước cập nhật quá lớn có thể vượt qua điểm tốt và gây dao động. |
-| B | Model chắc chắn cần nhiều màu hơn. | Không | `visual-design-fixes-optimization` | Thiết kế UI không ảnh hưởng optimization. |
+| B | Learning rate có thể quá nhỏ nên mỗi bước update quá ngắn. | Không | `small-lr-causes-oscillation` | Learning rate quá nhỏ thường làm học chậm; dao động mạnh thường gợi ý bước update quá lớn. |
 | C | Phải xóa toàn bộ dữ liệu. | Không | `delete-data-on-instability` | Chưa có evidence cho thấy cần bỏ dữ liệu. |
 | D | Learning rate càng lớn luôn càng hội tụ nhanh. | Không | `higher-lr-always-better` | Learning rate quá lớn có thể làm training mất ổn định. |
 
@@ -893,7 +893,7 @@
 | A | Recall của positive class. | Có | `` | — | Recall đo tỷ lệ người có bệnh được phát hiện. |
 | B | Chỉ tốc độ inference. | Không | `speed-over-safety` | Tốc độ không phản ánh số trường hợp bị bỏ sót. |
 | C | Chỉ kích thước file model. | Không | `file-size-is-clinical-quality` | Kích thước file không đo chất lượng sàng lọc. |
-| D | Số lượng màu trên dashboard. | Không | `ui-is-metric` | Đây không phải metric của model. |
+| D | Accuracy tổng thể nếu class âm chiếm đa số. | Không | `accuracy-hides-false-negatives` | Accuracy tổng thể có thể che giấu việc bỏ sót positive class. |
 
     - **Đáp án đúng:** `A`
     - **Giải thích:** Khi false negative có chi phí cao, recall của positive class là metric trọng yếu.
@@ -1065,7 +1065,7 @@
     | Lựa chọn | Nội dung | Đúng | Misconception ID | Phản hồi ngay |
 |---|---|:---:|---|---|
 | A | Model học các representation ngày càng trừu tượng qua nhiều layer. | Có | `` | — | Deep network thường biến tín hiệu thô thành representation cấp cao hơn. |
-| B | Mỗi layer chỉ đổi màu dữ liệu. | Không | `layers-only-reformat` | Layer có thể học phép biến đổi hữu ích, không chỉ định dạng. |
+| B | Model chỉ lưu nguyên pixel đầu vào ở mọi layer. | Không | `layers-only-copy-input` | Các layer học phép biến đổi representation, không chỉ sao chép input. |
 | C | Neural network không sử dụng feature. | Không | `neural-networks-have-no-features` | Network học representation từ input. |
 | D | Layer càng nhiều luôn tốt hơn. | Không | `more-layers-always-better` | Độ phức tạp cần phù hợp dữ liệu, chi phí và bài toán. |
 
@@ -1584,7 +1584,7 @@
     | Lựa chọn | Nội dung | Đúng | Misconception ID | Phản hồi ngay |
 |---|---|:---:|---|---|
 | A | Tập test đại diện gồm trường hợp thông thường, khó, thiếu evidence và adversarial. | Có | `` | — | Evaluation phải bao phủ use case thực tế và failure mode quan trọng. |
-| B | Logo nhiều màu hơn. | Không | `branding-is-evaluation` | Branding không kiểm tra chất lượng hệ thống. |
+| B | Chỉ thêm nhiều câu hỏi dễ tương tự ba câu ban đầu. | Không | `more-easy-tests-is-enough` | Tăng số lượng happy-path không thay thế coverage cho case khó và failure mode. |
 | C | Một lời hứa rằng hệ thống luôn đúng. | Không | `claims-replace-tests` | Cam kết không thay thế evidence. |
 | D | Loại bỏ human reviewer. | Không | `less-review-improves-testing` | Human review đặc biệt hữu ích khi đánh giá failure có rủi ro cao. |
 

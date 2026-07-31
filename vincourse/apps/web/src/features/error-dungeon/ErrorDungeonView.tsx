@@ -30,6 +30,9 @@ export function ErrorDungeonView({ session: initialSession, onCompleted }: Props
     source_summary: string;
     transfer_question: string;
     transfer_options: Array<{ id: string; text: string }>;
+    ai_mentor_line?: string;
+    ai_repair_steps?: string[];
+    ai_transfer_drill?: string;
   }>) || [];
 
   const currentItem = allUnresolved[activeIndex] || {
@@ -43,6 +46,9 @@ export function ErrorDungeonView({ session: initialSession, onCompleted }: Props
     source_summary: (payload.source_summary as string) || "Đọc lại bài giảng để đối chiếu bằng chứng.",
     transfer_question: (payload.transfer_question as string) || "Trả lời câu hỏi tình huống mới để kiểm tra.",
     transfer_options: (payload.transfer_options as Array<{ id: string; text: string }>) || [],
+    ai_mentor_line: (payload.ai_mentor_line as string) || "AI Coach: Sửa lỗi sai bằng bằng chứng, không học thuộc đáp án.",
+    ai_repair_steps: (payload.ai_repair_steps as string[] | undefined) || [],
+    ai_transfer_drill: (payload.ai_transfer_drill as string) || "",
   };
 
   async function reloadSession() {
@@ -152,6 +158,19 @@ export function ErrorDungeonView({ session: initialSession, onCompleted }: Props
         <p style={{ fontSize: "15px", color: "#475569", margin: "0 0 20px 0", lineHeight: "1.5" }}>
           {currentItem.prompt}
         </p>
+
+        <div style={{ background: "#f5f3ff", border: "1px solid #ddd6fe", borderRadius: "14px", padding: "16px 18px", marginBottom: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#6d28d9", fontSize: "14px", fontWeight: 800, marginBottom: "8px" }}>
+            <Zap size={16} /> AI Recovery Coach
+          </div>
+          <p style={{ margin: "0 0 10px", color: "#3b0764", lineHeight: 1.55 }}>{currentItem.ai_mentor_line}</p>
+          {currentItem.ai_repair_steps?.length ? (
+            <ol style={{ margin: 0, paddingLeft: "20px", color: "#4c1d95", lineHeight: 1.7 }}>
+              {currentItem.ai_repair_steps.map((step) => <li key={step}>{step}</li>)}
+            </ol>
+          ) : null}
+          {currentItem.ai_transfer_drill ? <p style={{ margin: "10px 0 0", color: "#6d28d9", fontWeight: 700 }}>{currentItem.ai_transfer_drill}</p> : null}
+        </div>
 
         {/* 1. CÂU HỎI ĐÃ BỊ SAI */}
         <div style={{ marginBottom: "20px" }}>
