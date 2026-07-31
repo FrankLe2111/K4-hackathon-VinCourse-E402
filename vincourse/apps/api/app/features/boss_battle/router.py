@@ -15,6 +15,7 @@ router = APIRouter(tags=["boss-battle"])
 THRESHOLD = 80
 ATTACK_DAMAGE = 25
 ROUND_TIME_SECONDS = 30
+CORRECT_POINTS = 1000
 
 PLAYERS = [
     {"player_id": "p-ana", "nickname": "An", "avatar": "AN"},
@@ -121,8 +122,7 @@ def _boss_session() -> GameSession:
             "rules": {
                 "threshold": THRESHOLD,
                 "round_time_seconds": ROUND_TIME_SECONDS,
-                "correct_points": 100,
-                "speed_bonus_max": 50,
+                "correct_points": CORRECT_POINTS,
                 "damage_rule": "Neu correct_rate >= 80%, boss mat 25 HP. Neu thap hon, boss khong mat mau.",
             },
             "players": PLAYERS,
@@ -153,9 +153,35 @@ def _round_by_id(round_id: str) -> dict[str, Any]:
     return ROUNDS[0]
 
 
-def _speed_bonus(elapsed_seconds: int) -> int:
-    remaining = max(0, ROUND_TIME_SECONDS - elapsed_seconds)
-    return round(remaining / ROUND_TIME_SECONDS * 50)
+def _kahoot_score(elapsed_seconds: int, timer_seconds: int = ROUND_TIME_SECONDS) -> int:
+    if elapsed_seconds <= 0.5:
+        return CORRECT_POINTS
+    ratio = min(max(elapsed_seconds / timer_seconds, 0), 1)
+    return round(CORRECT_POINTS * (1 - ratio / 2))
+
+
+def _answer_distribution(round_data: dict[str, Any], selected_option: str, player_correct: bool) -> list[dict[str, Any]]:
+    counts = {option["id"]: 0 for option in round_data["options"]}
+    counts[selected_option] = counts.get(selected_option, 0) + 1
+    for index, correct in enumerate(round_data["simulated_correct"]):
+        if correct:
+            option_id = round_data["correct_option_id"]
+        else:
+            wrong_options = [option["id"] for option in round_data["options"] if option["id"] != round_data["correct_option_id"]]
+            option_id = wrong_options[index % len(wrong_options)]
+        counts[option_id] = counts.get(option_id, 0) + 1
+    total = sum(counts.values()) or 1
+    return [
+        {
+            "option_id": option["id"],
+            "label": option["label"],
+            "count": counts.get(option["id"], 0),
+            "percent": round(counts.get(option["id"], 0) / total * 100),
+            "correct": option["id"] == round_data["correct_option_id"],
+            "selected_by_player": option["id"] == selected_option,
+        }
+        for option in round_data["options"]
+    ]
 
 
 def _boss_round_mentor(round_data: dict[str, Any]) -> str:
@@ -211,14 +237,15 @@ def submit(request: GameSubmitRequest) -> GameResult:
     elapsed_seconds = int(answer.get("elapsed_seconds") or 18)
 
     player_correct = selected_option == round_data["correct_option_id"]
-    player_score = 100 + _speed_bonus(elapsed_seconds) if player_correct else 0
+    player_score = _kahoot_score(elapsed_seconds) if player_correct else 0
     simulated_rows = [
         {
             "player_id": player["player_id"],
             "nickname": player["nickname"],
             "correct": correct,
-            "score_delta": 100 + max(0, 40 - index * 3) if correct else 0,
+            "score_delta": _kahoot_score(7 + index * 2) if correct else 0,
             "elapsed_seconds": 7 + index * 2,
+            "previous_rank": index + 1,
         }
         for index, (player, correct) in enumerate(zip(PLAYERS, round_data["simulated_correct"], strict=True))
     ]
@@ -228,9 +255,13 @@ def submit(request: GameSubmitRequest) -> GameResult:
         "correct": player_correct,
         "score_delta": player_score,
         "elapsed_seconds": elapsed_seconds,
+        "previous_rank": 6,
     }
     board = [player_row, *simulated_rows]
     board.sort(key=lambda row: (-int(row["score_delta"]), int(row["elapsed_seconds"])))
+    for index, row in enumerate(board):
+        row["rank"] = index + 1
+        row["rank_delta"] = int(row.get("previous_rank", index + 1)) - (index + 1)
 
     correct_count = sum(1 for row in board if row["correct"])
     active_count = len(board)
@@ -270,13 +301,14 @@ def submit(request: GameSubmitRequest) -> GameResult:
             "selected_option_id": selected_option,
             "correct_option_id": round_data["correct_option_id"],
             "player_score": player_score,
-            "speed_bonus": _speed_bonus(elapsed_seconds) if player_correct else 0,
+            "speed_bonus": player_score - round(CORRECT_POINTS / 2) if player_correct else 0,
             "active_players": active_count,
             "correct_count": correct_count,
             "correct_rate": correct_rate,
             "threshold": THRESHOLD,
             "boss_damaged": boss_damaged,
             "damage": damage,
+            "answer_distribution": _answer_distribution(round_data, selected_option, player_correct),
             "leaderboard": board,
             "ai_mentor": mentor_line,
         },

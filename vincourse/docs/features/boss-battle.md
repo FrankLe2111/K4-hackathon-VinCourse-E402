@@ -14,23 +14,35 @@ Nguoi choi join bang nickname, khong can tai khoan. Moi round moi nguoi tra loi 
 Host mo Boss Battle
   -> man hinh hien room code / join link
   -> nguoi choi nhap nickname
-  -> round hien cau hoi va cac lua chon
-  -> tung nguoi nop dap an doc lap
+  -> host bam Start Battle
+  -> countdown 3-2-1-FIGHT
+  -> round hien timer lon, cau hoi va 4 dap an mau
+  -> tung nguoi bam dap an va bi lock answer
   -> backend cham dung/sai va tinh diem ca nhan
+  -> reveal dap an dung + phan bo nguoi chon tung dap an
+  -> hien leaderboard overlay sau moi cau
+  -> animate diem va tang/giam thu hang
   -> backend tinh correct_rate cua ca phong
   -> neu correct_rate >= 80%, boss mat 25 HP
+  -> boss damage stage hien -25 HP hoac Attack blocked
   -> AI mentor phan tich loi chung va goi y round tiep theo
-  -> leaderboard cap nhat
   -> lap lai den khi boss HP = 0 hoac het round demo
+  -> final podium
 ```
 
 ## Scoring Rules
 
 ```text
-Dung: +100 diem
-Dung nhanh: +0 den +50 bonus
+Dung: toi da 1000 diem
+Dung nhanh: diem cang gan 1000
 Sai: +0 diem
 Khong nop: +0 diem
+```
+
+Cong thuc demo:
+
+```text
+score = round(1000 * (1 - elapsed_seconds / timer_seconds / 2))
 ```
 
 ## Boss Damage Rules
@@ -52,7 +64,7 @@ AI that trong module nay nam o backend:
 
 ```text
 FE -> FastAPI /api/modes/boss_battle/submit
-   -> app.ai.tutor.boss_round_mentor()
+   -> feature-local _boss_round_mentor()
    -> OpenAI
    -> GameResult.payload.ai_mentor
 ```
@@ -87,17 +99,62 @@ POST /api/modes/boss_battle/submit
 ```json
 {
   "round_id": "diagnose",
-  "player_score": 133,
-  "speed_bonus": 33,
+  "player_score": 833,
+  "speed_bonus": 333,
   "active_players": 10,
   "correct_count": 8,
   "correct_rate": 80,
   "threshold": 80,
   "boss_damaged": true,
   "damage": 25,
-  "leaderboard": [],
+  "answer_distribution": [
+    {
+      "option_id": "scale_mismatch",
+      "count": 8,
+      "percent": 80,
+      "correct": true,
+      "selected_by_player": true
+    }
+  ],
+  "leaderboard": [
+    {
+      "rank": 1,
+      "rank_delta": 2,
+      "nickname": "Minh",
+      "score_delta": 933,
+      "correct": true
+    }
+  ],
   "ai_mentor": "AI Mentor..."
 }
+```
+
+## UI State Machine
+
+Frontend Boss Battle khong render nhu mot form quiz. No chay theo cac state rieng:
+
+```text
+lobby
+countdown
+question
+locked
+reveal
+leaderboard
+damage
+victory
+```
+
+Yeu cau UX:
+
+```text
+lobby: room code lon, player chips, Start Battle
+countdown: 3-2-1-FIGHT full stage
+question: timer lon, answer cards mau, answered count
+locked: cho ca lop, khong reveal ngay
+reveal: dap an dung sang len, dap an sai mo/rung, hien distribution
+leaderboard: overlay full-screen, diem count-up, rank movement
+damage: boss shake, -25 HP hoac attack blocked
+victory: final podium top 3
 ```
 
 ## Database Contract For Future JSON Server

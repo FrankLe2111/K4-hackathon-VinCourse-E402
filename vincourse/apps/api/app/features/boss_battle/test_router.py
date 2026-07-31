@@ -14,6 +14,7 @@ def test_boss_battle_session_exposes_live_room_contract():
     assert data["mode"] == "boss_battle"
     assert data["payload"]["room"]["room_code"] == "24"
     assert data["payload"]["rules"]["threshold"] == 80
+    assert data["payload"]["rules"]["correct_points"] == 1000
     assert len(data["payload"]["rounds"]) == 4
     assert data["payload"]["database_contract"]["answers_table"] == "bossBattleAnswers"
 
@@ -38,9 +39,11 @@ def test_boss_battle_submit_scores_player_and_damages_boss(monkeypatch):
     assert response.status_code == 200
     data = response.json()
     assert data["correct"] is True
-    assert data["xp"] > 100
+    assert data["xp"] > 800
     assert data["payload"]["boss_damaged"] is True
     assert data["payload"]["damage"] == 25
+    assert data["payload"]["leaderboard"][0]["rank"] == 1
+    assert data["payload"]["answer_distribution"][0]["count"] > 0
     assert data["payload"]["ai_mentor"] == "AI Mentor: test hint"
 
 
